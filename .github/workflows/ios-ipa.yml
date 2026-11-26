@@ -1,4 +1,4 @@
-﻿name: Build iOS IPA
+name: Build iOS IPA
 
 on:
   push:
@@ -33,6 +33,19 @@ jobs:
           cd .
           xcodegen generate
           ls -la
+
+      - name: Check storage compatibility
+        run: |
+          set -e
+          cd .
+          ls Sources/Model
+          xcrun swiftc -o /tmp/decode-check \
+            Sources/Model/AppConfig.swift \
+            Sources/Model/Entities.swift \
+            Sources/Model/Format.swift \
+            Sources/Model/Support.swift \
+            tools/DecodeCompatibilityCheck.swift
+          /tmp/decode-check
 
       - name: Build (unsigned)
         run: |
