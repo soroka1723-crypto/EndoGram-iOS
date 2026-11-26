@@ -331,7 +331,7 @@ struct PrivacySettingsView: View {
                 }
                 .listRowBackground(Theme.panel)
 
-                Section("Кто может") {
+                Section {
                     SettingsPickerRow(icon: "bubble.left.fill", title: "Сообщения",
                                       options: visibilityOptions, selection: stringBind(\.messagesVisibility))
                     SettingsPickerRow(icon: "phone.arrow.up.right.fill", title: "Звонки",
@@ -342,6 +342,8 @@ struct PrivacySettingsView: View {
                                       options: visibilityOptions, selection: stringBind(\.savedMusicVisibility))
                     SettingsPickerRow(icon: "mic.fill", title: "Голосовые сообщения",
                                       options: visibilityOptions, selection: stringBind(\.voiceMessagesVisibility))
+                } header: {
+                    Text("Кто может")
                 } footer: {
                     Text("В офлайн-режиме рядом нет других людей: эти правила сохранены для совместимости с Telegram и вступят в силу при подключении сервера EndoGram.")
                         .font(.system(size: 12))
