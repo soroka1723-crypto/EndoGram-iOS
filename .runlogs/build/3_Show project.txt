@@ -1,0 +1,18 @@
+﻿2026-11-26T14:58:48.9689390Z ##[group]Run set -e
+2026-11-26T14:58:48.9690850Z [36;1mset -e[0m
+2026-11-26T14:58:48.9691700Z [36;1mls -la .[0m
+2026-11-26T14:58:48.9692680Z [36;1mfind Sources -name '*.swift' | wc -l[0m
+2026-11-26T14:58:48.9786240Z shell: /bin/bash -e {0}
+2026-11-26T14:58:48.9788550Z ##[endgroup]
+2026-11-26T14:58:49.1019840Z total 16
+2026-11-26T14:58:49.1025850Z drwxr-xr-x  10 runner  staff   320 Nov 26 14:58 .
+2026-11-26T14:58:49.1036460Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 ..
+2026-11-26T14:58:49.1138850Z drwxr-xr-x  14 runner  staff   448 Nov 26 14:58 .git
+2026-11-26T14:58:49.1253890Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 .github
+2026-11-26T14:58:49.1291860Z -rw-r--r--   1 runner  staff  1066 Nov 26 14:58 project.yml
+2026-11-26T14:58:49.1297040Z -rw-r--r--   1 runner  staff  3695 Nov 26 14:58 README.md
+2026-11-26T14:58:49.1298590Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 Resources
+2026-11-26T14:58:49.1301910Z drwxr-xr-x   7 runner  staff   224 Nov 26 14:58 Sources
+2026-11-26T14:58:49.1305380Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 Support
+2026-11-26T14:58:49.1306740Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 tools
+2026-11-26T14:58:49.1308110Z       20

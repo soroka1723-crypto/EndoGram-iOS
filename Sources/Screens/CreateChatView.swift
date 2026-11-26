@@ -1,14 +1,14 @@
-import SwiftUI
+﻿import SwiftUI
 
-/// Создание личного чата, группы или канала.
+/// РЎРѕР·РґР°РЅРёРµ Р»РёС‡РЅРѕРіРѕ С‡Р°С‚Р°, РіСЂСѓРїРїС‹ РёР»Рё РєР°РЅР°Р»Р°.
 struct CreateChatView: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.dismiss) private var dismiss
 
     enum Mode: String, CaseIterable {
-        case direct = "Чат"
-        case group = "Группа"
-        case channel = "Канал"
+        case direct = "Р§Р°С‚"
+        case group = "Р“СЂСѓРїРїР°"
+        case channel = "РљР°РЅР°Р»"
     }
 
     @State private var mode: Mode = .direct
@@ -25,7 +25,7 @@ struct CreateChatView: View {
                 Theme.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 16) {
-                        Picker("Тип", selection: $mode) {
+                        Picker("РўРёРї", selection: $mode) {
                             ForEach(Mode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                         }
                         .pickerStyle(.segmented)
@@ -34,12 +34,12 @@ struct CreateChatView: View {
 
                         if mode != .direct {
                             VStack(spacing: 10) {
-                                TextField(mode == .group ? "Название группы" : "Название канала", text: $title)
+                                TextField(mode == .group ? "РќР°Р·РІР°РЅРёРµ РіСЂСѓРїРїС‹" : "РќР°Р·РІР°РЅРёРµ РєР°РЅР°Р»Р°", text: $title)
                                     .textFieldStyle(.plain)
                                     .padding(12)
                                     .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
                                 if mode == .channel {
-                                    TextField("Описание канала", text: $about, axis: .vertical)
+                                    TextField("РћРїРёСЃР°РЅРёРµ РєР°РЅР°Р»Р°", text: $about, axis: .vertical)
                                         .lineLimit(2...4)
                                         .padding(12)
                                         .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
@@ -66,7 +66,7 @@ struct CreateChatView: View {
                         .padding(.horizontal, 16)
                         .disabled(!canCreate)
 
-                        Text("Всё создаётся локально: это тестовый режим без серверов и без реальных собеседников.")
+                        Text("Р’СЃС‘ СЃРѕР·РґР°С‘С‚СЃСЏ Р»РѕРєР°Р»СЊРЅРѕ: СЌС‚Рѕ С‚РµСЃС‚РѕРІС‹Р№ СЂРµР¶РёРј Р±РµР· СЃРµСЂРІРµСЂРѕРІ Рё Р±РµР· СЂРµР°Р»СЊРЅС‹С… СЃРѕР±РµСЃРµРґРЅРёРєРѕРІ.")
                             .font(.system(size: 12))
                             .foregroundColor(Theme.textSecondary)
                             .multilineTextAlignment(.center)
@@ -75,11 +75,11 @@ struct CreateChatView: View {
                     .padding(.bottom, 30)
                 }
             }
-            .navigationTitle("Новое")
+            .navigationTitle("РќРѕРІРѕРµ")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Отмена") { dismiss() }
+                    Button("РћС‚РјРµРЅР°") { dismiss() }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -91,9 +91,9 @@ struct CreateChatView: View {
             }
             .toolbarBackground(Theme.panel, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .alert("Новый контакт", isPresented: $showNewContact) {
-                TextField("Имя", text: $newContactName)
-                Button("Создать") {
+            .alert("РќРѕРІС‹Р№ РєРѕРЅС‚Р°РєС‚", isPresented: $showNewContact) {
+                TextField("РРјСЏ", text: $newContactName)
+                Button("РЎРѕР·РґР°С‚СЊ") {
                     let name = newContactName.trimmingCharacters(in: .whitespaces)
                     guard !name.isEmpty else { return }
                     let contact = env.addContact(displayName: name, username: "")
@@ -106,22 +106,22 @@ struct CreateChatView: View {
                         selected.insert(contact.id)
                     }
                 }
-                Button("Отмена", role: .cancel) { newContactName = "" }
+                Button("РћС‚РјРµРЅР°", role: .cancel) { newContactName = "" }
             } message: {
-                Text("Контакт существует только на этом устройстве.")
+                Text("РљРѕРЅС‚Р°РєС‚ СЃСѓС‰РµСЃС‚РІСѓРµС‚ С‚РѕР»СЊРєРѕ РЅР° СЌС‚РѕРј СѓСЃС‚СЂРѕР№СЃС‚РІРµ.")
             }
         }
     }
 
     private var contactPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(mode == .group ? "Участники" : "Кому написать")
+            Text(mode == .group ? "РЈС‡Р°СЃС‚РЅРёРєРё" : "РљРѕРјСѓ РЅР°РїРёСЃР°С‚СЊ")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(Theme.textSecondary)
                 .padding(.horizontal, 16)
 
             if env.snapshot.contacts.isEmpty {
-                Text("Контактов пока нет — добавьте кнопкой сверху.")
+                Text("РљРѕРЅС‚Р°РєС‚РѕРІ РїРѕРєР° РЅРµС‚ вЂ” РґРѕР±Р°РІСЊС‚Рµ РєРЅРѕРїРєРѕР№ СЃРІРµСЂС…Сѓ.")
                     .font(.system(size: 13))
                     .foregroundColor(Theme.textSecondary)
                     .padding(.horizontal, 16)
@@ -174,9 +174,9 @@ struct CreateChatView: View {
 
     private var createTitle: String {
         switch mode {
-        case .direct: return "Выбрать собеседника ниже"
-        case .group: return "Создать группу"
-        case .channel: return "Создать канал"
+        case .direct: return "Р’С‹Р±СЂР°С‚СЊ СЃРѕР±РµСЃРµРґРЅРёРєР° РЅРёР¶Рµ"
+        case .group: return "РЎРѕР·РґР°С‚СЊ РіСЂСѓРїРїСѓ"
+        case .channel: return "РЎРѕР·РґР°С‚СЊ РєР°РЅР°Р»"
         }
     }
 
@@ -184,7 +184,7 @@ struct CreateChatView: View {
         let name = title.trimmingCharacters(in: .whitespaces)
         switch mode {
         case .direct:
-            error = "Выберите контакта или добавьте нового"
+            error = "Р’С‹Р±РµСЂРёС‚Рµ РєРѕРЅС‚Р°РєС‚Р° РёР»Рё РґРѕР±Р°РІСЊС‚Рµ РЅРѕРІРѕРіРѕ"
         case .group:
             guard !name.isEmpty else { return }
             _ = env.createGroup(title: name, memberIds: Array(selected))
@@ -197,7 +197,7 @@ struct CreateChatView: View {
     }
 }
 
-/// Информация о чате.
+/// РРЅС„РѕСЂРјР°С†РёСЏ Рѕ С‡Р°С‚Рµ.
 struct ChatInfoView: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.dismiss) private var dismiss
@@ -215,7 +215,7 @@ struct ChatInfoView: View {
                 ScrollView {
                     VStack(spacing: 18) {
                         VStack(spacing: 10) {
-                            AvatarView(title: chat?.title ?? "?", colorHex: chat?.avatarColor ?? Theme.accent, size: 96)
+                            AvatarView(title: chat?.title ?? "?", colorHex: chat?.avatarColor ?? Palette.blue, size: 96)
                             Text(chat?.title ?? "")
                                 .font(.system(size: 22, weight: .semibold))
                                 .foregroundColor(Theme.textPrimary)
@@ -225,16 +225,16 @@ struct ChatInfoView: View {
                         }
                         .padding(.top, 20)
 
-                        SectionCard(title: "О чате") {
-                            SettingsRow(icon: "bubble.left.and.bubble.right.fill", title: "Сообщений", value: "\(env.messages(in: chatId).count)", showsChevron: false)
+                        SectionCard(title: "Рћ С‡Р°С‚Рµ") {
+                            SettingsRow(icon: "bubble.left.and.bubble.right.fill", title: "РЎРѕРѕР±С‰РµРЅРёР№", value: "\(env.messages(in: chatId).count)", showsChevron: false)
                             DividerLine()
-                            SettingsRow(icon: "person.3.fill", title: "Участников", value: "\(chat?.memberIds.count ?? 0)", showsChevron: false)
+                            SettingsRow(icon: "person.3.fill", title: "РЈС‡Р°СЃС‚РЅРёРєРѕРІ", value: "\(chat?.memberIds.count ?? 0)", showsChevron: false)
                             DividerLine()
-                            SettingsRow(icon: "calendar", title: "Создан", value: chat.map { Format.fullDate($0.createdAt) } ?? "", showsChevron: false)
+                            SettingsRow(icon: "calendar", title: "РЎРѕР·РґР°РЅ", value: chat.map { Format.fullDate($0.createdAt) } ?? "", showsChevron: false)
                         }
 
                         if chat?.kind == .group {
-                            SectionCard(title: "Участники") {
+                            SectionCard(title: "РЈС‡Р°СЃС‚РЅРёРєРё") {
                                 ForEach(chat?.memberIds ?? [], id: \.self) { id in
                                     memberRow(id)
                                     DividerLine()
@@ -245,7 +245,7 @@ struct ChatInfoView: View {
                                     HStack(spacing: 12) {
                                         Image(systemName: "plus.circle.fill")
                                             .foregroundColor(Theme.accentBright)
-                                        Text("Добавить участника")
+                                        Text("Р”РѕР±Р°РІРёС‚СЊ СѓС‡Р°СЃС‚РЅРёРєР°")
                                             .foregroundColor(Theme.accentBright)
                                         Spacer()
                                     }
@@ -256,12 +256,12 @@ struct ChatInfoView: View {
                             }
                         }
 
-                        SectionCard(title: "Настройки") {
+                        SectionCard(title: "РќР°СЃС‚СЂРѕР№РєРё") {
                             Toggle(isOn: Binding(
                                 get: { chat?.isMuted ?? false },
                                 set: { env.setMuted(chatId, $0) }
                             )) {
-                                Label("Без звука", systemImage: "bell.slash.fill")
+                                Label("Р‘РµР· Р·РІСѓРєР°", systemImage: "bell.slash.fill")
                                     .foregroundColor(Theme.textPrimary)
                             }
                             .tint(Theme.accent)
@@ -272,7 +272,7 @@ struct ChatInfoView: View {
                                 get: { chat?.isPinned ?? false },
                                 set: { env.setPinned(chatId, $0) }
                             )) {
-                                Label("Закрепить", systemImage: "pin.fill")
+                                Label("Р—Р°РєСЂРµРїРёС‚СЊ", systemImage: "pin.fill")
                                     .foregroundColor(Theme.textPrimary)
                             }
                             .tint(Theme.accent)
@@ -284,7 +284,7 @@ struct ChatInfoView: View {
                             env.deleteChat(chatId)
                             dismiss()
                         } label: {
-                            Text("Удалить чат")
+                            Text("РЈРґР°Р»РёС‚СЊ С‡Р°С‚")
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
                                 .background(RoundedRectangle(cornerRadius: 12).fill(Theme.danger.opacity(0.16)))
@@ -295,25 +295,25 @@ struct ChatInfoView: View {
                     }
                 }
             }
-            .navigationTitle("Информация")
+            .navigationTitle("РРЅС„РѕСЂРјР°С†РёСЏ")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Готово") { dismiss() }
+                    Button("Р“РѕС‚РѕРІРѕ") { dismiss() }
                 }
             }
             .toolbarBackground(Theme.panel, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .alert("Добавить участника", isPresented: $showAdd) {
-                TextField("Имя", text: $newMemberName)
-                Button("Добавить") {
+            .alert("Р”РѕР±Р°РІРёС‚СЊ СѓС‡Р°СЃС‚РЅРёРєР°", isPresented: $showAdd) {
+                TextField("РРјСЏ", text: $newMemberName)
+                Button("Р”РѕР±Р°РІРёС‚СЊ") {
                     let name = newMemberName.trimmingCharacters(in: .whitespaces)
                     guard !name.isEmpty else { return }
                     let contact = env.addContact(displayName: name, username: "")
                     newMemberName = ""
                     _ = contact
                 }
-                Button("Отмена", role: .cancel) { newMemberName = "" }
+                Button("РћС‚РјРµРЅР°", role: .cancel) { newMemberName = "" }
             }
         }
     }
@@ -324,17 +324,17 @@ struct ChatInfoView: View {
                 AvatarView(title: env.profile.displayName, colorHex: env.profile.avatarColor, size: 38)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(env.profile.displayName).foregroundColor(Theme.textPrimary)
-                    Text("вы").font(.system(size: 12)).foregroundColor(Theme.textSecondary)
+                    Text("РІС‹").font(.system(size: 12)).foregroundColor(Theme.textSecondary)
                 }
             } else if let contact = env.contact(id) {
                 AvatarView(title: contact.displayName, colorHex: contact.avatarColor, size: 38)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(contact.displayName).foregroundColor(Theme.textPrimary)
-                    Text("локальный контакт").font(.system(size: 12)).foregroundColor(Theme.textSecondary)
+                    Text("Р»РѕРєР°Р»СЊРЅС‹Р№ РєРѕРЅС‚Р°РєС‚").font(.system(size: 12)).foregroundColor(Theme.textSecondary)
                 }
             } else {
-                AvatarView(title: "?", colorHex: Theme.accent, size: 38)
-                Text("Участник").foregroundColor(Theme.textPrimary)
+                AvatarView(title: "?", colorHex: Palette.blue, size: 38)
+                Text("РЈС‡Р°СЃС‚РЅРёРє").foregroundColor(Theme.textPrimary)
             }
             Spacer()
         }
@@ -342,3 +342,4 @@ struct ChatInfoView: View {
         .padding(.vertical, 8)
     }
 }
+

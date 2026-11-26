@@ -1,10 +1,10 @@
-import Foundation
+﻿import Foundation
 import SwiftUI
 
-/// Единая точка доступа к данным для всех экранов.
+/// Р•РґРёРЅР°СЏ С‚РѕС‡РєР° РґРѕСЃС‚СѓРїР° Рє РґР°РЅРЅС‹Рј РґР»СЏ РІСЃРµС… СЌРєСЂР°РЅРѕРІ.
 ///
-/// Экраны знают только про `EndoBackend`. Чтобы позже подключить сервер EndoGram,
-/// достаточно передать сюда `RemoteBackend` — код интерфейса останется прежним.
+/// Р­РєСЂР°РЅС‹ Р·РЅР°СЋС‚ С‚РѕР»СЊРєРѕ РїСЂРѕ `EndoBackend`. Р§С‚РѕР±С‹ РїРѕР·Р¶Рµ РїРѕРґРєР»СЋС‡РёС‚СЊ СЃРµСЂРІРµСЂ EndoGram,
+/// РґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїРµСЂРµРґР°С‚СЊ СЃСЋРґР° `RemoteBackend` вЂ” РєРѕРґ РёРЅС‚РµСЂС„РµР№СЃР° РѕСЃС‚Р°РЅРµС‚СЃСЏ РїСЂРµР¶РЅРёРј.
 @MainActor
 final class AppEnvironment: ObservableObject {
 
@@ -17,7 +17,7 @@ final class AppEnvironment: ObservableObject {
         self.snapshot = backend.bootstrap()
     }
 
-    // MARK: - Производные данные
+    // MARK: - РџСЂРѕРёР·РІРѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ
 
     var profile: UserProfile { snapshot.profile }
     var stars: Int { snapshot.stars }
@@ -104,7 +104,7 @@ final class AppEnvironment: ObservableObject {
     }
 
     var storageDescription: String {
-        guard let local = backend as? LocalBackend else { return "локальное хранилище" }
+        guard let local = backend as? LocalBackend else { return "Р»РѕРєР°Р»СЊРЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ" }
         let bytes = local.fileSizeBytes
         let formatter = ByteCountFormatter()
         formatter.allowedUnits = [.useKB, .useMB]
@@ -112,13 +112,13 @@ final class AppEnvironment: ObservableObject {
         return formatter.string(fromByteCount: Int64(bytes))
     }
 
-    // MARK: - Перерисовка после действий
+    // MARK: - РџРµСЂРµСЂРёСЃРѕРІРєР° РїРѕСЃР»Рµ РґРµР№СЃС‚РІРёР№
 
     private func refresh() {
         snapshot = backend.snapshot
     }
 
-    // MARK: - Действия
+    // MARK: - Р”РµР№СЃС‚РІРёСЏ
 
     @discardableResult
     func sendMessage(chatId: String, text: String) -> Message {
@@ -197,16 +197,16 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
-    /// Покупка подарка. Возвращает текст ошибки или nil при успехе.
+    /// РџРѕРєСѓРїРєР° РїРѕРґР°СЂРєР°. Р’РѕР·РІСЂР°С‰Р°РµС‚ С‚РµРєСЃС‚ РѕС€РёР±РєРё РёР»Рё nil РїСЂРё СѓСЃРїРµС…Рµ.
     func buyGift(_ gift: Gift, toChatId: String?) -> String? {
-        guard stars >= gift.price else { return "Недостаточно звёзд: нужно \(Format.stars(gift.price))" }
+        guard stars >= gift.price else { return "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ Р·РІС‘Р·Рґ: РЅСѓР¶РЅРѕ \(Format.stars(gift.price))" }
         _ = backend.buyGift(gift, toChatId: toChatId)
         refresh()
         return nil
     }
 
     func buyNFT(_ item: NFTItem) -> String? {
-        guard stars >= item.price else { return "Недостаточно звёзд: нужно \(Format.stars(item.price))" }
+        guard stars >= item.price else { return "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ Р·РІС‘Р·Рґ: РЅСѓР¶РЅРѕ \(Format.stars(item.price))" }
         _ = backend.buyNFT(item)
         refresh()
         return nil
@@ -214,7 +214,7 @@ final class AppEnvironment: ObservableObject {
 
     func activatePremium() -> String? {
         if !profile.premiumActive, stars < AppConfig.premiumPrice {
-            return "Недостаточно звёзд: нужно \(Format.stars(AppConfig.premiumPrice))"
+            return "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ Р·РІС‘Р·Рґ: РЅСѓР¶РЅРѕ \(Format.stars(AppConfig.premiumPrice))"
         }
         _ = backend.activatePremium()
         refresh()
@@ -253,3 +253,4 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 }
+

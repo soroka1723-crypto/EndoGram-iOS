@@ -1,6 +1,6 @@
-import SwiftUI
+﻿import SwiftUI
 
-/// Поиск по чатам, сообщениям и контактам.
+/// РџРѕРёСЃРє РїРѕ С‡Р°С‚Р°Рј, СЃРѕРѕР±С‰РµРЅРёСЏРј Рё РєРѕРЅС‚Р°РєС‚Р°Рј.
 struct SearchView: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.dismiss) private var dismiss
@@ -36,11 +36,11 @@ struct SearchView: View {
             ZStack {
                 Theme.panel.ignoresSafeArea()
                 if query.isEmpty {
-                    EmptyStateView(icon: "magnifyingglass", title: "Поиск", subtitle: "Чаты, сообщения и контакты — всё ищется локально.")
+                    EmptyStateView(icon: "magnifyingglass", title: "РџРѕРёСЃРє", subtitle: "Р§Р°С‚С‹, СЃРѕРѕР±С‰РµРЅРёСЏ Рё РєРѕРЅС‚Р°РєС‚С‹ вЂ” РІСЃС‘ РёС‰РµС‚СЃСЏ Р»РѕРєР°Р»СЊРЅРѕ.")
                 } else {
                     List {
                         if !chatHits.isEmpty {
-                            Section("Чаты") {
+                            Section("Р§Р°С‚С‹") {
                                 ForEach(chatHits) { chat in
                                     Button { selectedChat = chat } label: {
                                         HStack(spacing: 12) {
@@ -54,7 +54,7 @@ struct SearchView: View {
                             }
                         }
                         if !contactHits.isEmpty {
-                            Section("Контакты") {
+                            Section("РљРѕРЅС‚Р°РєС‚С‹") {
                                 ForEach(contactHits) { contact in
                                     Button {
                                         selectedChat = env.openDirectChat(with: contact)
@@ -73,13 +73,13 @@ struct SearchView: View {
                             }
                         }
                         if !messageHits.isEmpty {
-                            Section("Сообщения") {
+                            Section("РЎРѕРѕР±С‰РµРЅРёСЏ") {
                                 ForEach(messageHits) { message in
                                     Button {
                                         if let chat = env.chat(message.chatId) { selectedChat = chat }
                                     } label: {
                                         VStack(alignment: .leading, spacing: 3) {
-                                            Text(env.chat(message.chatId)?.title ?? "Чат")
+                                            Text(env.chat(message.chatId)?.title ?? "Р§Р°С‚")
                                                 .font(.system(size: 13, weight: .semibold))
                                                 .foregroundColor(Theme.accentBright)
                                             Text(message.text)
@@ -97,7 +97,7 @@ struct SearchView: View {
                             }
                         }
                         if chatHits.isEmpty && contactHits.isEmpty && messageHits.isEmpty {
-                            Text("Ничего не найдено")
+                            Text("РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ")
                                 .foregroundColor(Theme.textSecondary)
                                 .listRowBackground(Theme.panel)
                         }
@@ -106,12 +106,12 @@ struct SearchView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
-            .navigationTitle("Поиск")
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "РџРѕРёСЃРє")
+            .navigationTitle("РџРѕРёСЃРє")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Закрыть") { dismiss() }
+                    Button("Р—Р°РєСЂС‹С‚СЊ") { dismiss() }
                 }
             }
             .toolbarBackground(Theme.panel, for: .navigationBar)
@@ -122,3 +122,4 @@ struct SearchView: View {
         }
     }
 }
+

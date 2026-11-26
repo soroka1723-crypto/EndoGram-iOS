@@ -1,6 +1,6 @@
-import SwiftUI
+﻿import SwiftUI
 
-/// Контакты: локальная адресная книга, из которой создаются чаты.
+/// РљРѕРЅС‚Р°РєС‚С‹: Р»РѕРєР°Р»СЊРЅР°СЏ Р°РґСЂРµСЃРЅР°СЏ РєРЅРёРіР°, РёР· РєРѕС‚РѕСЂРѕР№ СЃРѕР·РґР°СЋС‚СЃСЏ С‡Р°С‚С‹.
 struct ContactsView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var query = ""
@@ -23,8 +23,8 @@ struct ContactsView: View {
             if env.snapshot.contacts.isEmpty {
                 EmptyStateView(
                     icon: "person.crop.circle.badge.plus",
-                    title: "Контактов нет",
-                    subtitle: "Добавьте локальный тестовый контакт — и начните с ним переписку."
+                    title: "РљРѕРЅС‚Р°РєС‚РѕРІ РЅРµС‚",
+                    subtitle: "Р”РѕР±Р°РІСЊС‚Рµ Р»РѕРєР°Р»СЊРЅС‹Р№ С‚РµСЃС‚РѕРІС‹Р№ РєРѕРЅС‚Р°РєС‚ вЂ” Рё РЅР°С‡РЅРёС‚Рµ СЃ РЅРёРј РїРµСЂРµРїРёСЃРєСѓ."
                 )
             } else {
                 List {
@@ -56,10 +56,10 @@ struct ContactsView: View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                .searchable(text: $query, prompt: "Поиск контактов")
+                .searchable(text: $query, prompt: "РџРѕРёСЃРє РєРѕРЅС‚Р°РєС‚РѕРІ")
             }
         }
-        .navigationTitle("Контакты")
+        .navigationTitle("РљРѕРЅС‚Р°РєС‚С‹")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -71,10 +71,10 @@ struct ContactsView: View {
         }
         .toolbarBackground(Theme.panel, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .alert("Новый контакт", isPresented: $showAdd) {
-            TextField("Имя", text: $newName)
-            TextField("Имя пользователя", text: $newUsername)
-            Button("Добавить") {
+        .alert("РќРѕРІС‹Р№ РєРѕРЅС‚Р°РєС‚", isPresented: $showAdd) {
+            TextField("РРјСЏ", text: $newName)
+            TextField("РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ", text: $newUsername)
+            Button("Р”РѕР±Р°РІРёС‚СЊ") {
                 let name = newName.trimmingCharacters(in: .whitespaces)
                 guard !name.isEmpty else { return }
                 let contact = env.addContact(displayName: name, username: newUsername.trimmingCharacters(in: .whitespaces))
@@ -82,12 +82,12 @@ struct ContactsView: View {
                 newUsername = ""
                 _ = contact
             }
-            Button("Отмена", role: .cancel) {
+            Button("РћС‚РјРµРЅР°", role: .cancel) {
                 newName = ""
                 newUsername = ""
             }
         } message: {
-            Text("Контакт сохранится только на этом устройстве.")
+            Text("РљРѕРЅС‚Р°РєС‚ СЃРѕС…СЂР°РЅРёС‚СЃСЏ С‚РѕР»СЊРєРѕ РЅР° СЌС‚РѕРј СѓСЃС‚СЂРѕР№СЃС‚РІРµ.")
         }
         .sheet(item: $selectedContact) { contact in
             ContactProfileView(contact: contact)
@@ -96,7 +96,7 @@ struct ContactsView: View {
     }
 }
 
-/// Профиль контакта.
+/// РџСЂРѕС„РёР»СЊ РєРѕРЅС‚Р°РєС‚Р°.
 struct ContactProfileView: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.dismiss) private var dismiss
@@ -126,27 +126,27 @@ struct ContactProfileView: View {
                         .padding(.top, 24)
 
                         HStack(spacing: 10) {
-                            actionButton(icon: "message.fill", title: "Написать") {
+                            actionButton(icon: "message.fill", title: "РќР°РїРёСЃР°С‚СЊ") {
                                 openChat = env.openDirectChat(with: contact)
                             }
-                            actionButton(icon: "phone.fill", title: "Звонок") {
+                            actionButton(icon: "phone.fill", title: "Р—РІРѕРЅРѕРє") {
                                 env.logCall(peerName: contact.displayName, isVideo: false, isOutgoing: true, isMissed: false, duration: 0)
                             }
-                            actionButton(icon: "video.fill", title: "Видео") {
+                            actionButton(icon: "video.fill", title: "Р’РёРґРµРѕ") {
                                 env.logCall(peerName: contact.displayName, isVideo: true, isOutgoing: true, isMissed: false, duration: 0)
                             }
                         }
                         .padding(.horizontal, 16)
 
-                        SectionCard(title: "О контакте") {
-                            SettingsRow(icon: "person.fill", title: "Имя", value: contact.displayName, showsChevron: false)
+                        SectionCard(title: "Рћ РєРѕРЅС‚Р°РєС‚Рµ") {
+                            SettingsRow(icon: "person.fill", title: "РРјСЏ", value: contact.displayName, showsChevron: false)
                             DividerLine()
-                            SettingsRow(icon: "at", title: "Имя пользователя", value: "@" + contact.username, showsChevron: false)
+                            SettingsRow(icon: "at", title: "РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ", value: "@" + contact.username, showsChevron: false)
                             DividerLine()
-                            SettingsRow(icon: "info.circle", title: "Тип", value: "Локальный контакт", showsChevron: false)
+                            SettingsRow(icon: "info.circle", title: "РўРёРї", value: "Р›РѕРєР°Р»СЊРЅС‹Р№ РєРѕРЅС‚Р°РєС‚", showsChevron: false)
                         }
 
-                        Text("Это тестовый профиль: сообщения и звонки не уходят в сеть.")
+                        Text("Р­С‚Рѕ С‚РµСЃС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ: СЃРѕРѕР±С‰РµРЅРёСЏ Рё Р·РІРѕРЅРєРё РЅРµ СѓС…РѕРґСЏС‚ РІ СЃРµС‚СЊ.")
                             .font(.system(size: 12))
                             .foregroundColor(Theme.textSecondary)
                             .multilineTextAlignment(.center)
@@ -154,11 +154,11 @@ struct ContactProfileView: View {
                     }
                 }
             }
-            .navigationTitle("Профиль")
+            .navigationTitle("РџСЂРѕС„РёР»СЊ")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Закрыть") { dismiss() }
+                    Button("Р—Р°РєСЂС‹С‚СЊ") { dismiss() }
                 }
             }
             .toolbarBackground(Theme.panel, for: .navigationBar)
@@ -187,7 +187,7 @@ struct ContactProfileView: View {
     }
 }
 
-/// Звонки: журнал локальных тестовых вызовов.
+/// Р—РІРѕРЅРєРё: Р¶СѓСЂРЅР°Р» Р»РѕРєР°Р»СЊРЅС‹С… С‚РµСЃС‚РѕРІС‹С… РІС‹Р·РѕРІРѕРІ.
 struct CallsView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var selected: UserProfile?
@@ -199,8 +199,8 @@ struct CallsView: View {
             if env.snapshot.calls.isEmpty {
                 EmptyStateView(
                     icon: "phone.arrow.up.right",
-                    title: "Нет звонков",
-                    subtitle: "Позвоните локальному контакту — вызов останется в журнале на этом устройстве."
+                    title: "РќРµС‚ Р·РІРѕРЅРєРѕРІ",
+                    subtitle: "РџРѕР·РІРѕРЅРёС‚Рµ Р»РѕРєР°Р»СЊРЅРѕРјСѓ РєРѕРЅС‚Р°РєС‚Сѓ вЂ” РІС‹Р·РѕРІ РѕСЃС‚Р°РЅРµС‚СЃСЏ РІ Р¶СѓСЂРЅР°Р»Рµ РЅР° СЌС‚РѕРј СѓСЃС‚СЂРѕР№СЃС‚РІРµ."
                 )
             } else {
                 List {
@@ -213,7 +213,7 @@ struct CallsView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(call.peerName)
                                     .foregroundColor(Theme.textPrimary)
-                                Text(call.isMissed ? "Пропущенный" : (call.isVideo ? "Видеозвонок" : "Аудиозвонок"))
+                                Text(call.isMissed ? "РџСЂРѕРїСѓС‰РµРЅРЅС‹Р№" : (call.isVideo ? "Р’РёРґРµРѕР·РІРѕРЅРѕРє" : "РђСѓРґРёРѕР·РІРѕРЅРѕРє"))
                                     .font(.system(size: 13))
                                     .foregroundColor(call.isMissed ? Theme.danger : Theme.textSecondary)
                             }
@@ -237,7 +237,7 @@ struct CallsView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .navigationTitle("Звонки")
+        .navigationTitle("Р—РІРѕРЅРєРё")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -255,7 +255,7 @@ struct CallsView: View {
     }
 }
 
-/// Выбор собеседника для звонка.
+/// Р’С‹Р±РѕСЂ СЃРѕР±РµСЃРµРґРЅРёРєР° РґР»СЏ Р·РІРѕРЅРєР°.
 struct CallPickerView: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.dismiss) private var dismiss
@@ -265,7 +265,7 @@ struct CallPickerView: View {
             ZStack {
                 Theme.panel.ignoresSafeArea()
                 if env.snapshot.contacts.isEmpty {
-                    EmptyStateView(icon: "person.crop.circle", title: "Нет контактов", subtitle: "Сначала добавьте контакт на вкладке «Контакты».")
+                    EmptyStateView(icon: "person.crop.circle", title: "РќРµС‚ РєРѕРЅС‚Р°РєС‚РѕРІ", subtitle: "РЎРЅР°С‡Р°Р»Р° РґРѕР±Р°РІСЊС‚Рµ РєРѕРЅС‚Р°РєС‚ РЅР° РІРєР»Р°РґРєРµ В«РљРѕРЅС‚Р°РєС‚С‹В».")
                 } else {
                     List(env.snapshot.contacts) { contact in
                         Button {
@@ -286,11 +286,11 @@ struct CallPickerView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
-            .navigationTitle("Новый звонок")
+            .navigationTitle("РќРѕРІС‹Р№ Р·РІРѕРЅРѕРє")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Отмена") { dismiss() }
+                    Button("РћС‚РјРµРЅР°") { dismiss() }
                 }
             }
             .toolbarBackground(Theme.panel, for: .navigationBar)

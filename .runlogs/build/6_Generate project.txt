@@ -1,0 +1,23 @@
+﻿2026-11-26T14:58:59.4953080Z ##[group]Run set -e
+2026-11-26T14:58:59.4953450Z [36;1mset -e[0m
+2026-11-26T14:58:59.4953780Z [36;1mcd .[0m
+2026-11-26T14:58:59.4953990Z [36;1mxcodegen generate[0m
+2026-11-26T14:58:59.4954340Z [36;1mls -la[0m
+2026-11-26T14:58:59.5014770Z shell: /bin/bash -e {0}
+2026-11-26T14:58:59.5015610Z ##[endgroup]
+2026-11-26T14:58:59.5870630Z ⚙️  Generating plists...
+2026-11-26T14:58:59.5880870Z ⚙️  Generating project...
+2026-11-26T14:58:59.6056480Z ⚙️  Writing project...
+2026-11-26T14:58:59.6286480Z Created project at /Users/runner/work/EndoGram-iOS/EndoGram-iOS/EndoGram.xcodeproj
+2026-11-26T14:58:59.6402890Z total 16
+2026-11-26T14:58:59.6404730Z drwxr-xr-x  11 runner  staff   352 Nov 26 14:58 .
+2026-11-26T14:58:59.6408880Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 ..
+2026-11-26T14:58:59.6409440Z drwxr-xr-x  14 runner  staff   448 Nov 26 14:58 .git
+2026-11-26T14:58:59.6409820Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 .github
+2026-11-26T14:58:59.6410320Z drwxr-xr-x   5 runner  staff   160 Nov 26 14:58 EndoGram.xcodeproj
+2026-11-26T14:58:59.6410980Z -rw-r--r--   1 runner  staff  1066 Nov 26 14:58 project.yml
+2026-11-26T14:58:59.6411430Z -rw-r--r--   1 runner  staff  3695 Nov 26 14:58 README.md
+2026-11-26T14:58:59.6411970Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 Resources
+2026-11-26T14:58:59.6412350Z drwxr-xr-x   7 runner  staff   224 Nov 26 14:58 Sources
+2026-11-26T14:58:59.6412810Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 Support
+2026-11-26T14:58:59.6413280Z drwxr-xr-x   3 runner  staff    96 Nov 26 14:58 tools

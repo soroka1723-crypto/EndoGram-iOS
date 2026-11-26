@@ -1,6 +1,6 @@
-import SwiftUI
+﻿import SwiftUI
 
-/// Хаб раздела «Звёзды»: баланс, подарки, NFT, Premium, история.
+/// РҐР°Р± СЂР°Р·РґРµР»Р° В«Р—РІС‘Р·РґС‹В»: Р±Р°Р»Р°РЅСЃ, РїРѕРґР°СЂРєРё, NFT, Premium, РёСЃС‚РѕСЂРёСЏ.
 struct StarsView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var route: Route?
@@ -22,7 +22,7 @@ struct StarsView: View {
                 .padding(.bottom, 24)
             }
         }
-        .navigationTitle("Звёзды")
+        .navigationTitle("Р—РІС‘Р·РґС‹")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -39,22 +39,22 @@ struct StarsView: View {
 
     private var balanceCard: some View {
         VStack(spacing: 8) {
-            Text("Ваш баланс")
+            Text("Р’Р°С€ Р±Р°Р»Р°РЅСЃ")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.white.opacity(0.75))
             HStack(spacing: 8) {
-                Text("⭐️").font(.system(size: 26))
+                Text("в­ђпёЏ").font(.system(size: 26))
                 Text(Format.number(env.stars))
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
-            Text("тестовые звёзды EndoGram")
+            Text("С‚РµСЃС‚РѕРІС‹Рµ Р·РІС‘Р·РґС‹ EndoGram")
                 .font(.system(size: 12))
                 .foregroundColor(.white.opacity(0.7))
 
             HStack(spacing: 8) {
                 NavigationLink(value: Route.inventory) {
-                    Text("Инвентарь")
+                    Text("РРЅРІРµРЅС‚Р°СЂСЊ")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 16)
@@ -62,7 +62,7 @@ struct StarsView: View {
                         .background(Capsule().fill(Color.white.opacity(0.2)))
                 }
                 NavigationLink(value: Route.history) {
-                    Text("История")
+                    Text("РСЃС‚РѕСЂРёСЏ")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 16)
@@ -91,8 +91,8 @@ struct StarsView: View {
 
     private var quickActions: some View {
         HStack(spacing: 10) {
-            tile(icon: "gift.fill", title: "Подарки", subtitle: "\(env.snapshot.ownedGifts.count) шт.", route: .gifts, tint: Color(hex: "#E4572E"))
-            tile(icon: "sparkles", title: "NFT", subtitle: "\(env.snapshot.ownedNFTs.count) шт.", route: .nft, tint: Color(hex: "#7C5CFF"))
+            tile(icon: "gift.fill", title: "РџРѕРґР°СЂРєРё", subtitle: "\(env.snapshot.ownedGifts.count) С€С‚.", route: .gifts, tint: Color(hex: "#E4572E"))
+            tile(icon: "sparkles", title: "NFT", subtitle: "\(env.snapshot.ownedNFTs.count) С€С‚.", route: .nft, tint: Color(hex: "#7C5CFF"))
         }
         .padding(.horizontal, 12)
     }
@@ -128,12 +128,12 @@ struct StarsView: View {
                     .frame(width: 40, height: 40)
                     .background(Circle().fill(Theme.star.opacity(0.15)))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(env.profile.premiumActive ? "EndoGram Premium активен" : "EndoGram Premium")
+                    Text(env.profile.premiumActive ? "EndoGram Premium Р°РєС‚РёРІРµРЅ" : "EndoGram Premium")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Theme.textPrimary)
                     Text(env.profile.premiumActive
-                         ? "Действует до \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "—")"
-                         : "Эксклюзивные функции за \(Format.stars(AppConfig.premiumPrice))")
+                         ? "Р”РµР№СЃС‚РІСѓРµС‚ РґРѕ \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "вЂ”")"
+                         : "Р­РєСЃРєР»СЋР·РёРІРЅС‹Рµ С„СѓРЅРєС†РёРё Р·Р° \(Format.stars(AppConfig.premiumPrice))")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -149,7 +149,7 @@ struct StarsView: View {
     }
 
     private var recentHistory: some View {
-        SectionCard(title: "Последние операции") {
+        SectionCard(title: "РџРѕСЃР»РµРґРЅРёРµ РѕРїРµСЂР°С†РёРё") {
             ForEach(env.ledger.prefix(4)) { entry in
                 LedgerRow(entry: entry)
                 if entry.id != env.ledger.prefix(4).last?.id {
@@ -158,7 +158,7 @@ struct StarsView: View {
             }
             NavigationLink(value: Route.history) {
                 HStack {
-                    Text("Вся история")
+                    Text("Р’СЃСЏ РёСЃС‚РѕСЂРёСЏ")
                         .foregroundColor(Theme.accentBright)
                     Spacer()
                     Image(systemName: "chevron.right").foregroundColor(Theme.textSecondary)
@@ -171,7 +171,7 @@ struct StarsView: View {
     }
 }
 
-/// Строка истории операций.
+/// РЎС‚СЂРѕРєР° РёСЃС‚РѕСЂРёРё РѕРїРµСЂР°С†РёР№.
 struct LedgerRow: View {
     let entry: LedgerEntry
 
@@ -193,10 +193,10 @@ struct LedgerRow: View {
             }
             Spacer(minLength: 6)
             VStack(alignment: .trailing, spacing: 2) {
-                Text(entry.amount == 0 ? "—" : Format.signedStars(entry.amount))
+                Text(entry.amount == 0 ? "вЂ”" : Format.signedStars(entry.amount))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(entry.amount >= 0 ? Theme.online : Theme.textPrimary)
-                Text("баланс: \(Format.number(entry.balanceAfter))")
+                Text("Р±Р°Р»Р°РЅСЃ: \(Format.number(entry.balanceAfter))")
                     .font(.system(size: 10.5))
                     .foregroundColor(Theme.textSecondary)
             }
@@ -217,7 +217,7 @@ struct LedgerRow: View {
     }
 }
 
-/// Полная история операций.
+/// РџРѕР»РЅР°СЏ РёСЃС‚РѕСЂРёСЏ РѕРїРµСЂР°С†РёР№.
 struct LedgerView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var filter: LedgerKind?
@@ -234,7 +234,7 @@ struct LedgerView: View {
                 VStack(spacing: 12) {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            chip("Все", active: filter == nil) { filter = nil }
+                            chip("Р’СЃРµ", active: filter == nil) { filter = nil }
                             ForEach([LedgerKind.grant, .gift, .nft, .premium, .transfer], id: \.self) { kind in
                                 chip(kind.title, active: filter == kind) { filter = kind }
                             }
@@ -243,7 +243,7 @@ struct LedgerView: View {
                     }
 
                     if entries.isEmpty {
-                        Text("Операций пока нет")
+                        Text("РћРїРµСЂР°С†РёР№ РїРѕРєР° РЅРµС‚")
                             .font(.system(size: 14))
                             .foregroundColor(Theme.textSecondary)
                             .padding(.top, 40)
@@ -259,7 +259,7 @@ struct LedgerView: View {
                 .padding(.vertical, 12)
             }
         }
-        .navigationTitle("История операций")
+        .navigationTitle("РСЃС‚РѕСЂРёСЏ РѕРїРµСЂР°С†РёР№")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -277,3 +277,4 @@ struct LedgerView: View {
         .buttonStyle(.plain)
     }
 }
+

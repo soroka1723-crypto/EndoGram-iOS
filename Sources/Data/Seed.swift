@@ -1,9 +1,9 @@
-import Foundation
+﻿import Foundation
 
-/// Первичное наполнение локального аккаунта.
+/// РџРµСЂРІРёС‡РЅРѕРµ РЅР°РїРѕР»РЅРµРЅРёРµ Р»РѕРєР°Р»СЊРЅРѕРіРѕ Р°РєРєР°СѓРЅС‚Р°.
 ///
-/// При первом запуске создаётся профиль, начисляется 1 000 000 тестовых звёзд,
-/// инициализируются подарки, NFT, Premium и история операций.
+/// РџСЂРё РїРµСЂРІРѕРј Р·Р°РїСѓСЃРєРµ СЃРѕР·РґР°С‘С‚СЃСЏ РїСЂРѕС„РёР»СЊ, РЅР°С‡РёСЃР»СЏРµС‚СЃСЏ 1 000 000 С‚РµСЃС‚РѕРІС‹С… Р·РІС‘Р·Рґ,
+/// РёРЅРёС†РёР°Р»РёР·РёСЂСѓСЋС‚СЃСЏ РїРѕРґР°СЂРєРё, NFT, Premium Рё РёСЃС‚РѕСЂРёСЏ РѕРїРµСЂР°С†РёР№.
 enum Seed {
 
     static func makeInitialSnapshot() -> StoreSnapshot {
@@ -31,18 +31,18 @@ enum Seed {
             LedgerEntry(
                 id: IDs.next("ledger"),
                 kind: .grant,
-                title: "Стартовый баланс тестовых звёзд",
+                title: "РЎС‚Р°СЂС‚РѕРІС‹Р№ Р±Р°Р»Р°РЅСЃ С‚РµСЃС‚РѕРІС‹С… Р·РІС‘Р·Рґ",
                 amount: AppConfig.startingStars,
                 createdAt: now,
                 balanceAfter: AppConfig.startingStars
             )
         )
 
-        // Избранное — обязательный чат самого с собой, как в Telegram.
+        // РР·Р±СЂР°РЅРЅРѕРµ вЂ” РѕР±СЏР·Р°С‚РµР»СЊРЅС‹Р№ С‡Р°С‚ СЃР°РјРѕРіРѕ СЃ СЃРѕР±РѕР№, РєР°Рє РІ Telegram.
         let saved = Chat(
             id: IDs.next("chat"),
             kind: .direct,
-            title: "Избранное",
+            title: "РР·Р±СЂР°РЅРЅРѕРµ",
             avatarColor: Palette.blue,
             peerId: profile.id,
             memberIds: [profile.id],
@@ -61,7 +61,7 @@ enum Seed {
                 chatId: saved.id,
                 senderId: profile.id,
                 authorName: profile.displayName,
-                text: "EndoGram работает полностью офлайн. Этот чат — ваши заметки: всё, что здесь написано, остаётся только на устройстве.",
+                text: "EndoGram СЂР°Р±РѕС‚Р°РµС‚ РїРѕР»РЅРѕСЃС‚СЊСЋ РѕС„Р»Р°Р№РЅ. Р­С‚РѕС‚ С‡Р°С‚ вЂ” РІР°С€Рё Р·Р°РјРµС‚РєРё: РІСЃС‘, С‡С‚Рѕ Р·РґРµСЃСЊ РЅР°РїРёСЃР°РЅРѕ, РѕСЃС‚Р°С‘С‚СЃСЏ С‚РѕР»СЊРєРѕ РЅР° СѓСЃС‚СЂРѕР№СЃС‚РІРµ.",
                 createdAt: now,
                 editedAt: nil,
                 isPinned: true,
@@ -91,7 +91,7 @@ enum Seed {
                 chatId: service.id,
                 senderId: "system",
                 authorName: "EndoGram",
-                text: "Добро пожаловать! Это локальная версия мессенджера. Серверы не используются: чаты, подарки, NFT и Premium живут внутри приложения и сохраняются между запусками.",
+                text: "Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ! Р­С‚Рѕ Р»РѕРєР°Р»СЊРЅР°СЏ РІРµСЂСЃРёСЏ РјРµСЃСЃРµРЅРґР¶РµСЂР°. РЎРµСЂРІРµСЂС‹ РЅРµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ: С‡Р°С‚С‹, РїРѕРґР°СЂРєРё, NFT Рё Premium Р¶РёРІСѓС‚ РІРЅСѓС‚СЂРё РїСЂРёР»РѕР¶РµРЅРёСЏ Рё СЃРѕС…СЂР°РЅСЏСЋС‚СЃСЏ РјРµР¶РґСѓ Р·Р°РїСѓСЃРєР°РјРё.",
                 createdAt: now,
                 editedAt: nil,
                 isPinned: false,
@@ -99,26 +99,26 @@ enum Seed {
             )
         )
 
-        // Папки по умолчанию, как в Telegram.
+        // РџР°РїРєРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РєР°Рє РІ Telegram.
         snapshot.folders = [
-            ChatFolder(id: "folder.all", title: "Все", icon: "tray.full.fill", chatIds: [], isSystem: true),
-            ChatFolder(id: "folder.personal", title: "Личные", icon: "person.fill", chatIds: [], isSystem: true),
-            ChatFolder(id: "folder.groups", title: "Группы", icon: "person.2.fill", chatIds: [], isSystem: true),
-            ChatFolder(id: "folder.channels", title: "Каналы", icon: "megaphone.fill", chatIds: [], isSystem: true),
+            ChatFolder(id: "folder.all", title: "Р’СЃРµ", icon: "tray.full.fill", chatIds: [], isSystem: true),
+            ChatFolder(id: "folder.personal", title: "Р›РёС‡РЅС‹Рµ", icon: "person.fill", chatIds: [], isSystem: true),
+            ChatFolder(id: "folder.groups", title: "Р“СЂСѓРїРїС‹", icon: "person.2.fill", chatIds: [], isSystem: true),
+            ChatFolder(id: "folder.channels", title: "РљР°РЅР°Р»С‹", icon: "megaphone.fill", chatIds: [], isSystem: true),
         ]
 
         return snapshot
     }
 
     static func makeProfile(now: Date) -> UserProfile {
-        let names = ["Александр Орлов", "Мария Волкова", "Даниил Соколов", "Полина Ким"]
-        let name = names.randomElement() ?? "Пользователь EndoGram"
+        let names = ["РђР»РµРєСЃР°РЅРґСЂ РћСЂР»РѕРІ", "РњР°СЂРёСЏ Р’РѕР»РєРѕРІР°", "Р”Р°РЅРёРёР» РЎРѕРєРѕР»РѕРІ", "РџРѕР»РёРЅР° РљРёРј"]
+        let name = names.randomElement() ?? "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ EndoGram"
         let handle = "endo_" + IDs.randomToken(length: 6).lowercased()
         return UserProfile(
             id: IDs.next("user"),
             username: handle,
             displayName: name,
-            bio: "Локальный аккаунт EndoGram",
+            bio: "Р›РѕРєР°Р»СЊРЅС‹Р№ Р°РєРєР°СѓРЅС‚ EndoGram",
             phone: "+7 (000) 000-00-" + String(format: "%02d", Int.random(in: 0...99)),
             avatarColor: Palette.avatarColors.randomElement() ?? Palette.blue,
             createdAt: now,
@@ -127,28 +127,29 @@ enum Seed {
         )
     }
 
-    // MARK: - Каталоги (локальные, без сети)
+    // MARK: - РљР°С‚Р°Р»РѕРіРё (Р»РѕРєР°Р»СЊРЅС‹Рµ, Р±РµР· СЃРµС‚Рё)
 
     static let giftCatalog: [Gift] = [
-        Gift(id: "gift.bear", name: "Плюшевый мишка", emoji: "🧸", price: 15, rarity: "Обычный", colorHex: "#E8A87C"),
-        Gift(id: "gift.rose", name: "Роза", emoji: "🌹", price: 25, rarity: "Обычный", colorHex: "#E4572E"),
-        Gift(id: "gift.cake", name: "Торт", emoji: "🎂", price: 50, rarity: "Обычный", colorHex: "#F2B5D4"),
-        Gift(id: "gift.rocket", name: "Ракета", emoji: "🚀", price: 100, rarity: "Редкий", colorHex: "#5288C1"),
-        Gift(id: "gift.crown", name: "Корона", emoji: "👑", price: 250, rarity: "Редкий", colorHex: "#F5C542"),
-        Gift(id: "gift.diamond", name: "Алмаз", emoji: "💎", price: 500, rarity: "Эпический", colorHex: "#5BC8F5"),
-        Gift(id: "gift.planet", name: "Планета", emoji: "🪐", price: 1_000, rarity: "Эпический", colorHex: "#9B7EDE"),
-        Gift(id: "gift.unicorn", name: "Единорог", emoji: "🦄", price: 2_500, rarity: "Легендарный", colorHex: "#FF8FD0"),
-        Gift(id: "gift.ufo", name: "НЛО", emoji: "🛸", price: 5_000, rarity: "Легендарный", colorHex: "#6EE7B7"),
+        Gift(id: "gift.bear", name: "РџР»СЋС€РµРІС‹Р№ РјРёС€РєР°", emoji: "рџ§ё", price: 15, rarity: "РћР±С‹С‡РЅС‹Р№", colorHex: "#E8A87C"),
+        Gift(id: "gift.rose", name: "Р РѕР·Р°", emoji: "рџЊ№", price: 25, rarity: "РћР±С‹С‡РЅС‹Р№", colorHex: "#E4572E"),
+        Gift(id: "gift.cake", name: "РўРѕСЂС‚", emoji: "рџЋ‚", price: 50, rarity: "РћР±С‹С‡РЅС‹Р№", colorHex: "#F2B5D4"),
+        Gift(id: "gift.rocket", name: "Р Р°РєРµС‚Р°", emoji: "рџљЂ", price: 100, rarity: "Р РµРґРєРёР№", colorHex: "#5288C1"),
+        Gift(id: "gift.crown", name: "РљРѕСЂРѕРЅР°", emoji: "рџ‘‘", price: 250, rarity: "Р РµРґРєРёР№", colorHex: "#F5C542"),
+        Gift(id: "gift.diamond", name: "РђР»РјР°Р·", emoji: "рџ’Ћ", price: 500, rarity: "Р­РїРёС‡РµСЃРєРёР№", colorHex: "#5BC8F5"),
+        Gift(id: "gift.planet", name: "РџР»Р°РЅРµС‚Р°", emoji: "рџЄђ", price: 1_000, rarity: "Р­РїРёС‡РµСЃРєРёР№", colorHex: "#9B7EDE"),
+        Gift(id: "gift.unicorn", name: "Р•РґРёРЅРѕСЂРѕРі", emoji: "рџ¦„", price: 2_500, rarity: "Р›РµРіРµРЅРґР°СЂРЅС‹Р№", colorHex: "#FF8FD0"),
+        Gift(id: "gift.ufo", name: "РќР›Рћ", emoji: "рџ›ё", price: 5_000, rarity: "Р›РµРіРµРЅРґР°СЂРЅС‹Р№", colorHex: "#6EE7B7"),
     ]
 
     static let nftCatalog: [NFTItem] = [
-        NFTItem(id: "nft.alpha", name: "Alpha Ape", collection: "Endo Apes", emoji: "🐵", price: 1_200, rarity: "Обычный", colorHex: "#C08457", serial: 1042, totalSupply: 10_000, description: "Первый выпуск локальной коллекции Endo Apes."),
-        NFTItem(id: "nft.punk", name: "Endo Punk", collection: "Endo Punks", emoji: "👾", price: 2_400, rarity: "Редкий", colorHex: "#7C5CFF", serial: 218, totalSupply: 5_000, description: "Пиксельный аватар с уникальным номером."),
-        NFTItem(id: "nft.cat", name: "Cosmic Cat", collection: "Cosmic Cats", emoji: "🐱", price: 3_600, rarity: "Редкий", colorHex: "#FFB86B", serial: 77, totalSupply: 2_500, description: "Кот, который видел весь блокчейн."),
-        NFTItem(id: "nft.whale", name: "Golden Whale", collection: "Deep Sea", emoji: "🐳", price: 8_000, rarity: "Эпический", colorHex: "#3FA9F5", serial: 12, totalSupply: 500, description: "Редкий кит из глубинной коллекции."),
-        NFTItem(id: "nft.dragon", name: "Neon Dragon", collection: "Neon Beasts", emoji: "🐲", price: 15_000, rarity: "Легендарный", colorHex: "#4ADE80", serial: 3, totalSupply: 100, description: "Легендарный дракон, всего 100 экземпляров."),
-        NFTItem(id: "nft.star", name: "Endo Star", collection: "Endo Stars", emoji: "⭐️", price: 25_000, rarity: "Мифический", colorHex: "#FACC15", serial: 1, totalSupply: 10, description: "Мифическая звезда — редкость коллекции."),
+        NFTItem(id: "nft.alpha", name: "Alpha Ape", collection: "Endo Apes", emoji: "рџђµ", price: 1_200, rarity: "РћР±С‹С‡РЅС‹Р№", colorHex: "#C08457", serial: 1042, totalSupply: 10_000, description: "РџРµСЂРІС‹Р№ РІС‹РїСѓСЃРє Р»РѕРєР°Р»СЊРЅРѕР№ РєРѕР»Р»РµРєС†РёРё Endo Apes."),
+        NFTItem(id: "nft.punk", name: "Endo Punk", collection: "Endo Punks", emoji: "рџ‘ѕ", price: 2_400, rarity: "Р РµРґРєРёР№", colorHex: "#7C5CFF", serial: 218, totalSupply: 5_000, description: "РџРёРєСЃРµР»СЊРЅС‹Р№ Р°РІР°С‚Р°СЂ СЃ СѓРЅРёРєР°Р»СЊРЅС‹Рј РЅРѕРјРµСЂРѕРј."),
+        NFTItem(id: "nft.cat", name: "Cosmic Cat", collection: "Cosmic Cats", emoji: "рџђ±", price: 3_600, rarity: "Р РµРґРєРёР№", colorHex: "#FFB86B", serial: 77, totalSupply: 2_500, description: "РљРѕС‚, РєРѕС‚РѕСЂС‹Р№ РІРёРґРµР» РІРµСЃСЊ Р±Р»РѕРєС‡РµР№РЅ."),
+        NFTItem(id: "nft.whale", name: "Golden Whale", collection: "Deep Sea", emoji: "рџђі", price: 8_000, rarity: "Р­РїРёС‡РµСЃРєРёР№", colorHex: "#3FA9F5", serial: 12, totalSupply: 500, description: "Р РµРґРєРёР№ РєРёС‚ РёР· РіР»СѓР±РёРЅРЅРѕР№ РєРѕР»Р»РµРєС†РёРё."),
+        NFTItem(id: "nft.dragon", name: "Neon Dragon", collection: "Neon Beasts", emoji: "рџђІ", price: 15_000, rarity: "Р›РµРіРµРЅРґР°СЂРЅС‹Р№", colorHex: "#4ADE80", serial: 3, totalSupply: 100, description: "Р›РµРіРµРЅРґР°СЂРЅС‹Р№ РґСЂР°РєРѕРЅ, РІСЃРµРіРѕ 100 СЌРєР·РµРјРїР»СЏСЂРѕРІ."),
+        NFTItem(id: "nft.star", name: "Endo Star", collection: "Endo Stars", emoji: "в­ђпёЏ", price: 25_000, rarity: "РњРёС„РёС‡РµСЃРєРёР№", colorHex: "#FACC15", serial: 1, totalSupply: 10, description: "РњРёС„РёС‡РµСЃРєР°СЏ Р·РІРµР·РґР° вЂ” СЂРµРґРєРѕСЃС‚СЊ РєРѕР»Р»РµРєС†РёРё."),
     ]
 
-    static let wallpaperNames = ["telegram", "градиент", "ночной", "океан"]
+    static let wallpaperNames = ["telegram", "РіСЂР°РґРёРµРЅС‚", "РЅРѕС‡РЅРѕР№", "РѕРєРµР°РЅ"]
 }
+

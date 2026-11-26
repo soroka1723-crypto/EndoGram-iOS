@@ -1,6 +1,6 @@
-import Foundation
+﻿import Foundation
 
-// MARK: - Пользователь
+// MARK: - РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ
 
 struct UserProfile: Codable, Identifiable, Hashable {
     var id: String
@@ -25,7 +25,7 @@ struct UserProfile: Codable, Identifiable, Hashable {
     }
 }
 
-// MARK: - Чаты
+// MARK: - Р§Р°С‚С‹
 
 enum ChatKind: String, Codable, CaseIterable {
     case direct
@@ -34,9 +34,9 @@ enum ChatKind: String, Codable, CaseIterable {
 
     var title: String {
         switch self {
-        case .direct: return "Личный чат"
-        case .group: return "Группа"
-        case .channel: return "Канал"
+        case .direct: return "Р›РёС‡РЅС‹Р№ С‡Р°С‚"
+        case .group: return "Р“СЂСѓРїРїР°"
+        case .channel: return "РљР°РЅР°Р»"
         }
     }
 
@@ -54,7 +54,7 @@ struct Chat: Codable, Identifiable, Hashable {
     var kind: ChatKind
     var title: String
     var avatarColor: String
-    /// Для личных чатов — id собеседника из локальной адресной книги.
+    /// Р”Р»СЏ Р»РёС‡РЅС‹С… С‡Р°С‚РѕРІ вЂ” id СЃРѕР±РµСЃРµРґРЅРёРєР° РёР· Р»РѕРєР°Р»СЊРЅРѕР№ Р°РґСЂРµСЃРЅРѕР№ РєРЅРёРіРё.
     var peerId: String?
     var memberIds: [String]
     var createdAt: Date
@@ -67,9 +67,9 @@ struct Chat: Codable, Identifiable, Hashable {
 
     var subtitle: String {
         switch kind {
-        case .direct: return "личный чат"
-        case .group: return "\(memberIds.count) участников"
-        case .channel: return "канал"
+        case .direct: return "Р»РёС‡РЅС‹Р№ С‡Р°С‚"
+        case .group: return "\(memberIds.count) СѓС‡Р°СЃС‚РЅРёРєРѕРІ"
+        case .channel: return "РєР°РЅР°Р»"
         }
     }
 }
@@ -82,7 +82,7 @@ struct ChatFolder: Codable, Identifiable, Hashable {
     var isSystem: Bool = false
 }
 
-// MARK: - Сообщения
+// MARK: - РЎРѕРѕР±С‰РµРЅРёСЏ
 
 enum MessageKind: String, Codable {
     case text
@@ -99,13 +99,13 @@ struct Message: Codable, Identifiable, Hashable {
     var editedAt: Date?
     var isPinned: Bool = false
     var kind: MessageKind = .text
-    /// Локальная отметка «прочитано мной» для галочек в канале.
+    /// Р›РѕРєР°Р»СЊРЅР°СЏ РѕС‚РјРµС‚РєР° В«РїСЂРѕС‡РёС‚Р°РЅРѕ РјРЅРѕР№В» РґР»СЏ РіР°Р»РѕС‡РµРє РІ РєР°РЅР°Р»Рµ.
     var isRead: Bool = true
 
     var isEdited: Bool { editedAt != nil }
 }
 
-// MARK: - Звёзды, подарки, NFT
+// MARK: - Р—РІС‘Р·РґС‹, РїРѕРґР°СЂРєРё, NFT
 
 enum LedgerKind: String, Codable {
     case grant
@@ -117,12 +117,12 @@ enum LedgerKind: String, Codable {
 
     var title: String {
         switch self {
-        case .grant: return "Начисление"
-        case .gift: return "Подарок"
+        case .grant: return "РќР°С‡РёСЃР»РµРЅРёРµ"
+        case .gift: return "РџРѕРґР°СЂРѕРє"
         case .nft: return "NFT"
         case .premium: return "Premium"
-        case .transfer: return "Перевод"
-        case .refund: return "Возврат"
+        case .transfer: return "РџРµСЂРµРІРѕРґ"
+        case .refund: return "Р’РѕР·РІСЂР°С‚"
         }
     }
 
@@ -196,7 +196,7 @@ struct OwnedNFT: Codable, Identifiable, Hashable {
     var acquiredAt: Date
 }
 
-// MARK: - Звонки
+// MARK: - Р—РІРѕРЅРєРё
 
 struct CallRecord: Codable, Identifiable, Hashable {
     var id: String
@@ -208,7 +208,7 @@ struct CallRecord: Codable, Identifiable, Hashable {
     var duration: TimeInterval
 }
 
-// MARK: - Настройки
+// MARK: - РќР°СЃС‚СЂРѕР№РєРё
 
 struct AppSettings: Codable, Hashable {
     var notificationsEnabled: Bool = true
@@ -222,7 +222,7 @@ struct AppSettings: Codable, Hashable {
     var offlineModeNotice: Bool = true
 }
 
-// MARK: - Корень хранилища
+// MARK: - РљРѕСЂРµРЅСЊ С…СЂР°РЅРёР»РёС‰Р°
 
 struct StoreSnapshot: Codable {
     var schemaVersion: Int
@@ -240,3 +240,4 @@ struct StoreSnapshot: Codable {
     var calls: [CallRecord]
     var settings: AppSettings
 }
+

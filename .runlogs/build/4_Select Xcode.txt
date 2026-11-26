@@ -1,0 +1,8 @@
+﻿2026-11-26T14:58:49.1449540Z ##[group]Run xcodebuild -version
+2026-11-26T14:58:49.1451350Z [36;1mxcodebuild -version[0m
+2026-11-26T14:58:49.1452440Z [36;1mxcrun --sdk iphoneos --show-sdk-version[0m
+2026-11-26T14:58:49.1512810Z shell: /bin/bash -e {0}
+2026-11-26T14:58:49.1537170Z ##[endgroup]
+2026-11-26T14:58:49.3510120Z Xcode 16.4
+2026-11-26T14:58:49.3518220Z Build version 16F6
+2026-11-26T14:58:51.7004840Z 18.5

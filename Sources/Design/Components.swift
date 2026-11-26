@@ -1,6 +1,6 @@
-import SwiftUI
+﻿import SwiftUI
 
-/// Круглый аватар с инициалами — как заглушки Telegram.
+/// РљСЂСѓРіР»С‹Р№ Р°РІР°С‚Р°СЂ СЃ РёРЅРёС†РёР°Р»Р°РјРё вЂ” РєР°Рє Р·Р°РіР»СѓС€РєРё Telegram.
 struct AvatarView: View {
     let title: String
     let colorHex: String
@@ -40,7 +40,7 @@ struct AvatarView: View {
     }
 }
 
-/// Счётчик непрочитанных.
+/// РЎС‡С‘С‚С‡РёРє РЅРµРїСЂРѕС‡РёС‚Р°РЅРЅС‹С….
 struct UnreadBadge: View {
     let count: Int
     var muted: Bool = false
@@ -59,7 +59,7 @@ struct UnreadBadge: View {
     }
 }
 
-/// Кнопка со «звёздным» акцентом.
+/// РљРЅРѕРїРєР° СЃРѕ В«Р·РІС‘Р·РґРЅС‹РјВ» Р°РєС†РµРЅС‚РѕРј.
 struct StarButtonStyle: ButtonStyle {
     var filled: Bool = true
 
@@ -78,7 +78,7 @@ struct StarButtonStyle: ButtonStyle {
     }
 }
 
-/// Карточка раздела.
+/// РљР°СЂС‚РѕС‡РєР° СЂР°Р·РґРµР»Р°.
 struct SectionCard<Content: View>: View {
     let title: String?
     @ViewBuilder var content: Content
@@ -99,7 +99,7 @@ struct SectionCard<Content: View>: View {
     }
 }
 
-/// Строка списка с иконкой, заголовком и значением.
+/// РЎС‚СЂРѕРєР° СЃРїРёСЃРєР° СЃ РёРєРѕРЅРєРѕР№, Р·Р°РіРѕР»РѕРІРєРѕРј Рё Р·РЅР°С‡РµРЅРёРµРј.
 struct SettingsRow: View {
     let icon: String
     let title: String
@@ -143,7 +143,7 @@ struct DividerLine: View {
     }
 }
 
-/// Пустой экран с подсказкой.
+/// РџСѓСЃС‚РѕР№ СЌРєСЂР°РЅ СЃ РїРѕРґСЃРєР°Р·РєРѕР№.
 struct EmptyStateView: View {
     let icon: String
     let title: String
@@ -166,3 +166,4 @@ struct EmptyStateView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+

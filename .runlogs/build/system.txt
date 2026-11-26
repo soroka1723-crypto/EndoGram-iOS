@@ -1,0 +1,11 @@
+2026-11-26T14:53:42.4390000Z Evaluating build.if
+2026-11-26T14:53:42.4390000Z Evaluating: success()
+2026-11-26T14:53:42.4390000Z Result: true
+2026-11-26T14:53:42.4540000Z Requested labels: macos-15
+2026-11-26T14:53:42.4540000Z Job defined at: soroka1723-crypto/EndoGram-iOS/.github/workflows/ios-ipa.yml@refs/heads/main
+2026-11-26T14:53:42.4540000Z Waiting for a runner to pick up this job...
+2026-11-26T14:53:42.8570000Z Job is waiting for a hosted runner to come online.
+2026-11-26T14:53:42.8580000Z Job is about to start running on the hosted runner: GitHub Actions 1000000119
+2026-11-26T14:58:42.9570000Z Requested labels: macos-15
+2026-11-26T14:58:42.9570000Z Job defined at: soroka1723-crypto/EndoGram-iOS/.github/workflows/ios-ipa.yml@refs/heads/main
+2026-11-26T14:58:42.9570000Z Waiting for a runner to pick up this job...

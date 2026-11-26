@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 
 @main
 struct EndoGramApp: App {
@@ -19,8 +19,8 @@ struct EndoGramApp: App {
             }
             .preferredColorScheme(.dark)
             .task {
-                // Аккаунт создаётся автоматически при первом запуске:
-                // никаких экранов входа, номеров и кодов подтверждения.
+                // РђРєРєР°СѓРЅС‚ СЃРѕР·РґР°С‘С‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїСЂРё РїРµСЂРІРѕРј Р·Р°РїСѓСЃРєРµ:
+                // РЅРёРєР°РєРёС… СЌРєСЂР°РЅРѕРІ РІС…РѕРґР°, РЅРѕРјРµСЂРѕРІ Рё РєРѕРґРѕРІ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ.
                 try? await Task.sleep(nanoseconds: 1_100_000_000)
                 withAnimation(.easeOut(duration: 0.35)) { isReady = true }
             }
@@ -28,7 +28,7 @@ struct EndoGramApp: App {
     }
 }
 
-/// Заставка: показывает, что аккаунт уже создан и данные читаются с устройства.
+/// Р—Р°СЃС‚Р°РІРєР°: РїРѕРєР°Р·С‹РІР°РµС‚, С‡С‚Рѕ Р°РєРєР°СѓРЅС‚ СѓР¶Рµ СЃРѕР·РґР°РЅ Рё РґР°РЅРЅС‹Рµ С‡РёС‚Р°СЋС‚СЃСЏ СЃ СѓСЃС‚СЂРѕР№СЃС‚РІР°.
 struct SplashView: View {
     @State private var pulse = false
 
@@ -44,7 +44,7 @@ struct SplashView: View {
                 Text(AppConfig.appName)
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundColor(Theme.textPrimary)
-                Text("Локальный аккаунт готовится…")
+                Text("Р›РѕРєР°Р»СЊРЅС‹Р№ Р°РєРєР°СѓРЅС‚ РіРѕС‚РѕРІРёС‚СЃСЏвЂ¦")
                     .font(.system(size: 14))
                     .foregroundColor(Theme.textSecondary)
             }
@@ -52,3 +52,4 @@ struct SplashView: View {
         .onAppear { pulse = true }
     }
 }
+
