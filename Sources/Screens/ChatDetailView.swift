@@ -9,6 +9,7 @@ struct ChatDetailView: View {
     @State private var draft = ""
     @State private var editing: Message?
     @State private var replyingTo: Message?
+    @State private var forwarding: Message?
     @State private var showInfo = false
     @State private var showAttach = false
     @State private var showEmoji = false
@@ -89,6 +90,10 @@ struct ChatDetailView: View {
         .sheet(isPresented: $showInfo) {
             ChatInfoView(chatId: chatId).environmentObject(env)
         }
+        .sheet(item: $forwarding) { message in
+            ForwardPickerView(message: message, sourceChatId: chatId)
+                .environmentObject(env)
+        }
     }
 
     private var subtitle: String {
@@ -148,7 +153,9 @@ struct ChatDetailView: View {
                             onPin: { env.togglePin(messageId: message.id) },
                             onEdit: editAction(for: message),
                             onDelete: { env.deleteMessage(id: message.id) },
-                            onReact: { emoji in env.setReaction(messageId: message.id, emoji: emoji) }
+                            onReact: { emoji in env.setReaction(messageId: message.id, emoji: emoji) },
+                            onForward: { forwarding = message },
+                            onSave: { saveToFavourites(message) }
                         )
                         .id(message.id)
                     }
@@ -182,6 +189,17 @@ struct ChatDetailView: View {
             draft = message.text
             inputFocused = true
         }
+    }
+
+    /// «В избранное» — пересылка в личный чат-хранилище.
+    private func saveToFavourites(_ message: Message) {
+        let saved = env.savedMessagesChat()
+        guard saved.id != chatId else {
+            showToast("Это уже «Избранное»")
+            return
+        }
+        env.forwardMessage(id: message.id, toChatId: saved.id)
+        showToast("Сохранено в «Избранное»")
     }
 
     private func pinnedBar(_ message: Message) -> some View {
@@ -407,6 +425,8 @@ struct MessageBubble: View {
     var onEdit: (() -> Void)? = nil
     var onDelete: () -> Void = {}
     var onReact: (String?) -> Void = { _ in }
+    var onForward: () -> Void = {}
+    var onSave: () -> Void = {}
 
     /// Быстрые реакции Telegram.
     private static let quickReactions = ["👍", "❤️", "🔥", "🎉", "😁", "🤔"]
@@ -448,6 +468,17 @@ struct MessageBubble: View {
                     Text(message.authorName)
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(Color(hex: Palette.peerColor(for: message.authorName)))
+                }
+                if let forwardedFrom = message.forwardedFrom {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrowshape.turn.up.right.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("Переслано от \(forwardedFrom)")
+                            .font(.system(size: 12, weight: .medium))
+                            .lineLimit(1)
+                    }
+                    .foregroundColor(isMine ? Color.white.opacity(0.85) : Theme.accent)
+                    .padding(.bottom, 1)
                 }
                 if let quoted {
                     quoteBlock(quoted)
@@ -552,6 +583,8 @@ struct MessageBubble: View {
         }
         Divider()
         Button(action: onReply) { Label("Ответить", systemImage: "arrowshape.turn.up.left") }
+        Button(action: onForward) { Label("Переслать", systemImage: "arrowshape.turn.up.right") }
+        Button(action: onSave) { Label("В избранное", systemImage: "bookmark") }
         Button(action: onCopy) { Label("Копировать", systemImage: "doc.on.doc") }
         Button(action: onPin) {
             Label(message.isPinned ? "Открепить" : "Закрепить", systemImage: message.isPinned ? "pin.slash" : "pin")
@@ -565,6 +598,105 @@ struct MessageBubble: View {
         }
     }
 }
+
+/// Выбор чата для пересылки — как `ForwardPicker` в Telegram.
+struct ForwardPickerView: View {
+    @EnvironmentObject private var env: AppEnvironment
+    @Environment(\.dismiss) private var dismiss
+    let message: Message
+    let sourceChatId: String
+
+    @State private var query = ""
+    @State private var done = false
+
+    private var chats: [Chat] {
+        let all = env.snapshot.chats
+        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return all }
+        let needle = query.lowercased()
+        return all.filter { $0.title.lowercased().contains(needle) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.background.ignoresSafeArea()
+                List {
+                    Section {
+                        Text(message.text)
+                            .font(.system(size: 14))
+                            .foregroundColor(Theme.textSecondary)
+                            .lineLimit(3)
+                    } header: {
+                        Text("Сообщение")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.textSecondary)
+                            .textCase(nil)
+                    }
+                    .listRowBackground(Theme.panel)
+
+                    Section {
+                        ForEach(chats) { chat in
+                            Button {
+                                forward(to: chat)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    AvatarView(title: chat.title, colorHex: chat.avatarColor, size: 44)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(chat.title)
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Theme.textPrimary)
+                                        Text(chat.kind.title)
+                                            .font(.system(size: 13))
+                                            .foregroundColor(Theme.textSecondary)
+                                    }
+                                    Spacer()
+                                    if chat.id == sourceChatId {
+                                        Image(systemName: "arrowshape.turn.up.right.circle.fill")
+                                            .foregroundColor(Theme.accent)
+                                    }
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .listRowBackground(Theme.panel)
+                        }
+                    } header: {
+                        Text("Переслать в чат")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.textSecondary)
+                            .textCase(nil)
+                    } footer: {
+                        Text("Пересылка создаёт локальную копию сообщения с пометкой автора. В сеть ничего не уходит.")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск чата")
+            }
+            .navigationTitle("Переслать")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Отмена") { dismiss() }
+                        .tint(Theme.accent)
+                }
+            }
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+        }
+        .onChange(of: done) { _, finished in
+            if finished { dismiss() }
+        }
+    }
+
+    private func forward(to chat: Chat) {
+        env.forwardMessage(id: message.id, toChatId: chat.id)
+        done = true
+    }
+}
+
 
 /// Меню вложений в стиле Telegram: сетка круглых значков.
 /// Все пункты честно сообщают, что вложения в офлайн-режиме не отправляются.

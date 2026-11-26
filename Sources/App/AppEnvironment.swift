@@ -132,6 +132,21 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
+    /// Пересылка сообщения в другой чат. Возвращает копию.
+    @discardableResult
+    func forwardMessage(id: String, toChatId: String) -> Message? {
+        let forwarded = backend.forwardMessage(id: id, toChatId: toChatId)
+        refresh()
+        return forwarded
+    }
+
+    /// «Избранное» — личный чат-хранилище.
+    func savedMessagesChat() -> Chat {
+        let chat = backend.savedMessagesChat()
+        refresh()
+        return chat
+    }
+
     func editMessage(id: String, text: String) {
         backend.editMessage(id: id, text: text)
         refresh()

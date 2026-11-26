@@ -105,6 +105,8 @@ struct Message: Codable, Identifiable, Hashable {
     var replyToId: String? = nil
     /// Реакция на сообщение. Хранится локально, в сеть не уходит.
     var reaction: String? = nil
+    /// Имя автора при пересылке — как `forward` в Telegram.
+    var forwardedFrom: String? = nil
 
     var isEdited: Bool { editedAt != nil }
 }

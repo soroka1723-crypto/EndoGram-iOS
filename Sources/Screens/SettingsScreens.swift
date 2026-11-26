@@ -1101,6 +1101,31 @@ struct SettingsValueRow: View {
     }
 }
 
+// MARK: - Избранное
+
+/// «Избранное» — чат с самим собой (Saved Messages в Telegram).
+/// Перенаправляет в обычный экран переписки на личном чате-хранилище.
+struct SavedMessagesView: View {
+    @EnvironmentObject private var env: AppEnvironment
+    @State private var chat: Chat?
+
+    var body: some View {
+        Group {
+            if let chat {
+                ChatDetailView(chatId: chat.id).environmentObject(env)
+            } else {
+                ZStack {
+                    Theme.background.ignoresSafeArea()
+                    ProgressView().tint(Theme.accent)
+                }
+            }
+        }
+        .onAppear {
+            if chat == nil { chat = env.savedMessagesChat() }
+        }
+    }
+}
+
 // MARK: - Заблокированные пользователи
 
 /// «Заблокированные пользователи» — раздел оригинала `BlockedUsersController`.

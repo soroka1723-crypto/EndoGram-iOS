@@ -14,6 +14,8 @@ protocol EndoBackend: AnyObject {
 
     func sendMessage(chatId: String, text: String, replyToId: String?) -> Message
     func setReaction(messageId: String, emoji: String?)
+    func forwardMessage(id: String, toChatId: String) -> Message?
+    func savedMessagesChat() -> Chat
     func editMessage(id: String, text: String)
     func deleteMessage(id: String)
     func togglePinMessage(id: String)

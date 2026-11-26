@@ -102,6 +102,71 @@ final class LocalBackend: EndoBackend {
         persist()
     }
 
+    /// Пересылка: копия сообщения с подписью автора — как `forward` в Telegram.
+    func forwardMessage(id: String, toChatId: String) -> Message? {
+        guard let source = snapshot.messages.first(where: { $0.id == id }) else { return nil }
+        let forwarded = Message(
+            id: IDs.next("msg"),
+            chatId: toChatId,
+            senderId: snapshot.profile.id,
+            authorName: snapshot.profile.displayName,
+            text: source.text,
+            createdAt: Date(),
+            editedAt: nil,
+            isPinned: false,
+            kind: source.kind,
+            isRead: true,
+            replyToId: nil,
+            reaction: nil,
+            forwardedFrom: source.senderId == snapshot.profile.id ? snapshot.profile.displayName : source.authorName
+        )
+        snapshot.messages.append(forwarded)
+        if let index = snapshot.chats.firstIndex(where: { $0.id == toChatId }) {
+            snapshot.chats[index].lastReadAt = forwarded.createdAt
+        }
+        snapshot.updatedAt = Date()
+        persist()
+        return forwarded
+    }
+
+    /// «Избранное» — чат с самим собой, как Saved Messages в Telegram.
+    func savedMessagesChat() -> Chat {
+        if let existing = snapshot.chats.first(where: { $0.kind == .direct && $0.peerId == snapshot.profile.id }) {
+            return existing
+        }
+        let chat = Chat(
+            id: IDs.next("chat"),
+            kind: .direct,
+            title: "Избранное",
+            avatarColor: Palette.avatarColors.first ?? Palette.blue,
+            peerId: snapshot.profile.id,
+            memberIds: [snapshot.profile.id],
+            createdAt: Date(),
+            isArchived: false,
+            isPinned: false,
+            isMuted: false,
+            folderId: nil,
+            unreadCount: 0,
+            lastReadAt: Date()
+        )
+        snapshot.chats.append(chat)
+        snapshot.messages.append(
+            Message(
+                id: IDs.next("msg"),
+                chatId: chat.id,
+                senderId: snapshot.profile.id,
+                authorName: snapshot.profile.displayName,
+                text: "Это «Избранное»: заметки и пересланные сообщения хранятся только на этом устройстве.",
+                createdAt: Date(),
+                editedAt: nil,
+                isPinned: false,
+                kind: .service
+            )
+        )
+        persist()
+        return chat
+    }
+
     func editMessage(id: String, text: String) {
         guard let index = snapshot.messages.firstIndex(where: { $0.id == id }) else { return }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
