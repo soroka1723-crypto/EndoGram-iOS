@@ -1,199 +1,289 @@
 import SwiftUI
 
-/// Создание личного чата, группы или канала.
+/// Тип создаваемой беседы.
+enum ComposeKind: String, Identifiable {
+    case group
+    case channel
+
+    var id: String { rawValue }
+
+    var title: String { self == .group ? "Новая группа" : "Новый канал" }
+    var namePlaceholder: String { self == .group ? "Название группы" : "Название канала" }
+    var membersTitle: String { self == .group ? "Добавить участников" : "Добавить подписчиков" }
+    var countLabel: String { self == .group ? "УЧАСТНИКИ" : "ПОДПИСЧИКИ" }
+}
+
+/// «Новое сообщение» — экран создания чата и входа в создание группы/канала.
+/// Повторяет `ComposeChatController` из Telegram: поиск, список контактов
+/// и две кнопки в шапке — новая группа и новый канал.
 struct CreateChatView: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.dismiss) private var dismiss
 
-    enum Mode: String, CaseIterable {
-        case direct = "Чат"
-        case group = "Группа"
-        case channel = "Канал"
-    }
+    @State private var query = ""
+    @State private var openChat: Chat?
+    @State private var composeKind: ComposeKind?
 
-    @State private var mode: Mode = .direct
-    @State private var title = ""
-    @State private var about = ""
-    @State private var selected = Set<String>()
-    @State private var newContactName = ""
-    @State private var showNewContact = false
-    @State private var error: String?
+    private var filtered: [UserProfile] {
+        let all = env.snapshot.contacts
+        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return all }
+        let needle = query.lowercased()
+        return all.filter {
+            $0.displayName.lowercased().contains(needle) || $0.username.lowercased().contains(needle)
+        }
+    }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Theme.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(spacing: 16) {
-                        Picker("Тип", selection: $mode) {
-                            ForEach(Mode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                        }
-                        .pickerStyle(.segmented)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
-
-                        if mode != .direct {
-                            VStack(spacing: 10) {
-                                TextField(mode == .group ? "Название группы" : "Название канала", text: $title)
-                                    .textFieldStyle(.plain)
-                                    .padding(12)
-                                    .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
-                                if mode == .channel {
-                                    TextField("Описание канала", text: $about, axis: .vertical)
-                                        .lineLimit(2...4)
-                                        .padding(12)
-                                        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
+                if env.snapshot.contacts.isEmpty {
+                    EmptyStateView(
+                        icon: "person.crop.circle.badge.plus",
+                        title: "Контактов нет",
+                        subtitle: "Добавьте локальный контакт на вкладке «Контакты» — и выберите его здесь для переписки."
+                    )
+                } else {
+                    List {
+                        Section {
+                            ForEach(filtered) { contact in
+                                Button {
+                                    openChat = env.openDirectChat(with: contact)
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        AvatarView(title: contact.displayName, colorHex: contact.avatarColor, size: 48)
+                                        VStack(alignment: .leading, spacing: 1) {
+                                            Text(contact.displayName)
+                                                .font(.system(size: 17))
+                                                .foregroundColor(Theme.textPrimary)
+                                            Text("@" + contact.username)
+                                                .font(.system(size: 14))
+                                                .foregroundColor(Theme.textSecondary)
+                                        }
+                                        Spacer(minLength: 0)
+                                    }
+                                    .contentShape(Rectangle())
                                 }
+                                .buttonStyle(.plain)
+                                .listRowBackground(Color.clear)
                             }
-                            .padding(.horizontal, 16)
-                        }
-
-                        if mode != .channel {
-                            contactPicker
-                        }
-
-                        if let error {
-                            Text(error)
+                        } header: {
+                            Text("КОНТАКТЫ")
                                 .font(.system(size: 13))
-                                .foregroundColor(Theme.danger)
-                                .padding(.horizontal, 16)
+                                .foregroundColor(Theme.textSecondary)
+                                .textCase(nil)
                         }
-
-                        Button(action: create) {
-                            Text(createTitle)
-                        }
-                        .buttonStyle(StarButtonStyle())
-                        .padding(.horizontal, 16)
-                        .disabled(!canCreate)
-
-                        Text("Всё создаётся локально: это тестовый режим без серверов и без реальных собеседников.")
-                            .font(.system(size: 12))
-                            .foregroundColor(Theme.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
                     }
-                    .padding(.bottom, 30)
+                    .listStyle(.plain)
+                    .listRowSeparatorTint(Theme.divider)
+                    .scrollContentBackground(.hidden)
+                    .searchable(
+                        text: $query,
+                        placement: .navigationBarDrawer(displayMode: .always),
+                        prompt: "Кому написать"
+                    )
                 }
             }
-            .navigationTitle("Новое")
+            .navigationTitle("Новое сообщение")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Отмена") { dismiss() }
+                        .tint(Theme.accent)
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { composeKind = .group } label: {
+                        Image(systemName: "person.2.fill")
+                    }
+                    .tint(Theme.accent)
+                    .accessibilityLabel("Новая группа")
+
+                    Button { composeKind = .channel } label: {
+                        Image(systemName: "megaphone.fill")
+                    }
+                    .tint(Theme.accent)
+                    .accessibilityLabel("Новый канал")
+                }
+            }
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .navigationDestination(item: $openChat) { chat in
+                ChatDetailView(chatId: chat.id).environmentObject(env)
+            }
+            .sheet(item: $composeKind) { kind in
+                NewGroupChannelSheet(kind: kind) { chat in
+                    composeKind = nil
+                    openChat = chat
+                }
+                .environmentObject(env)
+            }
+        }
+    }
+}
+
+/// Двухшаговое создание группы или канала: название и описание, затем участники.
+struct NewGroupChannelSheet: View {
+    @EnvironmentObject private var env: AppEnvironment
+    @Environment(\.dismiss) private var dismiss
+    let kind: ComposeKind
+    /// Вызывается с созданным чатом — родитель открывает его на своём стеке.
+    let onCreated: (Chat) -> Void
+
+    private enum Step { case details, members }
+
+    @State private var step: Step = .details
+    @State private var title = ""
+    @State private var about = ""
+    @State private var selected = Set<String>()
+
+    private var canContinue: Bool {
+        !title.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.background.ignoresSafeArea()
+                switch step {
+                case .details: detailsStep
+                case .members: membersStep
+                }
+            }
+            .navigationTitle(step == .details ? kind.title : kind.membersTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if step == .details {
+                        Button("Отмена") { dismiss() }.tint(Theme.accent)
+                    } else {
+                        Button("Назад") { step = .details }.tint(Theme.accent)
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showNewContact = true
-                    } label: {
-                        Image(systemName: "person.badge.plus")
+                    if step == .details {
+                        Button("Далее") { step = .members }
+                            .disabled(!canContinue)
+                            .tint(canContinue ? Theme.accent : Theme.textDisabled)
+                    } else {
+                        Button("Создать") { create() }.tint(Theme.accent)
                     }
                 }
             }
             .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .alert("Новый контакт", isPresented: $showNewContact) {
-                TextField("Имя", text: $newContactName)
-                Button("Создать") {
-                    let name = newContactName.trimmingCharacters(in: .whitespaces)
-                    guard !name.isEmpty else { return }
-                    let contact = env.addContact(displayName: name, username: "")
-                    newContactName = ""
-                    if mode == .direct {
-                        let chat = env.openDirectChat(with: contact)
-                        dismiss()
-                        _ = chat
-                    } else {
-                        selected.insert(contact.id)
-                    }
-                }
-                Button("Отмена", role: .cancel) { newContactName = "" }
-            } message: {
-                Text("Контакт существует только на этом устройстве.")
-            }
         }
     }
 
-    private var contactPicker: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(mode == .group ? "Участники" : "Кому написать")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Theme.textSecondary)
-                .padding(.horizontal, 16)
+    // MARK: - Шаг 1
 
-            if env.snapshot.contacts.isEmpty {
-                Text("Контактов пока нет — добавьте кнопкой сверху.")
+    private var detailsStep: some View {
+        List {
+            Section {
+                HStack {
+                    Spacer()
+                    ZStack(alignment: .bottomTrailing) {
+                        Circle()
+                            .fill(Theme.panelElevated)
+                            .frame(width: 96, height: 96)
+                            .overlay(
+                                Image(systemName: kind == .group ? "person.2.fill" : "megaphone.fill")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(Theme.textSecondary)
+                            )
+                        Circle()
+                            .fill(Theme.accent)
+                            .frame(width: 30, height: 30)
+                            .overlay(
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white)
+                            )
+                            .overlay(Circle().stroke(Theme.background, lineWidth: 2))
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 12)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+
+            Section {
+                TextField(kind.namePlaceholder, text: $title)
+                    .foregroundColor(Theme.textPrimary)
+                TextField("Описание (необязательно)", text: $about, axis: .vertical)
+                    .lineLimit(1...4)
+                    .foregroundColor(Theme.textPrimary)
+            } footer: {
+                Text(kind == .group
+                     ? "Группа создаётся только на этом устройстве. Приглашать в неё некого — собеседники локальные."
+                     : "Канал создаётся только на этом устройстве. Подписчиков можно добавить на следующем шаге.")
                     .font(.system(size: 13))
                     .foregroundColor(Theme.textSecondary)
-                    .padding(.horizontal, 16)
-            } else {
-                VStack(spacing: 0) {
+            }
+            .listRowBackground(Theme.panel)
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+    }
+
+    // MARK: - Шаг 2
+
+    private var membersStep: some View {
+        List {
+            Section {
+                if env.snapshot.contacts.isEmpty {
+                    Text("Контактов нет. Можно создать \(kind == .group ? "группу" : "канал") без участников.")
+                        .font(.system(size: 14))
+                        .foregroundColor(Theme.textSecondary)
+                        .listRowBackground(Theme.panel)
+                } else {
                     ForEach(env.snapshot.contacts) { contact in
                         Button {
-                            if mode == .direct {
-                                let chat = env.openDirectChat(with: contact)
-                                dismiss()
-                                _ = chat
-                            } else if selected.contains(contact.id) {
+                            if selected.contains(contact.id) {
                                 selected.remove(contact.id)
                             } else {
                                 selected.insert(contact.id)
                             }
                         } label: {
                             HStack(spacing: 12) {
-                                AvatarView(title: contact.displayName, colorHex: contact.avatarColor, size: 40)
+                                AvatarView(title: contact.displayName, colorHex: contact.avatarColor, size: 44)
                                 Text(contact.displayName)
+                                    .font(.system(size: 17))
                                     .foregroundColor(Theme.textPrimary)
                                 Spacer()
-                                if selected.contains(contact.id) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(Theme.accentBright)
-                                }
+                                Image(systemName: selected.contains(contact.id) ? "checkmark.circle.fill" : "circle")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(selected.contains(contact.id) ? Theme.accent : Theme.textDisabled)
                             }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        if contact.id != env.snapshot.contacts.last?.id {
-                            DividerLine()
-                        }
+                        .listRowBackground(Theme.panel)
                     }
                 }
-                .background(RoundedRectangle(cornerRadius: Theme.corner).fill(Theme.panel))
-                .padding(.horizontal, 16)
+            } header: {
+                Text(kind.countLabel)
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.textSecondary)
+                    .textCase(nil)
             }
         }
-    }
-
-    private var canCreate: Bool {
-        switch mode {
-        case .direct: return true
-        case .group: return !title.trimmingCharacters(in: .whitespaces).isEmpty
-        case .channel: return !title.trimmingCharacters(in: .whitespaces).isEmpty
-        }
-    }
-
-    private var createTitle: String {
-        switch mode {
-        case .direct: return "Выбрать собеседника ниже"
-        case .group: return "Создать группу"
-        case .channel: return "Создать канал"
-        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
     }
 
     private func create() {
         let name = title.trimmingCharacters(in: .whitespaces)
-        switch mode {
-        case .direct:
-            error = "Выберите контакта или добавьте нового"
+        guard !name.isEmpty else { return }
+        let chat: Chat
+        switch kind {
         case .group:
-            guard !name.isEmpty else { return }
-            _ = env.createGroup(title: name, memberIds: Array(selected))
-            dismiss()
+            chat = env.createGroup(title: name, memberIds: Array(selected))
         case .channel:
-            guard !name.isEmpty else { return }
-            _ = env.createChannel(title: name, about: about)
-            dismiss()
+            chat = env.createChannel(title: name, about: about)
         }
+        onCreated(chat)
+        dismiss()
     }
 }
 
