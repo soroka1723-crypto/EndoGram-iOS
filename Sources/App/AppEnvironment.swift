@@ -22,7 +22,13 @@ final class AppEnvironment: ObservableObject {
     var profile: UserProfile { snapshot.profile }
     var stars: Int { snapshot.stars }
     var giftCatalog: [Gift] { Seed.giftCatalog }
-    var nftCatalog: [NFTItem] { Seed.nftCatalog }
+    /// Каталог коллекционных подарков. Данные — из `Resources/Collectibles.json`
+    /// (публичный каталог Fragment); если ресурс не подгрузился, работает
+    /// встроенный короткий список из `Seed`.
+    var nftCatalog: [NFTItem] {
+        let full = CollectiblesCatalog.all
+        return full.isEmpty ? Seed.nftCatalog : full
+    }
 
     var activeChats: [Chat] {
         snapshot.chats.filter { !$0.isArchived }

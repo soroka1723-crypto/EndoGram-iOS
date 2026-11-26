@@ -369,12 +369,24 @@ struct NFTMarketView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var selected: NFTItem?
     @State private var toast: String?
+    @State private var query = ""
+
+    private var items: [NFTItem] {
+        let needle = query.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !needle.isEmpty else { return env.nftCatalog }
+        return env.nftCatalog.filter {
+            $0.name.lowercased().contains(needle) || $0.rarity.lowercased().contains(needle)
+        }
+    }
 
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                // LazyVStack важен: в каталоге 124 предмета, и у каждого карточки
+                // есть TimelineView-анимация. Ленивый стек не создаёт их для
+                // того, что за экраном.
+                LazyVStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Text("Коллекции")
                             .font(.system(size: 18, weight: .semibold))
@@ -387,7 +399,28 @@ struct NFTMarketView: View {
                     .padding(.horizontal, 14)
                     .padding(.top, 10)
 
-                    ForEach(env.nftCatalog) { item in
+                    SearchField(placeholder: "Поиск подарка", text: $query)
+                        .padding(.horizontal, 12)
+
+                    Text("Коллекционных подарков: \(items.count)")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                        .padding(.horizontal, 14)
+
+                    if items.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 30))
+                                .foregroundColor(Theme.textSecondary)
+                            Text("Ничего не найдено")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Theme.textPrimary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    }
+
+                    ForEach(items) { item in
                         Button {
                             selected = item
                         } label: {

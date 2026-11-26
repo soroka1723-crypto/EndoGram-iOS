@@ -1,0 +1,622 @@
+[
+    {
+        "slug":  "algorithmcup",
+        "name":  "Algorithm Cups",
+        "supply":  70
+    },
+    {
+        "slug":  "artisanbrick",
+        "name":  "Artisan Bricks",
+        "supply":  3110
+    },
+    {
+        "slug":  "astralshard",
+        "name":  "Astral Shards",
+        "supply":  3048
+    },
+    {
+        "slug":  "bdaycandle",
+        "name":  "B-Day Candles",
+        "supply":  25582
+    },
+    {
+        "slug":  "berrybox",
+        "name":  "Berry Boxes",
+        "supply":  9405
+    },
+    {
+        "slug":  "bigyear",
+        "name":  "Big Years",
+        "supply":  13737
+    },
+    {
+        "slug":  "blingbinky",
+        "name":  "Bling Binkies",
+        "supply":  2347
+    },
+    {
+        "slug":  "bondedring",
+        "name":  "Bonded Rings",
+        "supply":  3055
+    },
+    {
+        "slug":  "bowtie",
+        "name":  "Bow Ties",
+        "supply":  9530
+    },
+    {
+        "slug":  "bunnymuffin",
+        "name":  "Bunny Muffins",
+        "supply":  7218
+    },
+    {
+        "slug":  "candycane",
+        "name":  "Candy Canes",
+        "supply":  18453
+    },
+    {
+        "slug":  "chillflame",
+        "name":  "Chill Flames",
+        "supply":  51656
+    },
+    {
+        "slug":  "cloverpin",
+        "name":  "Clover Pins",
+        "supply":  21021
+    },
+    {
+        "slug":  "cookieheart",
+        "name":  "Cookie Hearts",
+        "supply":  14575
+    },
+    {
+        "slug":  "crystalball",
+        "name":  "Crystal Balls",
+        "supply":  8760
+    },
+    {
+        "slug":  "cupidcharm",
+        "name":  "Cupid Charms",
+        "supply":  6329
+    },
+    {
+        "slug":  "deskcalendar",
+        "name":  "Desk Calendars",
+        "supply":  35788
+    },
+    {
+        "slug":  "diamondring",
+        "name":  "Diamond Rings",
+        "supply":  8940
+    },
+    {
+        "slug":  "durovscap",
+        "name":  "Durov\u0027s Caps",
+        "supply":  3337
+    },
+    {
+        "slug":  "durovsglasses",
+        "name":  "Durov\u0027s Glasses",
+        "supply":  848
+    },
+    {
+        "slug":  "easteregg",
+        "name":  "Easter Eggs",
+        "supply":  28862
+    },
+    {
+        "slug":  "electricskull",
+        "name":  "Electric Skulls",
+        "supply":  4511
+    },
+    {
+        "slug":  "eternalcandle",
+        "name":  "Eternal Candles",
+        "supply":  13181
+    },
+    {
+        "slug":  "eternalrose",
+        "name":  "Eternal Roses",
+        "supply":  6077
+    },
+    {
+        "slug":  "evileye",
+        "name":  "Evil Eyes",
+        "supply":  19244
+    },
+    {
+        "slug":  "faithamulet",
+        "name":  "Faith Amulets",
+        "supply":  13421
+    },
+    {
+        "slug":  "finepen",
+        "name":  "Fine Pens",
+        "supply":  4675
+    },
+    {
+        "slug":  "flyingbroom",
+        "name":  "Flying Brooms",
+        "supply":  7004
+    },
+    {
+        "slug":  "freshsocks",
+        "name":  "Fresh Socks",
+        "supply":  13619
+    },
+    {
+        "slug":  "gemsignet",
+        "name":  "Gem Signets",
+        "supply":  2255
+    },
+    {
+        "slug":  "genielamp",
+        "name":  "Genie Lamps",
+        "supply":  2858
+    },
+    {
+        "slug":  "gingercookie",
+        "name":  "Ginger Cookies",
+        "supply":  19709
+    },
+    {
+        "slug":  "hangingstar",
+        "name":  "Hanging Stars",
+        "supply":  7554
+    },
+    {
+        "slug":  "happybrownie",
+        "name":  "Happy Brownies",
+        "supply":  12922
+    },
+    {
+        "slug":  "heartlocket",
+        "name":  "Heart Lockets",
+        "supply":  1335
+    },
+    {
+        "slug":  "heroichelmet",
+        "name":  "Heroic Helmets",
+        "supply":  1377
+    },
+    {
+        "slug":  "hexpot",
+        "name":  "Hex Pots",
+        "supply":  15169
+    },
+    {
+        "slug":  "holidaydrink",
+        "name":  "Holiday Drinks",
+        "supply":  7074
+    },
+    {
+        "slug":  "homemadecake",
+        "name":  "Homemade Cakes",
+        "supply":  34174
+    },
+    {
+        "slug":  "hypnolollipop",
+        "name":  "Hypno Lollipops",
+        "supply":  9640
+    },
+    {
+        "slug":  "icecream",
+        "name":  "Ice Creams",
+        "supply":  39628
+    },
+    {
+        "slug":  "inputkey",
+        "name":  "Input Keys",
+        "supply":  16564
+    },
+    {
+        "slug":  "instantramen",
+        "name":  "Instant Ramens",
+        "supply":  27937
+    },
+    {
+        "slug":  "intelligencecup",
+        "name":  "Intelligence Cups",
+        "supply":  33
+    },
+    {
+        "slug":  "iongem",
+        "name":  "Ion Gems",
+        "supply":  2790
+    },
+    {
+        "slug":  "ionicdryer",
+        "name":  "Ionic Dryers",
+        "supply":  3018
+    },
+    {
+        "slug":  "jackinthebox",
+        "name":  "Jacks-in-the-Box",
+        "supply":  17322
+    },
+    {
+        "slug":  "jellybunny",
+        "name":  "Jelly Bunnies",
+        "supply":  14814
+    },
+    {
+        "slug":  "jesterhat",
+        "name":  "Jester Hats",
+        "supply":  14377
+    },
+    {
+        "slug":  "jinglebells",
+        "name":  "Jingle Bells",
+        "supply":  9539
+    },
+    {
+        "slug":  "jollychimp",
+        "name":  "Jolly Chimps",
+        "supply":  16726
+    },
+    {
+        "slug":  "joyfulbundle",
+        "name":  "Joyful Bundles",
+        "supply":  4614
+    },
+    {
+        "slug":  "khabibspapakha",
+        "name":  "Khabib\u0027s Papakhas",
+        "supply":  3935
+    },
+    {
+        "slug":  "kissedfrog",
+        "name":  "Kissed Frogs",
+        "supply":  7826
+    },
+    {
+        "slug":  "libertyfigure",
+        "name":  "Liberty Figures",
+        "supply":  29462
+    },
+    {
+        "slug":  "lightsword",
+        "name":  "Light Swords",
+        "supply":  18575
+    },
+    {
+        "slug":  "lolpop",
+        "name":  "Lol Pops",
+        "supply":  71743
+    },
+    {
+        "slug":  "lootbag",
+        "name":  "Loot Bags",
+        "supply":  6749
+    },
+    {
+        "slug":  "lovecandle",
+        "name":  "Love Candles",
+        "supply":  3548
+    },
+    {
+        "slug":  "lovepotion",
+        "name":  "Love Potions",
+        "supply":  7148
+    },
+    {
+        "slug":  "lowrider",
+        "name":  "Low Riders",
+        "supply":  7069
+    },
+    {
+        "slug":  "luckylocket",
+        "name":  "Lucky Lockets",
+        "supply":  1698
+    },
+    {
+        "slug":  "lunarsnake",
+        "name":  "Lunar Snakes",
+        "supply":  21259
+    },
+    {
+        "slug":  "lushbouquet",
+        "name":  "Lush Bouquets",
+        "supply":  7320
+    },
+    {
+        "slug":  "madpumpkin",
+        "name":  "Mad Pumpkins",
+        "supply":  6987
+    },
+    {
+        "slug":  "magicpotion",
+        "name":  "Magic Potions",
+        "supply":  3347
+    },
+    {
+        "slug":  "mightyarm",
+        "name":  "Mighty Arms",
+        "supply":  1886
+    },
+    {
+        "slug":  "minioscar",
+        "name":  "Mini Oscars",
+        "supply":  2228
+    },
+    {
+        "slug":  "miragelamp",
+        "name":  "Mirage Lamps",
+        "supply":  3542
+    },
+    {
+        "slug":  "moneypot",
+        "name":  "Money Pots",
+        "supply":  10346
+    },
+    {
+        "slug":  "moodpack",
+        "name":  "Mood Packs",
+        "supply":  18282
+    },
+    {
+        "slug":  "moonpendant",
+        "name":  "Moon Pendants",
+        "supply":  14295
+    },
+    {
+        "slug":  "moussecake",
+        "name":  "Mousse Cakes",
+        "supply":  9009
+    },
+    {
+        "slug":  "mythmask",
+        "name":  "Myth Masks",
+        "supply":  4133
+    },
+    {
+        "slug":  "nailbracelet",
+        "name":  "Nail Bracelets",
+        "supply":  1989
+    },
+    {
+        "slug":  "nekohelmet",
+        "name":  "Neko Helmets",
+        "supply":  4412
+    },
+    {
+        "slug":  "partysparkler",
+        "name":  "Party Sparklers",
+        "supply":  22768
+    },
+    {
+        "slug":  "perfumebottle",
+        "name":  "Perfume Bottles",
+        "supply":  2212
+    },
+    {
+        "slug":  "petsnake",
+        "name":  "Pet Snakes",
+        "supply":  13039
+    },
+    {
+        "slug":  "plushpepe",
+        "name":  "Plush Pepes",
+        "supply":  2488
+    },
+    {
+        "slug":  "poolfloat",
+        "name":  "Pool Floats",
+        "supply":  18422
+    },
+    {
+        "slug":  "preciouspeach",
+        "name":  "Precious Peaches",
+        "supply":  2184
+    },
+    {
+        "slug":  "prettyposy",
+        "name":  "Pretty Posies",
+        "supply":  6594
+    },
+    {
+        "slug":  "rarebird",
+        "name":  "Rare Birds",
+        "supply":  4073
+    },
+    {
+        "slug":  "recordplayer",
+        "name":  "Record Players",
+        "supply":  5823
+    },
+    {
+        "slug":  "resistancedog",
+        "name":  "Resistance Dogs",
+        "supply":  2377
+    },
+    {
+        "slug":  "restlessjar",
+        "name":  "Restless Jars",
+        "supply":  10501
+    },
+    {
+        "slug":  "sakuraflower",
+        "name":  "Sakura Flowers",
+        "supply":  15184
+    },
+    {
+        "slug":  "santahat",
+        "name":  "Santa Hats",
+        "supply":  13624
+    },
+    {
+        "slug":  "scaredcat",
+        "name":  "Scared Cats",
+        "supply":  14598
+    },
+    {
+        "slug":  "sharptongue",
+        "name":  "Sharp Tongues",
+        "supply":  4018
+    },
+    {
+        "slug":  "signetring",
+        "name":  "Signet Rings",
+        "supply":  7525
+    },
+    {
+        "slug":  "skullflower",
+        "name":  "Skull Flowers",
+        "supply":  7282
+    },
+    {
+        "slug":  "skystilettos",
+        "name":  "Sky Stilettos",
+        "supply":  6638
+    },
+    {
+        "slug":  "sleighbell",
+        "name":  "Sleigh Bells",
+        "supply":  4596
+    },
+    {
+        "slug":  "snakebox",
+        "name":  "Snake Boxes",
+        "supply":  11328
+    },
+    {
+        "slug":  "snoopcigar",
+        "name":  "Snoop Cigars",
+        "supply":  20172
+    },
+    {
+        "slug":  "snoopdogg",
+        "name":  "Snoop Doggs",
+        "supply":  61122
+    },
+    {
+        "slug":  "snowglobe",
+        "name":  "Snow Globes",
+        "supply":  7095
+    },
+    {
+        "slug":  "snowmittens",
+        "name":  "Snow Mittens",
+        "supply":  5514
+    },
+    {
+        "slug":  "spicedwine",
+        "name":  "Spiced Wines",
+        "supply":  13115
+    },
+    {
+        "slug":  "springbasket",
+        "name":  "Spring Baskets",
+        "supply":  14844
+    },
+    {
+        "slug":  "spyagaric",
+        "name":  "Spy Agarics",
+        "supply":  29755
+    },
+    {
+        "slug":  "starnotepad",
+        "name":  "Star Notepads",
+        "supply":  10015
+    },
+    {
+        "slug":  "stellarrocket",
+        "name":  "Stellar Rockets",
+        "supply":  18253
+    },
+    {
+        "slug":  "surgeboard",
+        "name":  "Surge Boards",
+        "supply":  4409
+    },
+    {
+        "slug":  "swagbag",
+        "name":  "Swag Bags",
+        "supply":  23062
+    },
+    {
+        "slug":  "swisswatch",
+        "name":  "Swiss Watches",
+        "supply":  11363
+    },
+    {
+        "slug":  "tamagadget",
+        "name":  "Tama Gadgets",
+        "supply":  12170
+    },
+    {
+        "slug":  "timelessbook",
+        "name":  "Timeless Books",
+        "supply":  10685
+    },
+    {
+        "slug":  "tophat",
+        "name":  "Top Hats",
+        "supply":  9548
+    },
+    {
+        "slug":  "toybear",
+        "name":  "Toy Bears",
+        "supply":  30376
+    },
+    {
+        "slug":  "trappedheart",
+        "name":  "Trapped Hearts",
+        "supply":  9996
+    },
+    {
+        "slug":  "ufcstrike",
+        "name":  "UFC Strikes",
+        "supply":  7506
+    },
+    {
+        "slug":  "valentinebox",
+        "name":  "Valentine Boxes",
+        "supply":  4267
+    },
+    {
+        "slug":  "vicecream",
+        "name":  "Vice Creams",
+        "supply":  51684
+    },
+    {
+        "slug":  "victorymedal",
+        "name":  "Victory Medals",
+        "supply":  17502
+    },
+    {
+        "slug":  "vintagecigar",
+        "name":  "Vintage Cigars",
+        "supply":  9386
+    },
+    {
+        "slug":  "voodoodoll",
+        "name":  "Voodoo Dolls",
+        "supply":  11340
+    },
+    {
+        "slug":  "westsidesign",
+        "name":  "Westside Signs",
+        "supply":  5393
+    },
+    {
+        "slug":  "whipcupcake",
+        "name":  "Whip Cupcakes",
+        "supply":  17324
+    },
+    {
+        "slug":  "winterwreath",
+        "name":  "Winter Wreaths",
+        "supply":  10689
+    },
+    {
+        "slug":  "witchhat",
+        "name":  "Witch Hats",
+        "supply":  31844
+    },
+    {
+        "slug":  "xmasstocking",
+        "name":  "Xmas Stockings",
+        "supply":  18022
+    }
+]
