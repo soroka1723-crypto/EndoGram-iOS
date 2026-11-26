@@ -11,11 +11,11 @@ struct SettingsView: View {
     enum Route: Hashable {
         case profile, stars, premium, notifications, privacy, data
         case folders, devices, language, stickers, appearance, ledger, about
-        case energy, proxy
+        case energy, proxy, blocked
     }
 
     enum HelpTopic: String, Identifiable {
-        case question, faq, policy
+        case question, faq, policy, tips
         var id: String { rawValue }
     }
 
@@ -56,6 +56,7 @@ struct SettingsView: View {
             case .about:        AboutView()
             case .energy:       EnergySavingView().environmentObject(env)
             case .proxy:        ProxySettingsView().environmentObject(env)
+            case .blocked:      BlockedUsersView().environmentObject(env)
             }
         }
         .sheet(item: $helpSheet) { topic in
@@ -201,6 +202,11 @@ struct SettingsView: View {
                 SettingsRow(icon: "hand.raised.fill", title: "Политика конфиденциальности", tint: Theme.neutral)
             }
             .listRowBackground(Theme.panel)
+
+            Button { helpSheet = .tips } label: {
+                SettingsRow(icon: "lightbulb.fill", title: "Советы", tint: Theme.warning)
+            }
+            .listRowBackground(Theme.panel)
         }
     }
 
@@ -249,6 +255,7 @@ struct HelpSheet: View {
         case .question: return "Задать вопрос"
         case .faq:      return "Telegram FAQ"
         case .policy:   return "Политика конфиденциальности"
+        case .tips:     return "Советы"
         }
     }
 
@@ -274,6 +281,18 @@ struct HelpSheet: View {
             Приложение не собирает и не передаёт данные: у него нет сетевого доступа к каким-либо сервисам.
 
             Вся информация — профиль, чаты, сообщения, подарки, NFT и баланс звёзд — записывается только в локальное хранилище приложения на этом устройстве и удаляется вместе с приложением.
+            """
+        case .tips:
+            return """
+            Что можно попробовать прямо сейчас:
+
+            • Долгое нажатие на сообщение — реакции, ответ, копирование, закрепление, изменение и удаление.
+            • Свайп по чату в списке — закрепить, отключить звук или удалить.
+            • «Правка» в списке чатов — групповые действия над несколькими чатами.
+            • Кнопка со смайлом в поле ввода — панель эмодзи, они вставляются по-настоящему.
+            • В «Настройках» → «Мои звёзды» видно историю операций с тестовыми звёздами.
+
+            Собеседники не отвечают: это локальные записи, а не реальные люди.
             """
         }
     }

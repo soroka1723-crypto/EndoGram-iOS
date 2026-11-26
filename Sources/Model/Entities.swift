@@ -243,6 +243,15 @@ struct AppSettings: Codable, Hashable {
     var passcodeEnabled: Bool = false
     var autoDeleteMessages: String = "off"
     var sensitiveContent: Bool = false
+    var messagesVisibility: String = "everybody"
+    var callsVisibility: String = "everybody"
+    var groupsVisibility: String = "contacts"
+    var bioVisibility: String = "contacts"
+    var birthdayVisibility: String = "contacts"
+    var giftsVisibility: String = "contacts"
+    var savedMusicVisibility: String = "contacts"
+    var voiceMessagesVisibility: String = "everybody"
+    var autoArchiveEnabled: Bool = true
 
     // Данные и память
     var autoDownloadMedia: Bool = false
@@ -284,6 +293,8 @@ struct AppSettings: Codable, Hashable {
         case animationsEnabled, showNextMediaOnTap, sendWithEnter
         case showLastSeen, readReceipts, lastSeenVisibility, profilePhotoVisibility
         case phoneVisibility, forwardsVisibility, passcodeEnabled, autoDeleteMessages, sensitiveContent
+        case messagesVisibility, callsVisibility, groupsVisibility, bioVisibility, birthdayVisibility
+        case giftsVisibility, savedMusicVisibility, voiceMessagesVisibility, autoArchiveEnabled
         case autoDownloadMedia, autoDownloadCellular, autoDownloadWiFi, autoDownloadReset
         case saveIncomingPhotos, saveEditedPhotos, keepMedia, cacheLimitMb
         case dataSaverCalls, raiseToListen, pauseMusicOnRecording
@@ -319,6 +330,15 @@ struct AppSettings: Codable, Hashable {
         passcodeEnabled = c.lenient(.passcodeEnabled, false)
         autoDeleteMessages = c.lenient(.autoDeleteMessages, "off")
         sensitiveContent = c.lenient(.sensitiveContent, false)
+        messagesVisibility = c.lenient(.messagesVisibility, "everybody")
+        callsVisibility = c.lenient(.callsVisibility, "everybody")
+        groupsVisibility = c.lenient(.groupsVisibility, "contacts")
+        bioVisibility = c.lenient(.bioVisibility, "contacts")
+        birthdayVisibility = c.lenient(.birthdayVisibility, "contacts")
+        giftsVisibility = c.lenient(.giftsVisibility, "contacts")
+        savedMusicVisibility = c.lenient(.savedMusicVisibility, "contacts")
+        voiceMessagesVisibility = c.lenient(.voiceMessagesVisibility, "everybody")
+        autoArchiveEnabled = c.lenient(.autoArchiveEnabled, true)
 
         autoDownloadMedia = c.lenient(.autoDownloadMedia, false)
         autoDownloadCellular = c.lenient(.autoDownloadCellular, false)

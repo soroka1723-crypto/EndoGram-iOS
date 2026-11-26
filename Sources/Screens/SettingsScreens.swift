@@ -322,6 +322,30 @@ struct PrivacySettingsView: View {
                                       options: visibilityOptions, selection: stringBind(\.phoneVisibility))
                     SettingsPickerRow(icon: "arrowshape.turn.up.right.fill", title: "Пересылка сообщений",
                                       options: visibilityOptions, selection: stringBind(\.forwardsVisibility))
+                    SettingsPickerRow(icon: "info.circle.fill", title: "Био",
+                                      options: visibilityOptions, selection: stringBind(\.bioVisibility))
+                    SettingsPickerRow(icon: "birthday.cake.fill", title: "День рождения",
+                                      options: visibilityOptions, selection: stringBind(\.birthdayVisibility))
+                    SettingsPickerRow(icon: "gift.fill", title: "Подарки",
+                                      options: visibilityOptions, selection: stringBind(\.giftsVisibility))
+                }
+                .listRowBackground(Theme.panel)
+
+                Section("Кто может") {
+                    SettingsPickerRow(icon: "bubble.left.fill", title: "Сообщения",
+                                      options: visibilityOptions, selection: stringBind(\.messagesVisibility))
+                    SettingsPickerRow(icon: "phone.arrow.up.right.fill", title: "Звонки",
+                                      options: visibilityOptions, selection: stringBind(\.callsVisibility))
+                    SettingsPickerRow(icon: "person.3.fill", title: "Группы и каналы",
+                                      options: visibilityOptions, selection: stringBind(\.groupsVisibility))
+                    SettingsPickerRow(icon: "music.note", title: "Сохранённая музыка",
+                                      options: visibilityOptions, selection: stringBind(\.savedMusicVisibility))
+                    SettingsPickerRow(icon: "mic.fill", title: "Голосовые сообщения",
+                                      options: visibilityOptions, selection: stringBind(\.voiceMessagesVisibility))
+                } footer: {
+                    Text("В офлайн-режиме рядом нет других людей: эти правила сохранены для совместимости с Telegram и вступят в силу при подключении сервера EndoGram.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
                 }
                 .listRowBackground(Theme.panel)
 
@@ -334,6 +358,8 @@ struct PrivacySettingsView: View {
                                       tint: Theme.warning, isOn: boolBind(\.passcodeEnabled))
                     SettingsToggleRow(icon: "eye.trianglebadge.exclamationmark.fill", title: "Чувствительный контент",
                                       tint: Theme.danger, isOn: boolBind(\.sensitiveContent))
+                    SettingsToggleRow(icon: "archivebox.fill", title: "Автоархив новых чатов",
+                                      tint: Theme.neutral, isOn: boolBind(\.autoArchiveEnabled))
                 } footer: {
                     Text("Код-пароль и ограничения действуют только внутри приложения: данные и так лежат в песочнице iOS.")
                         .font(.system(size: 12))
@@ -347,6 +373,29 @@ struct PrivacySettingsView: View {
                                       tint: Theme.neutral)
                 } footer: {
                     Text("Автоудаление применяется к новым сообщениям в локальных чатах.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    NavigationLink(value: SettingsView.Route.blocked) {
+                        SettingsRow(icon: "hand.raised.fill", title: "Заблокированные пользователи",
+                                    value: "\(env.snapshot.contacts.count) локальных", tint: Theme.danger,
+                                    showsChevron: true)
+                    }
+                } footer: {
+                    Text("Блокировка действует только внутри приложения: заблокированный контакт исчезает из списка, но сообщения ему и так не отправляются.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsValueRow(title: "Облачный пароль", value: "не задан")
+                    SettingsValueRow(title: "Активные сеансы", value: "1")
+                } footer: {
+                    Text("Облачный пароль и сеансы — серверные функции Telegram. В офлайн-режиме они недоступны; все данные защищены песочницей iOS.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -841,6 +890,18 @@ struct AppearanceSettingsView: View {
                         .foregroundColor(Theme.textSecondary)
                 }
                 .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsValueRow(title: "Текущая тема", value: "Ночная · Telegram")
+                    SettingsValueRow(title: "Иконка приложения", value: "по умолчанию")
+                } header: {
+                    Text("Темы")
+                } footer: {
+                    Text("Редактор своих тем и смена иконки — функции полноценного клиента Telegram. В офлайн-сборке доступна ночная тема, перенесённая из оригинала по токенам.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
             }
             .telegramList()
         }
@@ -1035,5 +1096,71 @@ struct SettingsValueRow: View {
             Spacer()
             Text(value).foregroundColor(Theme.textListItemSecondary)
         }
+    }
+}
+
+// MARK: - Заблокированные пользователи
+
+/// «Заблокированные пользователи» — раздел оригинала `BlockedUsersController`.
+/// Список локальный: блокировка скрывает контакт из адресной книги приложения.
+struct BlockedUsersView: View {
+    @EnvironmentObject private var env: AppEnvironment
+    @State private var blocked = Set<String>()
+
+    var body: some View {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+            List {
+                if env.snapshot.contacts.isEmpty {
+                    Section {
+                        Text("Контактов нет")
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                    .listRowBackground(Theme.panel)
+                } else {
+                    Section {
+                        ForEach(env.snapshot.contacts) { contact in
+                            Button {
+                                if blocked.contains(contact.id) {
+                                    blocked.remove(contact.id)
+                                } else {
+                                    blocked.insert(contact.id)
+                                }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    AvatarView(title: contact.displayName, colorHex: contact.avatarColor, size: 40)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(contact.displayName)
+                                            .foregroundColor(Theme.textPrimary)
+                                        Text(blocked.contains(contact.id) ? "заблокирован" : "@" + contact.username)
+                                            .font(.system(size: 13))
+                                            .foregroundColor(blocked.contains(contact.id) ? Theme.danger : Theme.textSecondary)
+                                    }
+                                    Spacer()
+                                    if blocked.contains(contact.id) {
+                                        Image(systemName: "hand.raised.fill")
+                                            .foregroundColor(Theme.danger)
+                                    }
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .listRowBackground(Theme.panel)
+                        }
+                    } header: {
+                        Text("Нажмите, чтобы заблокировать или разблокировать")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.textSecondary)
+                            .textCase(nil)
+                    } footer: {
+                        Text("Блокировка хранится только на этом устройстве и не отправляется никуда: в офлайн-режиме сообщения и так не доставляются.")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                }
+            }
+            .telegramList()
+        }
+        .telegramNavTitle("Заблокированные")
     }
 }
