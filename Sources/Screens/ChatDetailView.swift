@@ -545,7 +545,7 @@ struct MessageBubble: View {
         let trimmed = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, trimmed.count <= 3 else { return 16 }
         let allEmoji = trimmed.unicodeScalars.allSatisfy { scalar in
-            scalar.properties.isEmoji && !scalar.properties.isASCII
+            scalar.properties.isEmoji && !scalar.isASCII
         }
         return allEmoji ? 44 : 16
     }
