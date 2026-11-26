@@ -412,8 +412,8 @@ struct InventoryView: View {
                     if env.snapshot.ownedGifts.isEmpty && env.snapshot.ownedNFTs.isEmpty {
                         EmptyStateView(
                             icon: "shippingbox",
-                            title: "Инвентарь пуст",
-                            subtitle: "Купите подарок или NFT в разделе «Звёзды» — они появятся здесь."
+                            title: "Подарков пока нет",
+                            subtitle: "Купите подарок или NFT в разделе «Звёзды» — они появятся здесь, на этом устройстве."
                         )
                         .frame(height: 360)
                     }
@@ -481,7 +481,7 @@ struct InventoryView: View {
                 .padding(.vertical, 12)
             }
         }
-        .navigationTitle("Инвентарь")
+        .navigationTitle("Мои подарки")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)

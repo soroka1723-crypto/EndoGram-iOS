@@ -14,6 +14,8 @@ struct ChatDetailView: View {
     @State private var showAttach = false
     @State private var showEmoji = false
     @State private var toast: String?
+    @StateObject private var recorder = VoiceRecorder()
+    @StateObject private var player = VoicePlayer()
     @FocusState private var inputFocused: Bool
 
     private var chat: Chat? { env.chat(chatId) }
@@ -87,6 +89,13 @@ struct ChatDetailView: View {
         .toolbarBackground(Theme.rootNavigationBar.opacity(0.9), for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear { env.markRead(chatId: chatId) }
+        .onDisappear {
+            player.stop()
+            if recorder.isRecording { recorder.cancel() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .endoGramVoiceLimitReached)) { _ in
+            if recorder.isRecording { finishRecording() }
+        }
         .sheet(isPresented: $showInfo) {
             ChatInfoView(chatId: chatId).environmentObject(env)
         }
@@ -155,7 +164,13 @@ struct ChatDetailView: View {
                             onDelete: { env.deleteMessage(id: message.id) },
                             onReact: { emoji in env.setReaction(messageId: message.id, emoji: emoji) },
                             onForward: { forwarding = message },
-                            onSave: { saveToFavourites(message) }
+                            onSave: { saveToFavourites(message) },
+                            isPlaying: player.playingFileName == message.voiceFileName,
+                            playProgress: player.progress,
+                            onTogglePlay: {
+                                guard let fileName = message.voiceFileName else { return }
+                                player.toggle(fileName: fileName)
+                            }
                         )
                         .id(message.id)
                     }
@@ -234,6 +249,9 @@ struct ChatDetailView: View {
 
     private var composer: some View {
         VStack(spacing: 0) {
+            if recorder.isRecording {
+                recordingBar
+            }
             if let replyingTo {
                 replyBar(replyingTo)
             }
@@ -264,7 +282,8 @@ struct ChatDetailView: View {
                 .background(Theme.panel)
             }
 
-            HStack(alignment: .bottom, spacing: 8) {
+            if !recorder.isRecording {
+                HStack(alignment: .bottom, spacing: 8) {
                 Button {
                     showEmoji = true
                     inputFocused = false
@@ -312,7 +331,9 @@ struct ChatDetailView: View {
                         .frame(width: 38, height: 38)
                         .background(Circle().fill(Theme.accent))
                 }
-                .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && editing == nil)
+                .disabled(!recorder.isRecording
+                          && draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                          && editing == nil)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 7)
@@ -321,6 +342,7 @@ struct ChatDetailView: View {
                 Rectangle()
                     .fill(Theme.inputSeparator)
                     .frame(height: 0.5)
+            }
             }
         }
         .sheet(isPresented: $showAttach) {
@@ -371,10 +393,55 @@ struct ChatDetailView: View {
         }
     }
 
+    /// Полоса записи голосового — красная точка, таймер и полоски громкости.
+    private var recordingBar: some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(Theme.danger)
+                .frame(width: 9, height: 9)
+            Text(Format.voiceDuration(recorder.elapsed))
+                .font(.system(size: 15, weight: .medium, design: .monospaced))
+                .foregroundColor(Theme.textPrimary)
+                .frame(width: 44, alignment: .leading)
+
+            VoiceWaveform(levels: recorder.levels, progress: 1, tint: Theme.danger)
+                .frame(height: 22)
+
+            Button {
+                recorder.cancel()
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 16))
+                    .foregroundColor(Theme.danger)
+                    .frame(width: 34, height: 34)
+            }
+            .accessibilityLabel("Отменить запись")
+
+            Button(action: finishRecording) {
+                Image(systemName: "paperplane.fill")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(Theme.accent))
+            }
+            .accessibilityLabel("Отправить голосовое")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(Theme.inputPanel)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Theme.inputSeparator).frame(height: 0.5)
+        }
+    }
+
     private func submit() {
+        if recorder.isRecording {
+            finishRecording()
+            return
+        }
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else {
-            showToast("Голосовые сообщения появятся позже")
+            startRecording()
             return
         }
         if let editing {
@@ -386,6 +453,33 @@ struct ChatDetailView: View {
         }
         draft = ""
         inputFocused = true
+    }
+
+    private func startRecording() {
+        inputFocused = false
+        player.stop()
+        recorder.requestPermission { granted in
+            guard granted else {
+                showToast("Нет доступа к микрофону: разрешите его в настройках iOS")
+                return
+            }
+            recorder.start()
+            if let error = recorder.error { showToast(error) }
+        }
+    }
+
+    private func finishRecording() {
+        guard let result = recorder.finish() else {
+            if let error = recorder.error { showToast(error) }
+            return
+        }
+        env.sendVoiceMessage(
+            chatId: chatId,
+            fileName: result.fileName,
+            duration: result.duration,
+            waveform: result.waveform
+        )
+        showToast("Голосовое сохранено на этом устройстве")
     }
 
     private func toastView(_ text: String) -> some View {
@@ -427,6 +521,10 @@ struct MessageBubble: View {
     var onReact: (String?) -> Void = { _ in }
     var onForward: () -> Void = {}
     var onSave: () -> Void = {}
+    /// Состояние проигрывателя голосовых.
+    var isPlaying: Bool = false
+    var playProgress: Double = 0
+    var onTogglePlay: () -> Void = {}
 
     /// Быстрые реакции Telegram.
     private static let quickReactions = ["👍", "❤️", "🔥", "🎉", "😁", "🤔"]
@@ -483,10 +581,14 @@ struct MessageBubble: View {
                 if let quoted {
                     quoteBlock(quoted)
                 }
-                Text(message.text)
-                    .font(.system(size: 16))
-                    .foregroundColor(Theme.textPrimary)
-                    .textSelection(.enabled)
+                if message.kind == .voice {
+                    voiceContent
+                } else {
+                    Text(message.text)
+                        .font(.system(size: 16))
+                        .foregroundColor(Theme.textPrimary)
+                        .textSelection(.enabled)
+                }
 
                 HStack(spacing: 4) {
                     if message.isPinned {
@@ -530,6 +632,35 @@ struct MessageBubble: View {
         }
         .padding(.vertical, 1)
         .padding(.bottom, message.reaction == nil ? 0 : 12)
+    }
+
+    /// Голосовое сообщение: кнопка воспроизведения, полоски и длительность.
+    private var voiceContent: some View {
+        HStack(spacing: 10) {
+            Button(action: onTogglePlay) {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(isMine ? .white : Theme.accent)
+                    .frame(width: 34, height: 34)
+                    .background(
+                        Circle().fill(isMine ? Color.white.opacity(0.24) : Theme.accent.opacity(0.16))
+                    )
+            }
+            .buttonStyle(.plain)
+
+            VoiceWaveform(
+                levels: message.voiceWaveform ?? [],
+                progress: isPlaying ? playProgress : 0,
+                tint: isMine ? .white : Theme.accent
+            )
+            .frame(width: 128, height: 24)
+
+            Text(Format.voiceDuration(message.voiceDuration))
+                .font(.system(size: 12))
+                .foregroundColor(isMine ? Color.white.opacity(0.85) : Theme.textSecondary)
+                .frame(width: 32, alignment: .trailing)
+        }
+        .padding(.vertical, 2)
     }
 
     /// Цитата ответа — вертикальная черта и подпись автора, как в Telegram.
@@ -697,6 +828,39 @@ struct ForwardPickerView: View {
     }
 }
 
+
+/// Полоски громкости голосового сообщения — как в пузыре Telegram.
+struct VoiceWaveform: View {
+    let levels: [Double]
+    /// Доля проигранного: слева полоски ярче.
+    let progress: Double
+    var tint: Color = Theme.accent
+
+    private var bars: [Double] {
+        levels.isEmpty ? Array(repeating: 0.35, count: 40) : levels
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let count = max(1, bars.count)
+            let spacing: CGFloat = 2
+            let width = max(1.5, (geometry.size.width - spacing * CGFloat(count - 1)) / CGFloat(count))
+            HStack(alignment: .center, spacing: spacing) {
+                ForEach(Array(bars.enumerated()), id: \.offset) { index, level in
+                    Capsule()
+                        .fill(tint.opacity(played(index, of: count) ? 1 : 0.45))
+                        .frame(width: width, height: max(3, CGFloat(level) * geometry.size.height))
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+    }
+
+    private func played(_ index: Int, of count: Int) -> Bool {
+        guard progress > 0 else { return false }
+        return Double(index) / Double(count) <= progress
+    }
+}
 
 /// Меню вложений в стиле Telegram: сетка круглых значков.
 /// Все пункты честно сообщают, что вложения в офлайн-режиме не отправляются.

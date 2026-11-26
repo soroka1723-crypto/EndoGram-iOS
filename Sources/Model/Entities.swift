@@ -87,6 +87,8 @@ struct ChatFolder: Codable, Identifiable, Hashable {
 enum MessageKind: String, Codable {
     case text
     case service
+    /// Голосовое сообщение: файл лежит в песочнице приложения.
+    case voice
 }
 
 struct Message: Codable, Identifiable, Hashable {
@@ -107,6 +109,12 @@ struct Message: Codable, Identifiable, Hashable {
     var reaction: String? = nil
     /// Имя автора при пересылке — как `forward` в Telegram.
     var forwardedFrom: String? = nil
+    /// Имя файла голосового сообщения внутри песочницы приложения.
+    var voiceFileName: String? = nil
+    /// Длительность голосового в секундах.
+    var voiceDuration: Double? = nil
+    /// Огибающая громкости для полосок в пузыре — как в Telegram.
+    var voiceWaveform: [Double]? = nil
 
     var isEdited: Bool { editedAt != nil }
 }

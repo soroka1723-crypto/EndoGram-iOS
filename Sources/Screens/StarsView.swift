@@ -54,7 +54,7 @@ struct StarsView: View {
 
             HStack(spacing: 8) {
                 NavigationLink(value: Route.inventory) {
-                    Text("Инвентарь")
+                    Text("Мои подарки")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 16)

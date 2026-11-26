@@ -102,6 +102,36 @@ final class LocalBackend: EndoBackend {
         persist()
     }
 
+    /// Голосовое сообщение: файл уже записан в песочницу, здесь только запись в базу.
+    @discardableResult
+    func sendVoiceMessage(chatId: String, fileName: String, duration: Double, waveform: [Double]) -> Message {
+        let message = Message(
+            id: IDs.next("msg"),
+            chatId: chatId,
+            senderId: snapshot.profile.id,
+            authorName: snapshot.profile.displayName,
+            text: "",
+            createdAt: Date(),
+            editedAt: nil,
+            isPinned: false,
+            kind: .voice,
+            isRead: true,
+            replyToId: nil,
+            reaction: nil,
+            forwardedFrom: nil,
+            voiceFileName: fileName,
+            voiceDuration: duration,
+            voiceWaveform: waveform
+        )
+        snapshot.messages.append(message)
+        if let index = snapshot.chats.firstIndex(where: { $0.id == chatId }) {
+            snapshot.chats[index].lastReadAt = message.createdAt
+        }
+        snapshot.updatedAt = Date()
+        persist()
+        return message
+    }
+
     /// Пересылка: копия сообщения с подписью автора — как `forward` в Telegram.
     func forwardMessage(id: String, toChatId: String) -> Message? {
         guard let source = snapshot.messages.first(where: { $0.id == id }) else { return nil }

@@ -11,7 +11,7 @@ struct SettingsView: View {
     enum Route: Hashable {
         case profile, stars, premium, notifications, privacy, data
         case folders, devices, language, stickers, appearance, about
-        case energy, proxy, blocked, saved
+        case energy, proxy, blocked, saved, stories
     }
 
     enum HelpTopic: String, Identifiable {
@@ -57,6 +57,7 @@ struct SettingsView: View {
             case .proxy:        ProxySettingsView().environmentObject(env)
             case .blocked:      BlockedUsersView().environmentObject(env)
             case .saved:        SavedMessagesView().environmentObject(env)
+            case .stories:      MyStoriesView()
             }
         }
         .sheet(item: $helpSheet) { topic in
@@ -105,6 +106,11 @@ struct SettingsView: View {
         Section {
             NavigationLink(value: Route.saved) {
                 SettingsRow(icon: "bookmark.fill", title: "Избранное", tint: Theme.accent)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.stories) {
+                SettingsRow(icon: "circle.dashed", title: "Мои истории", value: "0", tint: Theme.warning)
             }
             .listRowBackground(Theme.panel)
 

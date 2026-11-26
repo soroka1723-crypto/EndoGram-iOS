@@ -13,6 +13,7 @@ protocol EndoBackend: AnyObject {
     func persist()
 
     func sendMessage(chatId: String, text: String, replyToId: String?) -> Message
+    func sendVoiceMessage(chatId: String, fileName: String, duration: Double, waveform: [Double]) -> Message
     func setReaction(messageId: String, emoji: String?)
     func forwardMessage(id: String, toChatId: String) -> Message?
     func savedMessagesChat() -> Chat

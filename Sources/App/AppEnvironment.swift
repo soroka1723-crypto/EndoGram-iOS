@@ -147,6 +147,14 @@ final class AppEnvironment: ObservableObject {
         return chat
     }
 
+    /// Сохранение записанного голосового сообщения в текущий чат.
+    @discardableResult
+    func sendVoiceMessage(chatId: String, fileName: String, duration: Double, waveform: [Double]) -> Message {
+        let message = backend.sendVoiceMessage(chatId: chatId, fileName: fileName, duration: duration, waveform: waveform)
+        refresh()
+        return message
+    }
+
     func editMessage(id: String, text: String) {
         backend.editMessage(id: id, text: text)
         refresh()
