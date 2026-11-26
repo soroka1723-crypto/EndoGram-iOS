@@ -928,11 +928,13 @@ struct EnergySavingView: View {
                 }
                 .listRowBackground(Theme.panel)
 
-                Section("При низком заряде") {
+                Section {
                     SettingsToggleRow(icon: "arrow.down.circle.fill", title: "Отключить автозагрузку",
                                       tint: Theme.accent, isOn: boolBind(\.energySavingAutoDownload))
                     SettingsToggleRow(icon: "sparkles", title: "Отключить анимации",
                                       tint: Color(hex: Palette.purple), isOn: animationsBinding)
+                } header: {
+                    Text("При низком заряде")
                 } footer: {
                     Text("Отключение анимаций применяется сразу ко всему интерфейсу.")
                         .font(.system(size: 12))
@@ -949,7 +951,7 @@ struct EnergySavingView: View {
     private var animationsBinding: Binding<Bool> {
         Binding(
             get: { !env.snapshot.settings.animationsEnabled },
-            set: { env.updateSettings { $0.animationsEnabled = !$0 } }
+            set: { value in env.updateSettings { $0.animationsEnabled = !value } }
         )
     }
 
