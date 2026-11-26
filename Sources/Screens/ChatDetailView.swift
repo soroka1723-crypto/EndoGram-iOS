@@ -12,6 +12,11 @@ struct ChatDetailView: View {
     @State private var forwarding: Message?
     @State private var showInfo = false
     @State private var showAttach = false
+    @State private var showCameraPhoto = false
+    @State private var showCameraVideo = false
+    @State private var showLibrary = false
+    @State private var pendingAttachment: PendingAttachment?
+    @State private var viewingMedia: Message?
     @State private var showEmoji = false
     @State private var toast: String?
     /// Режим выбора нескольких сообщений — как «Выбрать» в Telegram.
@@ -202,6 +207,7 @@ struct ChatDetailView: View {
                             isSelected: selectedIds.contains(message.id),
                             onToggleSelect: { toggleSelection(message.id) },
                             onSelect: { beginSelection(with: message.id) },
+                            onOpenMedia: { viewingMedia = message },
                             onReply: { replyingTo = message; inputFocused = true },
                             onCopy: {
                                 UIPasteboard.general.string = message.text
@@ -394,13 +400,48 @@ struct ChatDetailView: View {
             }
         }
         .sheet(isPresented: $showAttach) {
-            AttachmentMenu { title in
+            AttachmentMenu { action in
                 showAttach = false
-                showToast("Офлайн-режим: «\(title)» пока не поддерживается, сообщение не отправлено")
+                switch action {
+                case .media:
+                    openLibrary()
+                case .cameraPhoto:
+                    openCamera(.photo)
+                case .cameraVideo:
+                    openCamera(.video)
+                case .file, .location, .contact, .poll, .music:
+                    showToast("Офлайн-режим: «\(action.title)» пока не поддерживается")
+                }
             }
             .presentationDetents([.height(292)])
             .presentationDragIndicator(.hidden)
             .presentationBackground(Theme.panelElevated)
+        }
+        .sheet(isPresented: $showLibrary) {
+            MediaLibraryPicker(store: ChatMedia.store) { attachment in
+                pendingAttachment = attachment
+            }
+        }
+        .sheet(item: $pendingAttachment) { attachment in
+            MediaSendSheet(chatId: chatId, attachment: attachment)
+                .environmentObject(env)
+        }
+        .fullScreenCover(isPresented: $showCameraPhoto) {
+            StoryCameraPicker(mode: .photo) { capture in
+                showCameraPhoto = false
+                handleCapture(capture)
+            }
+            .ignoresSafeArea()
+        }
+        .fullScreenCover(isPresented: $showCameraVideo) {
+            StoryCameraPicker(mode: .video) { capture in
+                showCameraVideo = false
+                handleCapture(capture)
+            }
+            .ignoresSafeArea()
+        }
+        .fullScreenCover(item: $viewingMedia) { message in
+            MediaViewerView(message: message)
         }
     }
 
@@ -530,6 +571,44 @@ struct ChatDetailView: View {
         showToast("Голосовое сохранено на этом устройстве")
     }
 
+    // MARK: - Вложения
+
+    private func openLibrary() {
+        // Небольшая пауза: сначала закрывается меню, потом открывается галерея.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            showLibrary = true
+        }
+    }
+
+    private func openCamera(_ mode: StoryCameraPicker.Mode) {
+        guard StoryCameraPicker.isAvailable else {
+            showToast("Камера недоступна на этом устройстве")
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            switch mode {
+            case .photo: showCameraPhoto = true
+            case .video: showCameraVideo = true
+            }
+        }
+    }
+
+    private func handleCapture(_ capture: StoryCapture?) {
+        guard let capture else { return }
+        switch capture {
+        case .photo(let image):
+            pendingAttachment = PendingAttachment(image: image, videoFileName: nil, videoDuration: 0)
+        case .video(let url):
+            guard let fileName = ChatMedia.store.saveVideo(from: url) else {
+                showToast("Не удалось сохранить видео на устройство")
+                return
+            }
+            let duration = ChatMedia.store.duration(ofVideo: fileName)
+            pendingAttachment = PendingAttachment(image: nil, videoFileName: fileName,
+                                                  videoDuration: duration)
+        }
+    }
+
     /// Нижняя панель в режиме выбора — как панель действий Telegram.
     private var selectionBar: some View {
         HStack(spacing: 0) {
@@ -637,6 +716,8 @@ struct MessageBubble: View {
     var onToggleSelect: () -> Void = {}
     /// Вход в режим выбора из контекстного меню.
     var onSelect: () -> Void = {}
+    /// Открыть фото или видео на весь экран.
+    var onOpenMedia: () -> Void = {}
     /// Доступные действия из контекстного меню (как в оригинале).
     var onReply: () -> Void = {}
     var onCopy: () -> Void = {}
@@ -721,6 +802,15 @@ struct MessageBubble: View {
                 }
                 if message.kind == .voice {
                     voiceContent
+                } else if message.isMedia {
+                    mediaContent
+                    if !message.text.isEmpty {
+                        Text(message.text)
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.textPrimary)
+                            .textSelectionIf(!selectionMode)
+                            .padding(.top, 2)
+                    }
                 } else {
                     Text(message.text)
                         .font(.system(size: bigEmojiSize))
@@ -785,6 +875,61 @@ struct MessageBubble: View {
             .foregroundColor(isSelected ? Theme.accent : Theme.textDisabled)
             .padding(.horizontal, 4)
             .transition(.scale.combined(with: .opacity))
+    }
+
+    /// Фото или видео в пузыре: превью с плейсхолдером и длительностью.
+    @ViewBuilder
+    private var mediaContent: some View {
+        if let fileName = message.mediaFileName {
+            ZStack {
+                if message.kind == .video {
+                    if let thumb = ChatMedia.store.thumbnail(forVideo: fileName) {
+                        Image(uiImage: thumb)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Rectangle().fill(Theme.panelElevated)
+                    }
+                } else if let image = ChatMedia.store.image(for: fileName) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Rectangle().fill(Theme.panelElevated)
+                        .overlay(
+                            Image(systemName: "photo")
+                                .font(.system(size: 24))
+                                .foregroundColor(Theme.textSecondary)
+                        )
+                }
+            }
+            .frame(width: 220, height: 165)
+            .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay {
+                if message.kind == .video {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 44))
+                        .foregroundColor(.white.opacity(0.92))
+                        .shadow(radius: 6)
+                }
+            }
+            .overlay(alignment: .bottomTrailing) {
+                if message.kind == .video, let duration = message.mediaDuration, duration > 0 {
+                    Text(Format.duration(duration))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.black.opacity(0.55)))
+                        .padding(7)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if !selectionMode { onOpenMedia() }
+            }
+        }
     }
 
     /// Голосовое сообщение: кнопка воспроизведения, полоски и длительность.
@@ -1108,29 +1253,58 @@ struct VoiceWaveform: View {
 }
 
 /// Меню вложений в стиле Telegram: сетка круглых значков.
-/// Все пункты честно сообщают, что вложения в офлайн-режиме не отправляются.
+///
+/// Фото, видео и камера работают по-настоящему и офлайн. Остальные пункты
+/// честно сообщают, что требуют серверных данных.
+enum AttachmentAction: String, CaseIterable, Identifiable {
+    case media, cameraPhoto, cameraVideo, file, location, contact, poll, music
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .media:       return "Фото или видео"
+        case .cameraPhoto: return "Камера"
+        case .cameraVideo: return "Видео"
+        case .file:        return "Файл"
+        case .location:    return "Геопозиция"
+        case .contact:     return "Контакт"
+        case .poll:        return "Опрос"
+        case .music:       return "Музыка"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .media:       return "photo.fill"
+        case .cameraPhoto: return "camera.fill"
+        case .cameraVideo: return "video.fill"
+        case .file:        return "doc.fill"
+        case .location:    return "location.fill"
+        case .contact:     return "person.crop.circle.fill"
+        case .poll:        return "chart.bar.fill"
+        case .music:       return "music.note"
+        }
+    }
+
+    var color: String {
+        switch self {
+        case .media:       return Palette.blue
+        case .cameraPhoto: return Palette.cyan
+        case .cameraVideo: return Palette.red
+        case .file:        return Palette.purple
+        case .location:    return Palette.green
+        case .contact:     return Palette.orange
+        case .poll:        return Palette.cyan
+        case .music:       return Palette.pink
+        }
+    }
+}
+
 struct AttachmentMenu: View {
-    let onSelect: (String) -> Void
+    let onSelect: (AttachmentAction) -> Void
 
-    private struct Item: Identifiable {
-        let id = UUID()
-        let title: String
-        let icon: String
-        let color: String
-    }
-
-    private var items: [Item] {
-        [
-            Item(title: "Фото или видео", icon: "photo.fill", color: Palette.blue),
-            Item(title: "Файл", icon: "doc.fill", color: Palette.purple),
-            Item(title: "Геопозиция", icon: "location.fill", color: Palette.green),
-            Item(title: "Контакт", icon: "person.crop.circle.fill", color: Palette.orange),
-            Item(title: "Опрос", icon: "chart.bar.fill", color: Palette.cyan),
-            Item(title: "Музыка", icon: "music.note", color: Palette.pink)
-        ]
-    }
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
 
     var body: some View {
         VStack(spacing: 14) {
@@ -1140,32 +1314,32 @@ struct AttachmentMenu: View {
                 .padding(.top, 14)
 
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(items) { item in
+                ForEach(AttachmentAction.allCases) { action in
                     Button {
-                        onSelect(item.title)
+                        onSelect(action)
                     } label: {
-                        VStack(spacing: 8) {
+                        VStack(spacing: 7) {
                             Circle()
-                                .fill(Color(hex: item.color))
-                                .frame(width: 60, height: 60)
+                                .fill(Color(hex: action.color))
+                                .frame(width: 56, height: 56)
                                 .overlay(
-                                    Image(systemName: item.icon)
-                                        .font(.system(size: 24, weight: .medium))
+                                    Image(systemName: action.icon)
+                                        .font(.system(size: 23, weight: .medium))
                                         .foregroundColor(.white)
                                 )
-                            Text(item.title)
-                                .font(.system(size: 12))
+                            Text(action.title)
+                                .font(.system(size: 11))
                                 .foregroundColor(Theme.textPrimary)
                                 .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                .minimumScaleFactor(0.75)
                         }
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 14)
 
-            Text("Офлайн-режим: вложения не отправляются и не сохраняются.")
+            Text("Фото и видео сохраняются на устройстве. Остальные вложения требуют данных с сервера — в офлайне они недоступны.")
                 .font(.system(size: 12))
                 .foregroundColor(Theme.textSecondary)
                 .multilineTextAlignment(.center)

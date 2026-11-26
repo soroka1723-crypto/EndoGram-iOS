@@ -161,6 +161,16 @@ final class AppEnvironment: ObservableObject {
         return chat
     }
 
+    /// Фото или видео в текущий чат (в том числе в канал).
+    @discardableResult
+    func sendMediaMessage(chatId: String, fileName: String, kind: MessageKind,
+                          duration: Double? = nil, caption: String = "", replyToId: String? = nil) -> Message {
+        let message = backend.sendMediaMessage(chatId: chatId, fileName: fileName, kind: kind,
+                                               duration: duration, caption: caption, replyToId: replyToId)
+        refresh()
+        return message
+    }
+
     /// Сохранение записанного голосового сообщения в текущий чат.
     @discardableResult
     func sendVoiceMessage(chatId: String, fileName: String, duration: Double, waveform: [Double]) -> Message {

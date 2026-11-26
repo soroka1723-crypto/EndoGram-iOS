@@ -91,6 +91,10 @@ enum MessageKind: String, Codable {
     case service
     /// Голосовое сообщение: файл лежит в песочнице приложения.
     case voice
+    /// Фото: JPEG в `Application Support/EndoGram/ChatMedia`.
+    case photo
+    /// Видео: MOV в `Application Support/EndoGram/ChatMedia`.
+    case video
 }
 
 struct Message: Codable, Identifiable, Hashable {
@@ -117,6 +121,12 @@ struct Message: Codable, Identifiable, Hashable {
     var voiceDuration: Double? = nil
     /// Огибающая громкости для полосок в пузыре — как в Telegram.
     var voiceWaveform: [Double]? = nil
+    /// Имя файла вложения (фото или видео) в песочнице приложения.
+    var mediaFileName: String? = nil
+    /// Длительность видео в секундах.
+    var mediaDuration: Double? = nil
+
+    var isMedia: Bool { kind == .photo || kind == .video }
 
     var isEdited: Bool { editedAt != nil }
 }

@@ -137,6 +137,40 @@ final class LocalBackend: EndoBackend {
         return message
     }
 
+    /// Фото или видео: файл уже скопирован в песочницу, здесь только запись в базу.
+    @discardableResult
+    func sendMediaMessage(chatId: String, fileName: String, kind: MessageKind,
+                          duration: Double?, caption: String, replyToId: String?) -> Message {
+        let trimmed = caption.trimmingCharacters(in: .whitespacesAndNewlines)
+        let message = Message(
+            id: IDs.next("msg"),
+            chatId: chatId,
+            senderId: snapshot.profile.id,
+            authorName: snapshot.profile.displayName,
+            text: trimmed,
+            createdAt: Date(),
+            editedAt: nil,
+            isPinned: false,
+            kind: kind,
+            isRead: true,
+            replyToId: replyToId,
+            reaction: nil,
+            forwardedFrom: nil,
+            voiceFileName: nil,
+            voiceDuration: nil,
+            voiceWaveform: nil,
+            mediaFileName: fileName,
+            mediaDuration: duration
+        )
+        snapshot.messages.append(message)
+        if let index = snapshot.chats.firstIndex(where: { $0.id == chatId }) {
+            snapshot.chats[index].lastReadAt = message.createdAt
+        }
+        snapshot.updatedAt = Date()
+        persist()
+        return message
+    }
+
     /// Пересылка: копия сообщения с подписью автора — как `forward` в Telegram.
     func forwardMessage(id: String, toChatId: String) -> Message? {
         forwardMessages(ids: [id], toChatId: toChatId).first
@@ -163,7 +197,9 @@ final class LocalBackend: EndoBackend {
                 forwardedFrom: source.senderId == snapshot.profile.id ? snapshot.profile.displayName : source.authorName,
                 voiceFileName: source.voiceFileName,
                 voiceDuration: source.voiceDuration,
-                voiceWaveform: source.voiceWaveform
+                voiceWaveform: source.voiceWaveform,
+                mediaFileName: source.mediaFileName,
+                mediaDuration: source.mediaDuration
             )
             snapshot.messages.append(forwarded)
             forwards.append(forwarded)

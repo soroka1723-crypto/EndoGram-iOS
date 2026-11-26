@@ -429,7 +429,15 @@ struct ChatRowView: View {
             return chat.kind == .channel ? "Канал" : "Нет сообщений"
         }
         let prefix = message.senderId == env.profile.id ? "Вы: " : ""
-        return prefix + message.text.replacingOccurrences(of: "\n", with: " ")
+        // Как в Telegram: у медиа показывается тип вложения, а не пустая строка.
+        let body: String
+        switch message.kind {
+        case .photo: body = message.text.isEmpty ? "Фото" : "Фото, " + message.text
+        case .video: body = message.text.isEmpty ? "Видео" : "Видео, " + message.text
+        case .voice: body = "Голосовое сообщение"
+        case .service, .text: body = message.text
+        }
+        return prefix + body.replacingOccurrences(of: "\n", with: " ")
     }
 
     var body: some View {

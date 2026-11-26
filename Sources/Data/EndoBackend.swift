@@ -14,6 +14,9 @@ protocol EndoBackend: AnyObject {
 
     func sendMessage(chatId: String, text: String, replyToId: String?) -> Message
     func sendVoiceMessage(chatId: String, fileName: String, duration: Double, waveform: [Double]) -> Message
+    /// Фото или видео в чат либо канал. Файл уже лежит в песочнице.
+    func sendMediaMessage(chatId: String, fileName: String, kind: MessageKind,
+                          duration: Double?, caption: String, replyToId: String?) -> Message
     func setReaction(messageId: String, emoji: String?)
     func forwardMessage(id: String, toChatId: String) -> Message?
     /// Массовая пересылка выбранных сообщений.
