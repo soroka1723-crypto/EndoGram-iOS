@@ -150,5 +150,7 @@ enum Seed {
         NFTItem(id: "nft.star", name: "Endo Star", collection: "Endo Stars", emoji: "⭐️", price: 25_000, rarity: "Мифический", colorHex: "#FACC15", serial: 1, totalSupply: 10, description: "Мифическая звезда — редкость коллекции."),
     ]
 
-    static let wallpaperNames = ["telegram", "градиент", "ночной", "океан"]
+    /// Идентификаторы обоев совпадают с `WallpaperStyle`, чтобы значение из
+    /// настроек всегда находило реальный вариант.
+    static var wallpaperNames: [String] { WallpaperStyle.allCases.map(\.rawValue) }
 }

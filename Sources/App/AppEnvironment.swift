@@ -215,6 +215,19 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
+    /// Свои обои для одного чата. nil — снова обои из настроек.
+    func setChatWallpaper(_ chatId: String, style: String?) {
+        backend.setChatWallpaper(chatId: chatId, style: style)
+        refresh()
+    }
+
+    /// Обои, которые нужно показать в этом чате: свои, иначе из настроек.
+    func wallpaperStyle(for chatId: String) -> WallpaperStyle {
+        let own = chat(chatId)?.wallpaperId
+        let raw = (own?.isEmpty == false ? own : nil) ?? snapshot.settings.wallpaper
+        return WallpaperStyle.resolve(raw)
+    }
+
     func deleteChat(_ chatId: String) {
         backend.deleteChat(chatId: chatId)
         refresh()

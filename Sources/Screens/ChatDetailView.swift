@@ -22,10 +22,13 @@ struct ChatDetailView: View {
     private var messages: [Message] { env.messages(in: chatId) }
     private var pinned: Message? { env.pinnedMessage(in: chatId) }
     private var isChannel: Bool { chat?.kind == .channel }
+    private var wallpaperStyle: WallpaperStyle {
+        env.wallpaperStyle(for: chatId)
+    }
 
     var body: some View {
         ZStack {
-            ChatWallpaper()
+            ChatWallpaper(style: wallpaperStyle)
             VStack(spacing: 0) {
                 if let pinned {
                     pinnedBar(pinned)

@@ -361,6 +361,12 @@ final class LocalBackend: EndoBackend {
         persist()
     }
 
+    func setChatWallpaper(chatId: String, style: String?) {
+        guard let index = snapshot.chats.firstIndex(where: { $0.id == chatId }) else { return }
+        snapshot.chats[index].wallpaperId = style
+        persist()
+    }
+
     func deleteChat(chatId: String) {
         snapshot.chats.removeAll { $0.id == chatId }
         snapshot.messages.removeAll { $0.chatId == chatId }

@@ -144,34 +144,5 @@ extension Color {
     }
 }
 
-/// Обои переписки ночной темы Telegram.
-///
-/// Telegram строит их из `defaultDarkWallpaperGradientColors`
-/// (`0x598BF6, 0x7A5EEF, 0xD67CFF, 0xF38B58`) с интенсивностью -34,
-/// то есть затемнённым градиентом поверх почти чёрной основы.
-struct ChatWallpaper: View {
-    var body: some View {
-        ZStack {
-            Color(hex: "#04070B")
-
-            LinearGradient(
-                stops: [
-                    .init(color: Color(hex: "#598BF6").opacity(0.20), location: 0.00),
-                    .init(color: Color(hex: "#7A5EEF").opacity(0.17), location: 0.34),
-                    .init(color: Color(hex: "#D67CFF").opacity(0.13), location: 0.68),
-                    .init(color: Color(hex: "#F38B58").opacity(0.10), location: 1.00),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            RadialGradient(
-                colors: [Color(hex: "#598BF6").opacity(0.16), .clear],
-                center: .top,
-                startRadius: 10,
-                endRadius: 460
-            )
-        }
-        .ignoresSafeArea()
-    }
-}
+// Обои переписки вынесены в Design/Wallpapers.swift:
+// они стали выбираемыми, поэтому стиль вынесен в WallpaperStyle.

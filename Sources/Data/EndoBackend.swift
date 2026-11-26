@@ -29,6 +29,8 @@ protocol EndoBackend: AnyObject {
     func setArchived(chatId: String, archived: Bool)
     func setPinned(chatId: String, pinned: Bool)
     func setMuted(chatId: String, muted: Bool)
+    /// Свои обои для чата. nil — вернуть обои из общих настроек.
+    func setChatWallpaper(chatId: String, style: String?)
     func deleteChat(chatId: String)
 
     func addContact(displayName: String, username: String, phone: String) -> UserProfile

@@ -64,6 +64,8 @@ struct Chat: Codable, Identifiable, Hashable {
     var folderId: String?
     var unreadCount: Int
     var lastReadAt: Date?
+    /// Свои обои для этого чата. nil — используются обои из настроек.
+    var wallpaperId: String? = nil
 
     var subtitle: String {
         switch kind {

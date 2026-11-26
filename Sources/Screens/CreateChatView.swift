@@ -370,6 +370,19 @@ struct ChatInfoView: View {
                             .padding(.vertical, 10)
                         }
 
+                        SectionCard(title: "Обои") {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    wallpaperOption(nil)
+                                    ForEach(WallpaperStyle.allCases) { style in
+                                        wallpaperOption(style)
+                                    }
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                            }
+                        }
+
                         Button(role: .destructive) {
                             env.deleteChat(chatId)
                             dismiss()
@@ -406,6 +419,34 @@ struct ChatInfoView: View {
                 Button("Отмена", role: .cancel) { newMemberName = "" }
             }
         }
+    }
+
+    /// Плитка выбора обоев для этого чата. `nil` — взять обои из настроек.
+    private func wallpaperOption(_ style: WallpaperStyle?) -> some View {
+        let own = chat?.wallpaperId
+        let isSelected = style == nil ? (own?.isEmpty ?? true) : own == style?.rawValue
+        let preview = style ?? WallpaperStyle.resolve(env.snapshot.settings.wallpaper)
+
+        return Button {
+            env.setChatWallpaper(chatId, style: style?.rawValue)
+        } label: {
+            VStack(spacing: 6) {
+                ChatWallpaper(style: preview)
+                    .frame(height: 84)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(isSelected ? Theme.accent : Color.white.opacity(0.10),
+                                    lineWidth: isSelected ? 2 : 1)
+                    )
+                Text(style?.title ?? "Как в настройках")
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? Theme.accent : Theme.textSecondary)
+                    .lineLimit(1)
+            }
+            .frame(width: 106)
+        }
+        .buttonStyle(.plain)
     }
 
     private func memberRow(_ id: String) -> some View {

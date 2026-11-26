@@ -879,15 +879,27 @@ struct AppearanceSettingsView: View {
                 .listRowBackground(Theme.panel)
 
                 Section {
-                    HStack {
-                        Text("Обои чата").foregroundColor(Theme.textPrimary)
-                        Spacer()
-                        ChatWallpaper()
-                            .frame(width: 44, height: 30)
-                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(WallpaperStyle.allCases) { style in
+                                Button {
+                                    env.updateSettings { $0.wallpaper = style.rawValue }
+                                } label: {
+                                    WallpaperThumbnail(
+                                        style: style,
+                                        isSelected: WallpaperStyle.resolve(env.snapshot.settings.wallpaper) == style
+                                    )
+                                    .frame(width: 108)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.vertical, 4)
                     }
+                } header: {
+                    Text("Обои чата")
                 } footer: {
-                    Text("Обои собраны из defaultDarkWallpaperGradientColors ночной темы Telegram.")
+                    Text("Основной вариант — градиент ночной темы Telegram (defaultDarkWallpaperGradientColors, интенсивность -34). Выбор сохраняется на устройстве и сразу применяется в переписке.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
