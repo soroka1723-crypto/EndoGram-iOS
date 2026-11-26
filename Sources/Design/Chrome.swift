@@ -54,8 +54,10 @@ enum Chrome {
         item.normal.titleTextAttributes = [.foregroundColor: inactive]
         item.selected.iconColor = accent
         item.selected.titleTextAttributes = [.foregroundColor: accent]
-        item.badgeBackgroundColor = badge
-        item.badgeTextAttributes = [.foregroundColor: UIColor.white]
+        // Значок непрочитанных: badgeBackgroundColor/badgeTextAttributes
+        // объявлены на состоянии элемента, а не на UITabBarItemAppearance.
+        item.normal.badgeBackgroundColor = badge
+        item.normal.badgeTextAttributes = [.foregroundColor: UIColor.white]
 
         // Компактная раскладка (iPhone в портрете) использует тот же набор.
         appearance.compactInlineLayoutAppearance.normal.iconColor = inactive
