@@ -11,6 +11,7 @@ struct SettingsView: View {
     enum Route: Hashable {
         case profile, stars, premium, notifications, privacy, data
         case folders, devices, language, stickers, appearance, ledger, about
+        case energy, proxy
     }
 
     enum HelpTopic: String, Identifiable {
@@ -25,6 +26,7 @@ struct SettingsView: View {
                 profileSection
                 primarySection
                 generalSection
+                networkSection
                 helpSection
                 dangerSection
                 versionSection
@@ -52,6 +54,8 @@ struct SettingsView: View {
             case .appearance:   AppearanceSettingsView().environmentObject(env)
             case .ledger:       LedgerView().environmentObject(env)
             case .about:        AboutView()
+            case .energy:       EnergySavingView().environmentObject(env)
+            case .proxy:        ProxySettingsView().environmentObject(env)
             }
         }
         .sheet(item: $helpSheet) { topic in
@@ -158,6 +162,24 @@ struct SettingsView: View {
 
             NavigationLink(value: Route.appearance) {
                 SettingsRow(icon: "paintpalette.fill", title: "Оформление", tint: Color(hex: Palette.purple))
+            }
+            .listRowBackground(Theme.panel)
+        }
+    }
+
+    private var networkSection: some View {
+        Section("Сеть") {
+            NavigationLink(value: Route.energy) {
+                SettingsRow(icon: "battery.100.bolt", title: "Энергосбережение",
+                            value: env.snapshot.settings.energySavingEnabled ? "включено" : nil,
+                            tint: Theme.success)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.proxy) {
+                SettingsRow(icon: "network", title: "Прокси",
+                            value: env.snapshot.settings.proxyEnabled ? "включён" : "выключен",
+                            tint: Theme.neutral)
             }
             .listRowBackground(Theme.panel)
         }

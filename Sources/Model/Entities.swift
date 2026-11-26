@@ -265,6 +265,11 @@ struct AppSettings: Codable, Hashable {
     // Папки
     var folderTags: Bool = false
 
+    // Энергосбережение и прокси
+    var energySavingEnabled: Bool = false
+    var energySavingAutoDownload: Bool = true
+    var proxyEnabled: Bool = false
+
     // Прочее
     var offlineModeNotice: Bool = true
 
@@ -284,6 +289,7 @@ struct AppSettings: Codable, Hashable {
         case dataSaverCalls, raiseToListen, pauseMusicOnRecording
         case appLanguage, translationsEnabled, translateEntireChats
         case folderTags, offlineModeNotice
+        case energySavingEnabled, energySavingAutoDownload, proxyEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -332,6 +338,10 @@ struct AppSettings: Codable, Hashable {
 
         folderTags = c.lenient(.folderTags, false)
         offlineModeNotice = c.lenient(.offlineModeNotice, true)
+
+        energySavingEnabled = c.lenient(.energySavingEnabled, false)
+        energySavingAutoDownload = c.lenient(.energySavingAutoDownload, true)
+        proxyEnabled = c.lenient(.proxyEnabled, false)
     }
 }
 

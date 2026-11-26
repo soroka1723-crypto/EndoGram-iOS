@@ -907,3 +907,131 @@ struct AboutView: View {
         .telegramNavTitle("О приложении")
     }
 }
+
+// MARK: - Энергосбережение
+
+/// «Энергосбережение» — раздел оригинала `EnergySavingSettings`.
+struct EnergySavingView: View {
+    @EnvironmentObject private var env: AppEnvironment
+
+    var body: some View {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+            List {
+                Section {
+                    SettingsToggleRow(icon: "battery.100.bolt", title: "Экономия заряда",
+                                      tint: Theme.success, isOn: boolBind(\.energySavingEnabled))
+                } footer: {
+                    Text("Когда заряд низкий, приложение отключает тяжёлые эффекты и автозагрузку — так же, как в Telegram.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section("При низком заряде") {
+                    SettingsToggleRow(icon: "arrow.down.circle.fill", title: "Отключить автозагрузку",
+                                      tint: Theme.accent, isOn: boolBind(\.energySavingAutoDownload))
+                    SettingsToggleRow(icon: "sparkles", title: "Отключить анимации",
+                                      tint: Color(hex: Palette.purple), isOn: animationsBinding)
+                } footer: {
+                    Text("Отключение анимаций применяется сразу ко всему интерфейсу.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+            }
+            .telegramList()
+        }
+        .telegramNavTitle("Энергосбережение")
+    }
+
+    /// «Отключить анимации» — обратное к настройке «Анимации» из «Оформления».
+    private var animationsBinding: Binding<Bool> {
+        Binding(
+            get: { !env.snapshot.settings.animationsEnabled },
+            set: { env.updateSettings { $0.animationsEnabled = !$0 } }
+        )
+    }
+
+    private func boolBind(_ keyPath: WritableKeyPath<AppSettings, Bool>) -> Binding<Bool> {
+        Binding(
+            get: { env.snapshot.settings[keyPath: keyPath] },
+            set: { value in env.updateSettings { $0[keyPath: keyPath] = value } }
+        )
+    }
+}
+
+// MARK: - Прокси
+
+/// «Прокси» — раздел оригинала `ProxySettings`. Сеть приложением не используется,
+/// поэтому включение честно помечено как нерабочее.
+struct ProxySettingsView: View {
+    @EnvironmentObject private var env: AppEnvironment
+
+    var body: some View {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+            List {
+                Section {
+                    SettingsToggleRow(icon: "network", title: "Использовать прокси",
+                                      tint: Theme.accent, isOn: boolBind(\.proxyEnabled))
+                } footer: {
+                    Text("Прокси не влияет ни на что: EndoGram не делает сетевых запросов. Переключатель сохранён для совместимости с будущим сервером EndoGram.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    HStack(spacing: 12) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(Theme.textDisabled)
+                        Text("Добавить прокси")
+                            .foregroundColor(Theme.textDisabled)
+                        Spacer()
+                    }
+                    .padding(.vertical, 2)
+                } footer: {
+                    Text("Добавить прокси нельзя: в офлайн-режиме подключение к прокси-серверу невозможно.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsValueRow(title: "Тип", value: "SOCKS5")
+                } header: {
+                    Text("Соединение")
+                } footer: {
+                    Text("Настройки соединения появятся вместе с сервером EndoGram.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+            }
+            .telegramList()
+        }
+        .telegramNavTitle("Прокси")
+    }
+
+    private func boolBind(_ keyPath: WritableKeyPath<AppSettings, Bool>) -> Binding<Bool> {
+        Binding(
+            get: { env.snapshot.settings[keyPath: keyPath] },
+            set: { value in env.updateSettings { $0[keyPath: keyPath] = value } }
+        )
+    }
+}
+
+/// Строка «подпись → значение» в стиле Telegram.
+struct SettingsValueRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack {
+            Text(title).foregroundColor(Theme.textPrimary)
+            Spacer()
+            Text(value).foregroundColor(Theme.textListItemSecondary)
+        }
+    }
+}
