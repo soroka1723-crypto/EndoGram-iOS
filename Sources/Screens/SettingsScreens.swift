@@ -227,7 +227,7 @@ struct MyStarsView: View {
                     }
                     NavigationLink { InventoryView().environmentObject(env) } label: {
                         SettingsRow(icon: "sparkles", title: "NFT",
-                                    value: "\(env.snapshot.ownedNFTs.count)", tint: Palette.purple)
+                                    value: "\(env.snapshot.ownedNFTs.count)", tint: Color(hex: Palette.purple))
                     }
                 }
                 .listRowBackground(Theme.panel)
@@ -408,7 +408,7 @@ struct DataAndStorageSettingsView: View {
                     SettingsToggleRow(icon: "photo.fill", title: "Сохранять входящие фото",
                                       tint: Theme.success, isOn: boolBind(\.saveIncomingPhotos))
                     SettingsToggleRow(icon: "wand.and.stars", title: "Сохранять изменённые фото",
-                                      tint: Palette.purple, isOn: boolBind(\.saveEditedPhotos))
+                                      tint: Color(hex: Palette.purple), isOn: boolBind(\.saveEditedPhotos))
                 }
                 .listRowBackground(Theme.panel)
 
@@ -418,7 +418,7 @@ struct DataAndStorageSettingsView: View {
                     SettingsToggleRow(icon: "ear.fill", title: "Поднимать для прослушивания",
                                       tint: Theme.warning, isOn: boolBind(\.raiseToListen))
                     SettingsToggleRow(icon: "music.note", title: "Пауза музыки при записи",
-                                      tint: Palette.pink, isOn: boolBind(\.pauseMusicOnRecording))
+                                      tint: Color(hex: Palette.pink), isOn: boolBind(\.pauseMusicOnRecording))
                 } footer: {
                     Text("Сеть приложением не используется: настройки автозагрузки влияют только на локальное поведение.")
                         .font(.system(size: 12))
@@ -465,7 +465,7 @@ struct StorageView: View {
                     SettingsRow(icon: "gift.fill", title: "Подарков",
                                 value: "\(env.snapshot.ownedGifts.count)", tint: Theme.danger, showsChevron: false)
                     SettingsRow(icon: "sparkles", title: "NFT",
-                                value: "\(env.snapshot.ownedNFTs.count)", tint: Palette.purple, showsChevron: false)
+                                value: "\(env.snapshot.ownedNFTs.count)", tint: Color(hex: Palette.purple), showsChevron: false)
                     SettingsRow(icon: "phone.fill", title: "Звонков",
                                 value: "\(env.snapshot.calls.count)", tint: Theme.accent, showsChevron: false)
                 }
@@ -495,7 +495,7 @@ struct FoldersView: View {
             Theme.background.ignoresSafeArea()
             List {
                 Section {
-                    ForEach(env.sorted(env.snapshot.folders)) { folder in
+                    ForEach(env.snapshot.folders.sorted { $0.title < $1.title }) { folder in
                         HStack(spacing: 12) {
                             Image(systemName: folder.icon)
                                 .font(.system(size: 15, weight: .semibold))
@@ -775,7 +775,7 @@ struct AppearanceSettingsView: View {
                     }
                     SettingsPickerRow(icon: "moon.stars.fill", title: "Автоночная тема",
                                       options: nightOptions, selection: nightBinding,
-                                      tint: Palette.purple)
+                                      tint: Color(hex: Palette.purple))
                 } header: {
                     Text("Тема")
                 } footer: {

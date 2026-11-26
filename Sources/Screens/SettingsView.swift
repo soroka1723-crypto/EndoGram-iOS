@@ -40,7 +40,7 @@ struct SettingsView: View {
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .profile:      ProfileView().environmentObject(env)
-            case .stars:        MyStarsView().environmentObject(env)
+            case .stars:        StarsView().environmentObject(env)
             case .premium:      PremiumView().environmentObject(env)
             case .notifications: NotificationsSettingsView().environmentObject(env)
             case .privacy:      PrivacySettingsView().environmentObject(env)
@@ -157,7 +157,7 @@ struct SettingsView: View {
             .listRowBackground(Theme.panel)
 
             NavigationLink(value: Route.appearance) {
-                SettingsRow(icon: "paintpalette.fill", title: "Оформление", tint: Palette.purple)
+                SettingsRow(icon: "paintpalette.fill", title: "Оформление", tint: Color(hex: Palette.purple))
             }
             .listRowBackground(Theme.panel)
         }

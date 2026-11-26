@@ -1,13 +1,18 @@
 import SwiftUI
 import UIKit
 
-/// Корневая навигация: вкладки как в Telegram.
+/// Корневая навигация — как в Telegram для iOS: четыре вкладки.
+///
+/// Названия взяты из строк официального клиента:
+/// `Contacts.TabTitle`, `Calls.TabTitle`, `DialogList.TabTitle`, `Settings.Title`.
+/// Звёзды в Telegram не отдельная вкладка — они открываются из настроек,
+/// поэтому здесь их тоже нет.
 struct RootView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var tab: Tab = .chats
 
     enum Tab: Hashable {
-        case contacts, calls, chats, stars, settings
+        case contacts, calls, chats, settings
     }
 
     var body: some View {
@@ -25,22 +30,18 @@ struct RootView: View {
                 .badge(env.totalUnread > 0 ? env.totalUnread : 0)
                 .tag(Tab.chats)
 
-            NavigationStack { StarsView() }
-                .tabItem { Label("Звёзды", systemImage: "star.fill") }
-                .tag(Tab.stars)
-
             NavigationStack { SettingsView() }
                 .tabItem { Label("Настройки", systemImage: "gearshape.fill") }
                 .tag(Tab.settings)
         }
-        .tint(Theme.accentBright)
+        .tint(Theme.accent)
         .onAppear(perform: styleTabBar)
     }
 
     private func styleTabBar() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        // Как в Telegram: theme.rootController.tabBar —
+        // theme.rootController.tabBar:
         // backgroundColor 0x1D1D1D (alpha 0.9), separatorColor 0x545458 (alpha 0.55)
         appearance.backgroundColor = UIColor(red: 0.1137, green: 0.1137, blue: 0.1137, alpha: 1)
         appearance.shadowColor = UIColor(red: 0.3294, green: 0.3294, blue: 0.3451, alpha: 0.55)
