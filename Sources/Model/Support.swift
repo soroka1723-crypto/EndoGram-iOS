@@ -1,6 +1,6 @@
-﻿import Foundation
+import Foundation
 
-/// РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂС‹ Рё РїР°Р»РёС‚СЂР°.
+/// Идентификаторы и палитра.
 enum IDs {
     private static let alphabet = Array("abcdefghijklmnopqrstuvwxyz0123456789")
 
@@ -25,4 +25,3 @@ enum Palette {
         "#EE7AAE", "#6EC9CB", "#FAA774", "#5288C1", "#9B7EDE",
     ]
 }
-

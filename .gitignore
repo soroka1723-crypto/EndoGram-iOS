@@ -1,0 +1,8 @@
+.runlogs/
+*.zip
+build/
+out/
+DerivedData/
+*.xcodeproj
+xcuserdata/
+.DS_Store

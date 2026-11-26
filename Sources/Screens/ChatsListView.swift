@@ -1,6 +1,6 @@
-﻿import SwiftUI
+import SwiftUI
 
-/// Р“Р»Р°РІРЅС‹Р№ СЌРєСЂР°РЅ: РїР°РїРєРё, РїРѕРёСЃРє, СЃРїРёСЃРѕРє С‡Р°С‚РѕРІ, Р°СЂС…РёРІ.
+/// Главный экран: папки, поиск, список чатов, архив.
 struct ChatsListView: View {
     @EnvironmentObject private var env: AppEnvironment
 
@@ -13,7 +13,7 @@ struct ChatsListView: View {
     private var folders: [ChatFolder] { env.snapshot.folders }
 
     private var activeFolder: ChatFolder {
-        folders.first { $0.id == activeFolderId } ?? ChatFolder(id: "folder.all", title: "Р’СЃРµ", icon: "tray.full.fill", chatIds: [], isSystem: true)
+        folders.first { $0.id == activeFolderId } ?? ChatFolder(id: "folder.all", title: "Все", icon: "tray.full.fill", chatIds: [], isSystem: true)
     }
 
     private var visibleChats: [Chat] {
@@ -40,15 +40,15 @@ struct ChatsListView: View {
                 if visibleChats.isEmpty && env.archivedChats.isEmpty {
                     EmptyStateView(
                         icon: "bubble.left.and.bubble.right",
-                        title: "РџРѕРєР° РЅРµС‚ С‡Р°С‚РѕРІ",
-                        subtitle: "РќР°Р¶РјРёС‚Рµ РЅР° РєР°СЂР°РЅРґР°С€ РІ РїСЂР°РІРѕРј РІРµСЂС…РЅРµРј СѓРіР»Сѓ, С‡С‚РѕР±С‹ СЃРѕР·РґР°С‚СЊ С‡Р°С‚, РіСЂСѓРїРїСѓ РёР»Рё РєР°РЅР°Р»."
+                        title: "Пока нет чатов",
+                        subtitle: "Нажмите на карандаш в правом верхнем углу, чтобы создать чат, группу или канал."
                     )
                 } else {
                     chatList
                 }
             }
         }
-        .navigationTitle("Р§Р°С‚С‹")
+        .navigationTitle("Чаты")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -77,7 +77,7 @@ struct ChatsListView: View {
         }
     }
 
-    // MARK: - РџРѕРёСЃРє Рё РїР°РїРєРё
+    // MARK: - Поиск и папки
 
     private var searchField: some View {
         Button {
@@ -86,7 +86,7 @@ struct ChatsListView: View {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 14, weight: .semibold))
-                Text("РџРѕРёСЃРє")
+                Text("Поиск")
                     .font(.system(size: 16))
                 Spacer()
             }
@@ -150,7 +150,7 @@ struct ChatsListView: View {
         }
     }
 
-    // MARK: - РЎРїРёСЃРѕРє
+    // MARK: - Список
 
     private var chatList: some View {
         List {
@@ -161,7 +161,7 @@ struct ChatsListView: View {
                             .foregroundColor(.white)
                             .frame(width: 40, height: 40)
                             .background(Circle().fill(Theme.accent))
-                        Text("РђСЂС…РёРІ")
+                        Text("Архив")
                             .foregroundColor(Theme.textPrimary)
                         Spacer()
                         Text("\(env.archivedChats.count)")
@@ -175,7 +175,7 @@ struct ChatsListView: View {
                 Section {
                     ForEach(pinned) { chat in chatRow(chat) }
                 } header: {
-                    Text("Р—Р°РєСЂРµРїР»С‘РЅРЅС‹Рµ").font(.system(size: 12, weight: .semibold))
+                    Text("Закреплённые").font(.system(size: 12, weight: .semibold))
                 }
             }
 
@@ -183,7 +183,7 @@ struct ChatsListView: View {
                 ForEach(regular) { chat in chatRow(chat) }
             } header: {
                 if !pinned.isEmpty {
-                    Text("Р’СЃРµ С‡Р°С‚С‹").font(.system(size: 12, weight: .semibold))
+                    Text("Все чаты").font(.system(size: 12, weight: .semibold))
                 }
             }
         }
@@ -209,12 +209,12 @@ struct ChatsListView: View {
             Button(role: .destructive) {
                 env.deleteChat(chat.id)
             } label: {
-                Label("РЈРґР°Р»РёС‚СЊ", systemImage: "trash")
+                Label("Удалить", systemImage: "trash")
             }
             Button {
                 env.setPinned(chat.id, !chat.isPinned)
             } label: {
-                Label(chat.isPinned ? "РћС‚РєСЂРµРїРёС‚СЊ" : "Р—Р°РєСЂРµРїРёС‚СЊ", systemImage: "pin")
+                Label(chat.isPinned ? "Открепить" : "Закрепить", systemImage: "pin")
             }
             .tint(Theme.accent)
         }
@@ -222,7 +222,7 @@ struct ChatsListView: View {
             Button {
                 env.setMuted(chat.id, !chat.isMuted)
             } label: {
-                Label(chat.isMuted ? "Р’РєР»СЋС‡РёС‚СЊ" : "Р‘РµР· Р·РІСѓРєР°", systemImage: chat.isMuted ? "bell" : "bell.slash")
+                Label(chat.isMuted ? "Включить" : "Без звука", systemImage: chat.isMuted ? "bell" : "bell.slash")
             }
             .tint(Theme.textSecondary)
         }
@@ -231,16 +231,16 @@ struct ChatsListView: View {
 
 struct ArchiveRoute: Hashable {}
 
-/// РЎС‚СЂРѕРєР° С‡Р°С‚Р°.
+/// Строка чата.
 struct ChatRowView: View {
     @EnvironmentObject private var env: AppEnvironment
     let chat: Chat
 
     private var preview: String {
         guard let message = env.lastMessage(in: chat.id) else {
-            return chat.kind == .channel ? "РљР°РЅР°Р»" : "РќРµС‚ СЃРѕРѕР±С‰РµРЅРёР№"
+            return chat.kind == .channel ? "Канал" : "Нет сообщений"
         }
-        let prefix = message.senderId == env.profile.id ? "Р’С‹: " : ""
+        let prefix = message.senderId == env.profile.id ? "Вы: " : ""
         return prefix + message.text.replacingOccurrences(of: "\n", with: " ")
     }
 
@@ -290,7 +290,7 @@ struct ChatRowView: View {
     }
 }
 
-/// Р­РєСЂР°РЅ Р°СЂС…РёРІР°.
+/// Экран архива.
 struct ArchiveView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var selectedChat: Chat?
@@ -299,7 +299,7 @@ struct ArchiveView: View {
         ZStack {
             Theme.panel.ignoresSafeArea()
             if env.archivedChats.isEmpty {
-                EmptyStateView(icon: "archivebox", title: "РђСЂС…РёРІ РїСѓСЃС‚", subtitle: "РЎРјР°С…РёРІР°Р№С‚Рµ С‡Р°С‚С‹ РІР»РµРІРѕ Рё РѕС‚РїСЂР°РІР»СЏР№С‚Рµ РІ Р°СЂС…РёРІ.")
+                EmptyStateView(icon: "archivebox", title: "Архив пуст", subtitle: "Смахивайте чаты влево и отправляйте в архив.")
             } else {
                 List {
                     ForEach(env.sorted(env.archivedChats)) { chat in
@@ -310,7 +310,7 @@ struct ArchiveView: View {
                                 Button {
                                     env.setArchived(chat.id, false)
                                 } label: {
-                                    Label("Р’РµСЂРЅСѓС‚СЊ", systemImage: "tray.and.arrow.up")
+                                    Label("Вернуть", systemImage: "tray.and.arrow.up")
                                 }
                                 .tint(Theme.accent)
                             }
@@ -320,11 +320,10 @@ struct ArchiveView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .navigationTitle("РђСЂС…РёРІ")
+        .navigationTitle("Архив")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedChat) { chat in
             ChatDetailView(chatId: chat.id).environmentObject(env)
         }
     }
 }
-

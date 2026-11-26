@@ -1,9 +1,9 @@
-﻿import Foundation
+import Foundation
 
-/// Р›РѕРєР°Р»СЊРЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ: РѕРґРёРЅ JSON-С„Р°Р№Р» РІ РїРµСЃРѕС‡РЅРёС†Рµ РїСЂРёР»РѕР¶РµРЅРёСЏ.
+/// Локальное хранилище: один JSON-файл в песочнице приложения.
 ///
-/// РќРёРєР°РєРёС… СЃРµС‚РµРІС‹С… РІС‹Р·РѕРІРѕРІ: Рё С‡С‚РµРЅРёРµ, Рё Р·Р°РїРёСЃСЊ РёРґСѓС‚ РЅР° РґРёСЃРє СѓСЃС‚СЂРѕР№СЃС‚РІР°,
-/// РїРѕСЌС‚РѕРјСѓ РїСЂРёР»РѕР¶РµРЅРёРµ РїРѕР»РЅРѕСЃС‚СЊСЋ СЂР°Р±РѕС‚Р°РµС‚ РІ Р°РІРёР°СЂРµР¶РёРјРµ.
+/// Никаких сетевых вызовов: и чтение, и запись идут на диск устройства,
+/// поэтому приложение полностью работает в авиарежиме.
 final class LocalBackend: EndoBackend {
 
     private(set) var snapshot: StoreSnapshot
@@ -30,7 +30,7 @@ final class LocalBackend: EndoBackend {
         return (attributes?[.size] as? NSNumber)?.intValue ?? 0
     }
 
-    // MARK: - Р—Р°РіСЂСѓР·РєР° Рё СЃРѕС…СЂР°РЅРµРЅРёРµ
+    // MARK: - Загрузка и сохранение
 
     func bootstrap() -> StoreSnapshot {
         if let data = try? Data(contentsOf: fileURL),
@@ -44,13 +44,13 @@ final class LocalBackend: EndoBackend {
         return snapshot
     }
 
-    /// РџСЂР°РІРєРё, РєРѕС‚РѕСЂС‹Рµ РґРѕР»Р¶РЅС‹ РїСЂРѕРёСЃС…РѕРґРёС‚СЊ РїСЂРё РєР°Р¶РґРѕРј Р·Р°РїСѓСЃРєРµ.
+    /// Правки, которые должны происходить при каждом запуске.
     private func applyLaunchMaintenance() {
-        // РЎРЅРёРјР°РµРј С„Р»Р°Рі Premium, РµСЃР»Рё СЃСЂРѕРє РёСЃС‚С‘Рє, Рё СЃРѕРѕР±С‰Р°РµРј РѕР± СЌС‚РѕРј РІ РёСЃС‚РѕСЂРёРё.
+        // Снимаем флаг Premium, если срок истёк, и сообщаем об этом в истории.
         if snapshot.profile.isPremium, !snapshot.profile.premiumActive {
             snapshot.profile.isPremium = false
             snapshot.profile.premiumUntil = nil
-            appendLedger(kind: .premium, title: "Premium РёСЃС‚С‘Рє", amount: 0)
+            appendLedger(kind: .premium, title: "Premium истёк", amount: 0)
         }
         snapshot.updatedAt = Date()
         persist()
@@ -69,7 +69,7 @@ final class LocalBackend: EndoBackend {
         try? data.write(to: fileURL, options: .atomic)
     }
 
-    // MARK: - РЎРѕРѕР±С‰РµРЅРёСЏ
+    // MARK: - Сообщения
 
     func sendMessage(chatId: String, text: String) -> Message {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -125,7 +125,7 @@ final class LocalBackend: EndoBackend {
         persist()
     }
 
-    // MARK: - Р§Р°С‚С‹
+    // MARK: - Чаты
 
     func createDirectChat(peer: UserProfile) -> Chat {
         if let existing = snapshot.chats.first(where: { $0.kind == .direct && $0.peerId == peer.id }) {
@@ -153,7 +153,7 @@ final class LocalBackend: EndoBackend {
                 chatId: chat.id,
                 senderId: snapshot.profile.id,
                 authorName: snapshot.profile.displayName,
-                text: "Р›РѕРєР°Р»СЊРЅС‹Р№ С‚РµСЃС‚РѕРІС‹Р№ С‡Р°С‚ СЃ В«\(peer.displayName)В». РЎРѕРѕР±С‰РµРЅРёСЏ СЃРѕС…СЂР°РЅСЏСЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РЅР° СЌС‚РѕРј СѓСЃС‚СЂРѕР№СЃС‚РІРµ.",
+                text: "Локальный тестовый чат с «\(peer.displayName)». Сообщения сохраняются только на этом устройстве.",
                 createdAt: Date(),
                 editedAt: nil,
                 isPinned: false,
@@ -187,7 +187,7 @@ final class LocalBackend: EndoBackend {
                 chatId: chat.id,
                 senderId: "system",
                 authorName: "EndoGram",
-                text: "Р“СЂСѓРїРїР° В«\(title)В» СЃРѕР·РґР°РЅР° Р»РѕРєР°Р»СЊРЅРѕ. РЈС‡Р°СЃС‚РЅРёРєРѕРІ: \(chat.memberIds.count).",
+                text: "Группа «\(title)» создана локально. Участников: \(chat.memberIds.count).",
                 createdAt: Date(),
                 editedAt: nil,
                 isPinned: false,
@@ -221,7 +221,7 @@ final class LocalBackend: EndoBackend {
                 chatId: chat.id,
                 senderId: "system",
                 authorName: "EndoGram",
-                text: about.isEmpty ? "РљР°РЅР°Р» В«\(title)В» СЃРѕР·РґР°РЅ Р»РѕРєР°Р»СЊРЅРѕ." : about,
+                text: about.isEmpty ? "Канал «\(title)» создан локально." : about,
                 createdAt: Date(),
                 editedAt: nil,
                 isPinned: false,
@@ -260,7 +260,7 @@ final class LocalBackend: EndoBackend {
         persist()
     }
 
-    // MARK: - РљРѕРЅС‚Р°РєС‚С‹ Рё РїСЂРѕС„РёР»СЊ
+    // MARK: - Контакты и профиль
 
     func addContact(displayName: String, username: String) -> UserProfile {
         let contact = UserProfile(
@@ -285,14 +285,14 @@ final class LocalBackend: EndoBackend {
         let handle = username.trimmingCharacters(in: .whitespacesAndNewlines)
         if !handle.isEmpty { snapshot.profile.username = handle }
         snapshot.profile.bio = bio
-        // РРјСЏ РІ В«РР·Р±СЂР°РЅРЅРѕРјВ» РІСЃРµРіРґР° СЃРѕРІРїР°РґР°РµС‚ СЃ РїСЂРѕС„РёР»РµРј.
+        // Имя в «Избранном» всегда совпадает с профилем.
         if let index = snapshot.chats.firstIndex(where: { $0.peerId == snapshot.profile.id }) {
             snapshot.chats[index].title = snapshot.profile.displayName
         }
         persist()
     }
 
-    // MARK: - Р­РєРѕРЅРѕРјРёРєР°
+    // MARK: - Экономика
 
     func buyGift(_ gift: Gift, toChatId: String?) -> OwnedGift? {
         guard snapshot.stars >= gift.price else { return nil }
@@ -310,7 +310,7 @@ final class LocalBackend: EndoBackend {
         )
         snapshot.stars -= gift.price
         snapshot.ownedGifts.append(owned)
-        appendLedger(kind: .gift, title: "РџРѕРґР°СЂРѕРє: \(gift.name)", amount: -gift.price)
+        appendLedger(kind: .gift, title: "Подарок: \(gift.name)", amount: -gift.price)
 
         if let chatId = toChatId, let index = snapshot.chats.firstIndex(where: { $0.id == chatId }) {
             let message = Message(
@@ -318,7 +318,7 @@ final class LocalBackend: EndoBackend {
                 chatId: chatId,
                 senderId: snapshot.profile.id,
                 authorName: snapshot.profile.displayName,
-                text: "\(gift.emoji) \(gift.name) вЂ” \(gift.price) в­ђпёЏ",
+                text: "\(gift.emoji) \(gift.name) — \(gift.price) ⭐️",
                 createdAt: Date(),
                 editedAt: nil,
                 isPinned: false,
@@ -358,7 +358,7 @@ final class LocalBackend: EndoBackend {
         if !alreadyActive {
             guard snapshot.stars >= AppConfig.premiumPrice else { return false }
             snapshot.stars -= AppConfig.premiumPrice
-            appendLedger(kind: .premium, title: "EndoGram Premium РЅР° РіРѕРґ", amount: -AppConfig.premiumPrice)
+            appendLedger(kind: .premium, title: "EndoGram Premium на год", amount: -AppConfig.premiumPrice)
         }
         snapshot.profile.isPremium = true
         snapshot.profile.premiumUntil = Calendar.current.date(
@@ -380,7 +380,7 @@ final class LocalBackend: EndoBackend {
     func transferStars(_ amount: Int, to name: String) {
         guard amount > 0, snapshot.stars >= amount else { return }
         snapshot.stars -= amount
-        appendLedger(kind: .transfer, title: "РџРµСЂРµРІРѕРґ: \(name)", amount: -amount)
+        appendLedger(kind: .transfer, title: "Перевод: \(name)", amount: -amount)
         persist()
     }
 
@@ -397,7 +397,7 @@ final class LocalBackend: EndoBackend {
         )
     }
 
-    // MARK: - РџР°РїРєРё, Р·РІРѕРЅРєРё, РЅР°СЃС‚СЂРѕР№РєРё
+    // MARK: - Папки, звонки, настройки
 
     func createFolder(title: String, icon: String, chatIds: [String]) -> ChatFolder {
         let folder = ChatFolder(
@@ -439,7 +439,7 @@ final class LocalBackend: EndoBackend {
     }
 }
 
-// MARK: - РљРѕРґРёСЂРѕРІР°РЅРёРµ РґР°С‚
+// MARK: - Кодирование дат
 
 extension JSONEncoder {
     static let endogram: JSONEncoder = {
@@ -457,4 +457,3 @@ extension JSONDecoder {
         return decoder
     }()
 }
-

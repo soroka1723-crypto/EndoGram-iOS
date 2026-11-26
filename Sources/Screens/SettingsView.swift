@@ -1,6 +1,6 @@
-﻿import SwiftUI
+import SwiftUI
 
-/// РќР°СЃС‚СЂРѕР№РєРё: РїСЂРѕС„РёР»СЊ, РґР°РЅРЅС‹Рµ, Р·РІС‘Р·РґС‹, РїР°РїРєРё, РѕС„РѕСЂРјР»РµРЅРёРµ.
+/// Настройки: профиль, данные, звёзды, папки, оформление.
 struct SettingsView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var showReset = false
@@ -39,29 +39,29 @@ struct SettingsView: View {
                     .listRowBackground(Theme.panel)
                 }
 
-                Section("РђРєРєР°СѓРЅС‚") {
+                Section("Аккаунт") {
                     NavigationLink(value: Route.profile) {
-                        SettingsRow(icon: "person.fill", title: "РџСЂРѕС„РёР»СЊ", tint: Theme.accent)
+                        SettingsRow(icon: "person.fill", title: "Профиль", tint: Theme.accent)
                     }
                     .listRowBackground(Theme.panel)
 
                     NavigationLink(value: Route.ledger) {
-                        SettingsRow(icon: "star.fill", title: "РњРѕРё Р·РІС‘Р·РґС‹", value: Format.number(env.stars), tint: Theme.star)
+                        SettingsRow(icon: "star.fill", title: "Мои звёзды", value: Format.number(env.stars), tint: Theme.star)
                     }
                     .listRowBackground(Theme.panel)
 
                     NavigationLink(value: Route.folders) {
-                        SettingsRow(icon: "folder.fill", title: "РџР°РїРєРё СЃ С‡Р°С‚Р°РјРё", value: "\(env.snapshot.folders.count)", tint: Theme.accentBright)
+                        SettingsRow(icon: "folder.fill", title: "Папки с чатами", value: "\(env.snapshot.folders.count)", tint: Theme.accentBright)
                     }
                     .listRowBackground(Theme.panel)
                 }
 
-                Section("РћС„РѕСЂРјР»РµРЅРёРµ Рё СѓРІРµРґРѕРјР»РµРЅРёСЏ") {
+                Section("Оформление и уведомления") {
                     Toggle(isOn: Binding(
                         get: { env.snapshot.settings.notificationsEnabled },
                         set: { value in env.updateSettings { $0.notificationsEnabled = value } }
                     )) {
-                        Label("РЈРІРµРґРѕРјР»РµРЅРёСЏ", systemImage: "bell.fill")
+                        Label("Уведомления", systemImage: "bell.fill")
                             .foregroundColor(Theme.textPrimary)
                     }
                     .tint(Theme.accent)
@@ -71,7 +71,7 @@ struct SettingsView: View {
                         get: { env.snapshot.settings.soundsEnabled },
                         set: { value in env.updateSettings { $0.soundsEnabled = value } }
                     )) {
-                        Label("Р—РІСѓРєРё", systemImage: "speaker.wave.2.fill")
+                        Label("Звуки", systemImage: "speaker.wave.2.fill")
                             .foregroundColor(Theme.textPrimary)
                     }
                     .tint(Theme.accent)
@@ -79,7 +79,7 @@ struct SettingsView: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Label("Р Р°Р·РјРµСЂ С‚РµРєСЃС‚Р°", systemImage: "textformat.size")
+                            Label("Размер текста", systemImage: "textformat.size")
                                 .foregroundColor(Theme.textPrimary)
                             Spacer()
                             Text("\(Int(env.snapshot.settings.fontSize)) pt")
@@ -98,12 +98,12 @@ struct SettingsView: View {
                     .listRowBackground(Theme.panel)
                 }
 
-                Section("РџСЂРёРІР°С‚РЅРѕСЃС‚СЊ") {
+                Section("Приватность") {
                     Toggle(isOn: Binding(
                         get: { env.snapshot.settings.showLastSeen },
                         set: { value in env.updateSettings { $0.showLastSeen = value } }
                     )) {
-                        Label("РџРѕРєР°Р·С‹РІР°С‚СЊ РІСЂРµРјСЏ РІ СЃРµС‚Рё", systemImage: "clock.fill")
+                        Label("Показывать время в сети", systemImage: "clock.fill")
                             .foregroundColor(Theme.textPrimary)
                     }
                     .tint(Theme.accent)
@@ -113,16 +113,16 @@ struct SettingsView: View {
                         get: { env.snapshot.settings.readReceipts },
                         set: { value in env.updateSettings { $0.readReceipts = value } }
                     )) {
-                        Label("РћС‚С‡С‘С‚С‹ Рѕ РїСЂРѕС‡С‚РµРЅРёРё", systemImage: "checkmark.message.fill")
+                        Label("Отчёты о прочтении", systemImage: "checkmark.message.fill")
                             .foregroundColor(Theme.textPrimary)
                     }
                     .tint(Theme.accent)
                     .listRowBackground(Theme.panel)
                 }
 
-                Section("Р”Р°РЅРЅС‹Рµ") {
+                Section("Данные") {
                     NavigationLink(value: Route.data) {
-                        SettingsRow(icon: "internaldrive.fill", title: "РҐСЂР°РЅРёР»РёС‰Рµ", value: env.storageDescription, tint: Theme.textSecondary)
+                        SettingsRow(icon: "internaldrive.fill", title: "Хранилище", value: env.storageDescription, tint: Theme.textSecondary)
                     }
                     .listRowBackground(Theme.panel)
                 }
@@ -133,23 +133,23 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Image(systemName: "trash.fill")
-                            Text("РЎР±СЂРѕСЃРёС‚СЊ Р°РєРєР°СѓРЅС‚")
+                            Text("Сбросить аккаунт")
                         }
                         .frame(maxWidth: .infinity)
                     }
                     .listRowBackground(Theme.panel)
                 } footer: {
-                    Text("EndoGram СЂР°Р±РѕС‚Р°РµС‚ РѕС„Р»Р°Р№РЅ. РЎРµСЂРІРµСЂС‹ Telegram Рё СЃРѕР±СЃС‚РІРµРЅРЅС‹Рµ СЃРµСЂРІРµСЂС‹ РЅРµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ.")
+                    Text("EndoGram работает офлайн. Серверы Telegram и собственные серверы не используются.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
 
                 Section {
                     HStack {
-                        Text("Р’РµСЂСЃРёСЏ")
+                        Text("Версия")
                             .foregroundColor(Theme.textPrimary)
                         Spacer()
-                        Text("1.0.0 В· РѕС„Р»Р°Р№РЅ")
+                        Text("1.0.0 · офлайн")
                             .foregroundColor(Theme.textSecondary)
                     }
                     .listRowBackground(Theme.panel)
@@ -158,7 +158,7 @@ struct SettingsView: View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
         }
-        .navigationTitle("РќР°СЃС‚СЂРѕР№РєРё")
+        .navigationTitle("Настройки")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Theme.panel, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -171,16 +171,16 @@ struct SettingsView: View {
             case .ledger: LedgerView().environmentObject(env)
             }
         }
-        .alert("РЎР±СЂРѕСЃРёС‚СЊ Р°РєРєР°СѓРЅС‚?", isPresented: $showReset) {
-            Button("РЎР±СЂРѕСЃРёС‚СЊ", role: .destructive) { env.resetAccount() }
-            Button("РћС‚РјРµРЅР°", role: .cancel) {}
+        .alert("Сбросить аккаунт?", isPresented: $showReset) {
+            Button("Сбросить", role: .destructive) { env.resetAccount() }
+            Button("Отмена", role: .cancel) {}
         } message: {
-            Text("Р’СЃРµ С‡Р°С‚С‹, СЃРѕРѕР±С‰РµРЅРёСЏ, РїРѕРґР°СЂРєРё Рё NFT Р±СѓРґСѓС‚ СѓРґР°Р»РµРЅС‹. Р‘СѓРґРµС‚ СЃРѕР·РґР°РЅ РЅРѕРІС‹Р№ Р»РѕРєР°Р»СЊРЅС‹Р№ Р°РєРєР°СѓРЅС‚ СЃ 1 000 000 Р·РІС‘Р·Рґ.")
+            Text("Все чаты, сообщения, подарки и NFT будут удалены. Будет создан новый локальный аккаунт с 1 000 000 звёзд.")
         }
     }
 }
 
-/// Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ РїСЂРѕС„РёР»СЏ.
+/// Редактирование профиля.
 struct ProfileView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var name = ""
@@ -197,9 +197,9 @@ struct ProfileView: View {
                         .padding(.top, 20)
 
                     VStack(spacing: 12) {
-                        field("РРјСЏ", text: $name)
-                        field("РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ", text: $username)
-                        field("Рћ СЃРµР±Рµ", text: $bio)
+                        field("Имя", text: $name)
+                        field("Имя пользователя", text: $username)
+                        field("О себе", text: $bio)
                     }
                     .padding(.horizontal, 16)
 
@@ -208,23 +208,23 @@ struct ProfileView: View {
                         saved = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { saved = false }
                     } label: {
-                        Text(saved ? "РЎРѕС…СЂР°РЅРµРЅРѕ" : "РЎРѕС…СЂР°РЅРёС‚СЊ")
+                        Text(saved ? "Сохранено" : "Сохранить")
                     }
                     .buttonStyle(StarButtonStyle())
                     .padding(.horizontal, 16)
 
-                    SectionCard(title: "РђРєРєР°СѓРЅС‚") {
+                    SectionCard(title: "Аккаунт") {
                         SettingsRow(icon: "number", title: "ID", value: String(env.profile.id.suffix(8)), showsChevron: false)
                         DividerLine()
-                        SettingsRow(icon: "calendar", title: "РЎРѕР·РґР°РЅ", value: Format.fullDate(env.profile.createdAt), showsChevron: false)
+                        SettingsRow(icon: "calendar", title: "Создан", value: Format.fullDate(env.profile.createdAt), showsChevron: false)
                         DividerLine()
-                        SettingsRow(icon: "crown.fill", title: "Premium", value: env.profile.premiumActive ? "Р°РєС‚РёРІРµРЅ" : "РЅРµС‚", tint: Theme.star, showsChevron: false)
+                        SettingsRow(icon: "crown.fill", title: "Premium", value: env.profile.premiumActive ? "активен" : "нет", tint: Theme.star, showsChevron: false)
                     }
                     Spacer()
                 }
             }
         }
-        .navigationTitle("РџСЂРѕС„РёР»СЊ")
+        .navigationTitle("Профиль")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -247,7 +247,7 @@ struct ProfileView: View {
     }
 }
 
-/// РџР°РїРєРё СЃ С‡Р°С‚Р°РјРё.
+/// Папки с чатами.
 struct FoldersView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var showCreate = false
@@ -259,9 +259,9 @@ struct FoldersView: View {
             Theme.background.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 16) {
-                    SectionCard(title: "РЎРёСЃС‚РµРјРЅС‹Рµ") {
+                    SectionCard(title: "Системные") {
                         ForEach(env.snapshot.folders.filter(\.isSystem)) { folder in
-                            SettingsRow(icon: folder.icon, title: folder.title, value: "\(env.chats(for: folder).count) С‡Р°С‚РѕРІ", showsChevron: false)
+                            SettingsRow(icon: folder.icon, title: folder.title, value: "\(env.chats(for: folder).count) чатов", showsChevron: false)
                             if folder.id != env.snapshot.folders.filter(\.isSystem).last?.id {
                                 DividerLine()
                             }
@@ -269,7 +269,7 @@ struct FoldersView: View {
                     }
 
                     if !env.nonSystemFolders.isEmpty {
-                        SectionCard(title: "РњРѕРё РїР°РїРєРё") {
+                        SectionCard(title: "Мои папки") {
                             ForEach(env.nonSystemFolders) { folder in
                                 SettingsRow(icon: folder.icon, title: folder.title, value: "\(folder.chatIds.count)", showsChevron: false)
                                 DividerLine()
@@ -278,7 +278,7 @@ struct FoldersView: View {
                     }
 
                     Button { showCreate = true } label: {
-                        Label("РЎРѕР·РґР°С‚СЊ РїР°РїРєСѓ", systemImage: "plus")
+                        Label("Создать папку", systemImage: "plus")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 13)
                             .background(RoundedRectangle(cornerRadius: 12).fill(Theme.accent))
@@ -289,7 +289,7 @@ struct FoldersView: View {
                 .padding(.vertical, 12)
             }
         }
-        .navigationTitle("РџР°РїРєРё")
+        .navigationTitle("Папки")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -299,12 +299,12 @@ struct FoldersView: View {
                     Theme.background.ignoresSafeArea()
                     ScrollView {
                         VStack(spacing: 14) {
-                            TextField("РќР°Р·РІР°РЅРёРµ РїР°РїРєРё", text: $title)
+                            TextField("Название папки", text: $title)
                                 .padding(12)
                                 .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
                                 .padding(.horizontal, 16)
 
-                            SectionCard(title: "Р§Р°С‚С‹ РІ РїР°РїРєРµ") {
+                            SectionCard(title: "Чаты в папке") {
                                 ForEach(env.sorted(env.snapshot.chats)) { chat in
                                     Button {
                                         if selected.contains(chat.id) { selected.remove(chat.id) }
@@ -333,7 +333,7 @@ struct FoldersView: View {
                                 selected = []
                                 showCreate = false
                             } label: {
-                                Text("РЎРѕР·РґР°С‚СЊ")
+                                Text("Создать")
                             }
                             .buttonStyle(StarButtonStyle())
                             .padding(.horizontal, 16)
@@ -341,11 +341,11 @@ struct FoldersView: View {
                         .padding(.top, 12)
                     }
                 }
-                .navigationTitle("РќРѕРІР°СЏ РїР°РїРєР°")
+                .navigationTitle("Новая папка")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("РћС‚РјРµРЅР°") { showCreate = false }
+                        Button("Отмена") { showCreate = false }
                     }
                 }
                 .toolbarBackground(Theme.panel, for: .navigationBar)
@@ -355,7 +355,7 @@ struct FoldersView: View {
     }
 }
 
-/// РҐСЂР°РЅРёР»РёС‰Рµ: РіРґРµ Р»РµР¶Р°С‚ РґР°РЅРЅС‹Рµ Рё СЃРєРѕР»СЊРєРѕ Р·Р°РЅРёРјР°СЋС‚.
+/// Хранилище: где лежат данные и сколько занимают.
 struct StorageView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var showClear = false
@@ -365,19 +365,19 @@ struct StorageView: View {
             Theme.background.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 16) {
-                    SectionCard(title: "Р›РѕРєР°Р»СЊРЅС‹Рµ РґР°РЅРЅС‹Рµ") {
-                        SettingsRow(icon: "internaldrive.fill", title: "Р Р°Р·РјРµСЂ Р±Р°Р·С‹", value: env.storageDescription, tint: Theme.accent, showsChevron: false)
+                    SectionCard(title: "Локальные данные") {
+                        SettingsRow(icon: "internaldrive.fill", title: "Размер базы", value: env.storageDescription, tint: Theme.accent, showsChevron: false)
                         DividerLine()
-                        SettingsRow(icon: "bubble.left.fill", title: "РЎРѕРѕР±С‰РµРЅРёР№", value: "\(env.snapshot.messages.count)", tint: Theme.accentBright, showsChevron: false)
+                        SettingsRow(icon: "bubble.left.fill", title: "Сообщений", value: "\(env.snapshot.messages.count)", tint: Theme.accentBright, showsChevron: false)
                         DividerLine()
-                        SettingsRow(icon: "folder.fill", title: "Р§Р°С‚РѕРІ", value: "\(env.snapshot.chats.count)", tint: Color(hex: "#4DCD5E"), showsChevron: false)
+                        SettingsRow(icon: "folder.fill", title: "Чатов", value: "\(env.snapshot.chats.count)", tint: Color(hex: "#4DCD5E"), showsChevron: false)
                         DividerLine()
-                        SettingsRow(icon: "gift.fill", title: "РџРѕРґР°СЂРєРѕРІ", value: "\(env.snapshot.ownedGifts.count)", tint: Color(hex: "#E4572E"), showsChevron: false)
+                        SettingsRow(icon: "gift.fill", title: "Подарков", value: "\(env.snapshot.ownedGifts.count)", tint: Color(hex: "#E4572E"), showsChevron: false)
                         DividerLine()
                         SettingsRow(icon: "sparkles", title: "NFT", value: "\(env.snapshot.ownedNFTs.count)", tint: Color(hex: "#7C5CFF"), showsChevron: false)
                     }
 
-                    Text("Р”Р°РЅРЅС‹Рµ С…СЂР°РЅСЏС‚СЃСЏ РІ С„Р°Р№Р»Рµ \(AppConfig.storageFile) РІРЅСѓС‚СЂРё РїСЂРёР»РѕР¶РµРЅРёСЏ Рё РЅРµ РїРµСЂРµРґР°СЋС‚СЃСЏ РЅРёРєСѓРґР°.")
+                    Text("Данные хранятся в файле \(AppConfig.storageFile) внутри приложения и не передаются никуда.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -386,14 +386,14 @@ struct StorageView: View {
                 .padding(.vertical, 12)
             }
         }
-        .navigationTitle("РҐСЂР°РЅРёР»РёС‰Рµ")
+        .navigationTitle("Хранилище")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }
 
-/// Рћ РїСЂРёР»РѕР¶РµРЅРёРё.
+/// О приложении.
 struct AboutView: View {
     var body: some View {
         ZStack {
@@ -405,10 +405,10 @@ struct AboutView: View {
                 Text("EndoGram")
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundColor(Theme.textPrimary)
-                Text("Р­С‚Р°Рї 1 В· РїРѕР»РЅРѕСЃС‚СЊСЋ РѕС„Р»Р°Р№РЅ")
+                Text("Этап 1 · полностью офлайн")
                     .font(.system(size: 14))
                     .foregroundColor(Theme.textSecondary)
-                Text("РђРєРєР°СѓРЅС‚ СЃРѕР·РґР°С‘С‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїСЂРё РїРµСЂРІРѕРј Р·Р°РїСѓСЃРєРµ. Р§Р°С‚С‹, РїРѕРґР°СЂРєРё, NFT Рё Premium С…СЂР°РЅСЏС‚СЃСЏ РЅР° СѓСЃС‚СЂРѕР№СЃС‚РІРµ. РЎРµС‚СЊ РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ.")
+                Text("Аккаунт создаётся автоматически при первом запуске. Чаты, подарки, NFT и Premium хранятся на устройстве. Сеть не используется.")
                     .font(.system(size: 14))
                     .foregroundColor(Theme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -418,10 +418,9 @@ struct AboutView: View {
             }
             .padding(.top, 50)
         }
-        .navigationTitle("Рћ РїСЂРёР»РѕР¶РµРЅРёРё")
+        .navigationTitle("О приложении")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }
-

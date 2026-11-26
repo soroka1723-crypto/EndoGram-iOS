@@ -1,6 +1,6 @@
-﻿import SwiftUI
+import SwiftUI
 
-/// РњР°РіР°Р·РёРЅ РїРѕРґР°СЂРєРѕРІ.
+/// Магазин подарков.
 struct GiftShopView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var selected: Gift?
@@ -15,11 +15,11 @@ struct GiftShopView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
-                        Text("в­ђпёЏ \(Format.number(env.stars))")
+                        Text("⭐️ \(Format.number(env.stars))")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(Theme.textPrimary)
                         Spacer()
-                        Text("РџРѕРґР°СЂРєРё")
+                        Text("Подарки")
                             .font(.system(size: 12))
                             .foregroundColor(Theme.textSecondary)
                     }
@@ -49,7 +49,7 @@ struct GiftShopView: View {
                     .background(Capsule().fill(Color.black.opacity(0.8)))
             }
         }
-        .navigationTitle("РџРѕРґР°СЂРєРё")
+        .navigationTitle("Подарки")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -77,7 +77,7 @@ struct GiftShopView: View {
                 .foregroundColor(Theme.textPrimary)
                 .lineLimit(1)
             HStack(spacing: 3) {
-                Text("в­ђпёЏ").font(.system(size: 11))
+                Text("⭐️").font(.system(size: 11))
                 Text(Format.number(gift.price))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Theme.textSecondary)
@@ -88,7 +88,7 @@ struct GiftShopView: View {
     }
 }
 
-/// РџРѕРєСѓРїРєР° РїРѕРґР°СЂРєР°: СЃРµР±Рµ РІ РёРЅРІРµРЅС‚Р°СЂСЊ РёР»Рё РІ С‡Р°С‚.
+/// Покупка подарка: себе в инвентарь или в чат.
 struct GiftPurchaseView: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.dismiss) private var dismiss
@@ -115,7 +115,7 @@ struct GiftPurchaseView: View {
                             .font(.system(size: 13))
                             .foregroundColor(Theme.textSecondary)
                         HStack(spacing: 4) {
-                            Text("в­ђпёЏ")
+                            Text("⭐️")
                             Text(Format.number(gift.price))
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(Theme.star)
@@ -124,7 +124,7 @@ struct GiftPurchaseView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("РљСѓРґР° РѕС‚РїСЂР°РІРёС‚СЊ")
+                        Text("Куда отправить")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(Theme.textSecondary)
                             .padding(.horizontal, 16)
@@ -136,7 +136,7 @@ struct GiftPurchaseView: View {
                                 HStack {
                                     Image(systemName: "tray.and.arrow.down.fill")
                                         .foregroundColor(Theme.accentBright)
-                                    Text("РћСЃС‚Р°РІРёС‚СЊ СЃРµР±Рµ РІ РёРЅРІРµРЅС‚Р°СЂСЊ")
+                                    Text("Оставить себе в инвентарь")
                                         .foregroundColor(Theme.textPrimary)
                                     Spacer()
                                     if selectedChatId == nil {
@@ -184,27 +184,27 @@ struct GiftPurchaseView: View {
                         if let error = env.buyGift(gift, toChatId: selectedChatId) {
                             self.error = error
                         } else {
-                            onResult("РџРѕРґР°СЂРѕРє В«\(gift.name)В» РїРѕР»СѓС‡РµРЅ")
+                            onResult("Подарок «\(gift.name)» получен")
                             dismiss()
                         }
                     } label: {
-                        Text("РљСѓРїРёС‚СЊ Р·Р° \(Format.stars(gift.price))")
+                        Text("Купить за \(Format.stars(gift.price))")
                     }
                     .buttonStyle(StarButtonStyle())
                     .padding(.horizontal, 16)
 
-                    Text("Р‘Р°Р»Р°РЅСЃ: \(Format.stars(env.stars))")
+                    Text("Баланс: \(Format.stars(env.stars))")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
 
                     Spacer()
                 }
             }
-            .navigationTitle("РџРѕРґР°СЂРѕРє")
+            .navigationTitle("Подарок")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("РћС‚РјРµРЅР°") { dismiss() }
+                    Button("Отмена") { dismiss() }
                 }
             }
             .toolbarBackground(Theme.panel, for: .navigationBar)
@@ -213,7 +213,7 @@ struct GiftPurchaseView: View {
     }
 }
 
-/// Р С‹РЅРѕРє NFT.
+/// Рынок NFT.
 struct NFTMarketView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var selected: NFTItem?
@@ -225,11 +225,11 @@ struct NFTMarketView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("РљРѕР»Р»РµРєС†РёРё")
+                        Text("Коллекции")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(Theme.textPrimary)
                         Spacer()
-                        Text("в­ђпёЏ \(Format.number(env.stars))")
+                        Text("⭐️ \(Format.number(env.stars))")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(Theme.star)
                     }
@@ -283,11 +283,11 @@ struct NFTMarketView: View {
                 Text(item.name)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Theme.textPrimary)
-                Text("#\(item.serial) РёР· \(item.totalSupply)")
+                Text("#\(item.serial) из \(item.totalSupply)")
                     .font(.system(size: 12))
                     .foregroundColor(Theme.textSecondary)
                 HStack(spacing: 4) {
-                    Text("в­ђпёЏ").font(.system(size: 11))
+                    Text("⭐️").font(.system(size: 11))
                     Text(Format.number(item.price))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(Theme.textPrimary)
@@ -342,7 +342,7 @@ struct NFTDetailView: View {
                         Text(item.name)
                             .font(.system(size: 24, weight: .semibold))
                             .foregroundColor(Theme.textPrimary)
-                        Text("#\(item.serial) РёР· \(item.totalSupply) В· \(item.rarity)")
+                        Text("#\(item.serial) из \(item.totalSupply) · \(item.rarity)")
                             .font(.system(size: 13))
                             .foregroundColor(Theme.textSecondary)
                     }
@@ -354,7 +354,7 @@ struct NFTDetailView: View {
                         .padding(.horizontal, 24)
 
                     HStack(spacing: 5) {
-                        Text("в­ђпёЏ")
+                        Text("⭐️")
                         Text(Format.number(item.price))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(Theme.star)
@@ -370,16 +370,16 @@ struct NFTDetailView: View {
                         if let error = env.buyNFT(item) {
                             self.error = error
                         } else {
-                            onResult("NFT В«\(item.name)В» РґРѕР±Р°РІР»РµРЅ РІ РєРѕР»Р»РµРєС†РёСЋ")
+                            onResult("NFT «\(item.name)» добавлен в коллекцию")
                             dismiss()
                         }
                     } label: {
-                        Text("РљСѓРїРёС‚СЊ Р·Р° \(Format.stars(item.price))")
+                        Text("Купить за \(Format.stars(item.price))")
                     }
                     .buttonStyle(StarButtonStyle())
                     .padding(.horizontal, 16)
 
-                    Text("Р‘Р°Р»Р°РЅСЃ: \(Format.stars(env.stars))")
+                    Text("Баланс: \(Format.stars(env.stars))")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
 
@@ -391,7 +391,7 @@ struct NFTDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Р—Р°РєСЂС‹С‚СЊ") { dismiss() }
+                    Button("Закрыть") { dismiss() }
                 }
             }
             .toolbarBackground(Theme.panel, for: .navigationBar)
@@ -400,7 +400,7 @@ struct NFTDetailView: View {
     }
 }
 
-/// РРЅРІРµРЅС‚Р°СЂСЊ: РєСѓРїР»РµРЅРЅС‹Рµ РїРѕРґР°СЂРєРё Рё NFT.
+/// Инвентарь: купленные подарки и NFT.
 struct InventoryView: View {
     @EnvironmentObject private var env: AppEnvironment
 
@@ -412,14 +412,14 @@ struct InventoryView: View {
                     if env.snapshot.ownedGifts.isEmpty && env.snapshot.ownedNFTs.isEmpty {
                         EmptyStateView(
                             icon: "shippingbox",
-                            title: "РРЅРІРµРЅС‚Р°СЂСЊ РїСѓСЃС‚",
-                            subtitle: "РљСѓРїРёС‚Рµ РїРѕРґР°СЂРѕРє РёР»Рё NFT РІ СЂР°Р·РґРµР»Рµ В«Р—РІС‘Р·РґС‹В» вЂ” РѕРЅРё РїРѕСЏРІСЏС‚СЃСЏ Р·РґРµСЃСЊ."
+                            title: "Инвентарь пуст",
+                            subtitle: "Купите подарок или NFT в разделе «Звёзды» — они появятся здесь."
                         )
                         .frame(height: 360)
                     }
 
                     if !env.snapshot.ownedGifts.isEmpty {
-                        SectionCard(title: "РџРѕРґР°СЂРєРё (\(env.snapshot.ownedGifts.count))") {
+                        SectionCard(title: "Подарки (\(env.snapshot.ownedGifts.count))") {
                             ForEach(env.snapshot.ownedGifts.reversed()) { gift in
                                 HStack(spacing: 12) {
                                     Text(gift.emoji)
@@ -430,7 +430,7 @@ struct InventoryView: View {
                                         Text(gift.name)
                                             .font(.system(size: 15, weight: .medium))
                                             .foregroundColor(Theme.textPrimary)
-                                        Text("\(gift.rarity) В· \(Format.number(gift.pricePaid)) в­ђпёЏ")
+                                        Text("\(gift.rarity) · \(Format.number(gift.pricePaid)) ⭐️")
                                             .font(.system(size: 12))
                                             .foregroundColor(Theme.textSecondary)
                                         Text(Format.fullDate(gift.receivedAt))
@@ -460,10 +460,10 @@ struct InventoryView: View {
                                         Text(nft.name)
                                             .font(.system(size: 15, weight: .medium))
                                             .foregroundColor(Theme.textPrimary)
-                                        Text("\(nft.collection) В· #\(nft.serial)/\(nft.totalSupply)")
+                                        Text("\(nft.collection) · #\(nft.serial)/\(nft.totalSupply)")
                                             .font(.system(size: 12))
                                             .foregroundColor(Theme.textSecondary)
-                                        Text("РљСѓРїР»РµРЅРѕ Р·Р° \(Format.number(nft.pricePaid)) в­ђпёЏ")
+                                        Text("Куплено за \(Format.number(nft.pricePaid)) ⭐️")
                                             .font(.system(size: 11))
                                             .foregroundColor(Theme.textSecondary.opacity(0.8))
                                     }
@@ -481,23 +481,23 @@ struct InventoryView: View {
                 .padding(.vertical, 12)
             }
         }
-        .navigationTitle("РРЅРІРµРЅС‚Р°СЂСЊ")
+        .navigationTitle("Инвентарь")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }
 
-/// Р­РєСЂР°РЅ Premium.
+/// Экран Premium.
 struct PremiumView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var message: String?
 
     private let features: [(String, String, String)] = [
-        ("bolt.fill", "Р‘С‹СЃС‚СЂРµРµ Рё Р±РµР· СЂРµРєР»Р°РјС‹", "Р›РѕРєР°Р»СЊРЅС‹Р№ СЂРµР¶РёРј СѓР¶Рµ Р±РµР· СЂРµРєР»Р°РјС‹ вЂ” Premium РґРѕР±Р°РІР»СЏРµС‚ СЃС‚Р°С‚СѓСЃ Рё РєРѕР»Р»РµРєС†РёРё."),
-        ("star.circle.fill", "Р—РІС‘Р·РґС‹ РІ РїРѕРґР°СЂРѕРє", "РљР°Р¶РґС‹Р№ РјРµСЃСЏС† вЂ” Р±РѕРЅСѓСЃРЅС‹Рµ Р·РІС‘Р·РґС‹ РІ Р»РѕРєР°Р»СЊРЅРѕРј РєРѕС€РµР»СЊРєРµ."),
-        ("gift.fill", "Р­РєСЃРєР»СЋР·РёРІРЅС‹Рµ РїРѕРґР°СЂРєРё", "Р”РѕСЃС‚СѓРї Рє РїСЂРµРјРёР°Р»СЊРЅС‹Рј РєРѕР»Р»РµРєС†РёСЏРј РїРѕРґР°СЂРєРѕРІ."),
-        ("person.2.fill", "Р‘РѕР»СЊС€Рµ СѓС‡Р°СЃС‚РЅРёРєРѕРІ", "Р›РёРјРёС‚С‹ РіСЂСѓРїРї Рё РєР°РЅР°Р»РѕРІ РІС‹С€Рµ, С‡РµРј Сѓ РѕР±С‹С‡РЅС‹С… Р°РєРєР°СѓРЅС‚РѕРІ."),
+        ("bolt.fill", "Быстрее и без рекламы", "Локальный режим уже без рекламы — Premium добавляет статус и коллекции."),
+        ("star.circle.fill", "Звёзды в подарок", "Каждый месяц — бонусные звёзды в локальном кошельке."),
+        ("gift.fill", "Эксклюзивные подарки", "Доступ к премиальным коллекциям подарков."),
+        ("person.2.fill", "Больше участников", "Лимиты групп и каналов выше, чем у обычных аккаунтов."),
     ]
 
     var body: some View {
@@ -513,18 +513,18 @@ struct PremiumView: View {
                             .font(.system(size: 25, weight: .bold))
                             .foregroundColor(Theme.textPrimary)
                         if env.profile.premiumActive {
-                            Text("РђРєС‚РёРІРµРЅ РґРѕ \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "вЂ”")")
+                            Text("Активен до \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "—")")
                                 .font(.system(size: 14))
                                 .foregroundColor(Theme.online)
                         } else {
-                            Text("Р“РѕРґРѕРІР°СЏ РїРѕРґРїРёСЃРєР° Р·Р° \(Format.stars(AppConfig.premiumPrice))")
+                            Text("Годовая подписка за \(Format.stars(AppConfig.premiumPrice))")
                                 .font(.system(size: 14))
                                 .foregroundColor(Theme.textSecondary)
                         }
                     }
                     .padding(.top, 20)
 
-                    SectionCard(title: "Р’РѕР·РјРѕР¶РЅРѕСЃС‚Рё") {
+                    SectionCard(title: "Возможности") {
                         ForEach(features, id: \.1) { feature in
                             HStack(alignment: .top, spacing: 12) {
                                 Image(systemName: feature.0)
@@ -556,20 +556,20 @@ struct PremiumView: View {
 
                     Button {
                         if env.profile.premiumActive {
-                            message = "Premium СѓР¶Рµ Р°РєС‚РёРІРµРЅ"
+                            message = "Premium уже активен"
                         } else if let error = env.activatePremium() {
                             message = error
                         } else {
-                            message = "Premium Р°РєС‚РёРІРёСЂРѕРІР°РЅ РґРѕ \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "")"
+                            message = "Premium активирован до \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "")"
                         }
                     } label: {
-                        Text(env.profile.premiumActive ? "Premium Р°РєС‚РёРІРµРЅ" : "РђРєС‚РёРІРёСЂРѕРІР°С‚СЊ Р·Р° \(Format.stars(AppConfig.premiumPrice))")
+                        Text(env.profile.premiumActive ? "Premium активен" : "Активировать за \(Format.stars(AppConfig.premiumPrice))")
                     }
                     .buttonStyle(StarButtonStyle(filled: !env.profile.premiumActive))
                     .disabled(env.profile.premiumActive)
                     .padding(.horizontal, 16)
 
-                    Text("Р‘Р°Р»Р°РЅСЃ: \(Format.stars(env.stars))")
+                    Text("Баланс: \(Format.stars(env.stars))")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                         .padding(.bottom, 30)

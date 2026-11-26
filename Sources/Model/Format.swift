@@ -1,6 +1,6 @@
-﻿import Foundation
+import Foundation
 
-/// Р¤РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ РґР°С‚, С‡РёСЃРµР» Рё Р·РІС‘Р·Рґ РІ СЂСѓСЃСЃРєРѕР№ Р»РѕРєР°Р»Рё.
+/// Форматирование дат, чисел и звёзд в русской локали.
 enum Format {
 
     private static let ru = Locale(identifier: "ru_RU")
@@ -15,7 +15,7 @@ enum Format {
     static func chatTime(_ date: Date) -> String {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) { return time(date) }
-        if calendar.isDateInYesterday(date) { return "РІС‡РµСЂР°" }
+        if calendar.isDateInYesterday(date) { return "вчера" }
         let formatter = DateFormatter()
         formatter.locale = ru
         formatter.dateFormat = calendar.isDate(date, equalTo: Date(), toGranularity: .year) ? "d MMM" : "dd.MM.yy"
@@ -24,8 +24,8 @@ enum Format {
 
     static func dayDivider(_ date: Date) -> String {
         let calendar = Calendar.current
-        if calendar.isDateInToday(date) { return "РЎРµРіРѕРґРЅСЏ" }
-        if calendar.isDateInYesterday(date) { return "Р’С‡РµСЂР°" }
+        if calendar.isDateInToday(date) { return "Сегодня" }
+        if calendar.isDateInYesterday(date) { return "Вчера" }
         let formatter = DateFormatter()
         formatter.locale = ru
         formatter.dateFormat = "d MMMM"
@@ -42,7 +42,7 @@ enum Format {
     static func callTime(_ date: Date) -> String {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) { return time(date) }
-        if calendar.isDateInYesterday(date) { return "РІС‡РµСЂР°" }
+        if calendar.isDateInYesterday(date) { return "вчера" }
         let formatter = DateFormatter()
         formatter.locale = ru
         formatter.dateFormat = "d MMM"
@@ -60,7 +60,7 @@ enum Format {
     }
 
     static func stars(_ value: Int) -> String {
-        number(value) + " в­ђпёЏ"
+        number(value) + " ⭐️"
     }
 
     static func number(_ value: Int) -> String {
@@ -72,27 +72,26 @@ enum Format {
     }
 
     static func signedStars(_ value: Int) -> String {
-        (value > 0 ? "+" : value < 0 ? "в€’" : "") + number(abs(value)) + " в­ђпёЏ"
+        (value > 0 ? "+" : value < 0 ? "−" : "") + number(abs(value)) + " ⭐️"
     }
 
     static func members(_ count: Int) -> String {
         let mod10 = count % 10
         let mod100 = count % 100
-        if mod100 >= 11 && mod100 <= 14 { return "\(count) СѓС‡Р°СЃС‚РЅРёРєРѕРІ" }
+        if mod100 >= 11 && mod100 <= 14 { return "\(count) участников" }
         switch mod10 {
-        case 1: return "\(count) СѓС‡Р°СЃС‚РЅРёРє"
-        case 2, 3, 4: return "\(count) СѓС‡Р°СЃС‚РЅРёРєР°"
-        default: return "\(count) СѓС‡Р°СЃС‚РЅРёРєРѕРІ"
+        case 1: return "\(count) участник"
+        case 2, 3, 4: return "\(count) участника"
+        default: return "\(count) участников"
         }
     }
 }
 
 extension Int {
-    /// РљРѕРјРїР°РєС‚РЅР°СЏ Р·Р°РїРёСЃСЊ: 1 200 в†’ 1,2K.
+    /// Компактная запись: 1 200 → 1,2K.
     var compact: String {
         if self >= 1_000_000 { return String(format: "%.1fM", Double(self) / 1_000_000) }
         if self >= 1_000 { return String(format: "%.1fK", Double(self) / 1_000) }
         return String(self)
     }
 }
-

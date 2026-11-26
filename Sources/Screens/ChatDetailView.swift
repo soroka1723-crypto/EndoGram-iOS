@@ -1,7 +1,7 @@
-﻿import SwiftUI
+import SwiftUI
 import UIKit
 
-/// Р­РєСЂР°РЅ РїРµСЂРµРїРёСЃРєРё РІ СЃС‚РёР»Рµ Telegram.
+/// Экран переписки в стиле Telegram.
 struct ChatDetailView: View {
     @EnvironmentObject private var env: AppEnvironment
     let chatId: String
@@ -55,19 +55,19 @@ struct ChatDetailView: View {
                 Menu {
                     Button {
                         showInfo = true
-                    } label: { Label("РРЅС„РѕСЂРјР°С†РёСЏ", systemImage: "info.circle") }
+                    } label: { Label("Информация", systemImage: "info.circle") }
                     Button {
                         env.setMuted(chatId, !(chat?.isMuted ?? false))
                     } label: {
-                        Label(chat?.isMuted == true ? "Р’РєР»СЋС‡РёС‚СЊ Р·РІСѓРє" : "Р‘РµР· Р·РІСѓРєР°", systemImage: "bell.slash")
+                        Label(chat?.isMuted == true ? "Включить звук" : "Без звука", systemImage: "bell.slash")
                     }
                     Button {
                         env.setArchived(chatId, true)
-                    } label: { Label("Р’ Р°СЂС…РёРІ", systemImage: "archivebox") }
+                    } label: { Label("В архив", systemImage: "archivebox") }
                     Divider()
                     Button(role: .destructive) {
                         env.deleteChat(chatId)
-                    } label: { Label("РЈРґР°Р»РёС‚СЊ С‡Р°С‚", systemImage: "trash") }
+                    } label: { Label("Удалить чат", systemImage: "trash") }
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 17, weight: .semibold))
@@ -82,45 +82,45 @@ struct ChatDetailView: View {
             ChatInfoView(chatId: chatId).environmentObject(env)
         }
         .confirmationDialog(
-            "РЎРѕРѕР±С‰РµРЅРёРµ",
+            "Сообщение",
             isPresented: Binding(
                 get: { actionMessage != nil },
                 set: { if !$0 { actionMessage = nil } }
             ),
             presenting: actionMessage
         ) { message in
-            Button("Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ") {
+            Button("Редактировать") {
                 editing = message
                 draft = message.text
                 actionMessage = nil
             }
-            Button(message.isPinned ? "РћС‚РєСЂРµРїРёС‚СЊ" : "Р—Р°РєСЂРµРїРёС‚СЊ") {
+            Button(message.isPinned ? "Открепить" : "Закрепить") {
                 env.togglePin(messageId: message.id)
                 actionMessage = nil
             }
-            Button("РљРѕРїРёСЂРѕРІР°С‚СЊ") {
+            Button("Копировать") {
                 UIPasteboard.general.string = message.text
-                showToast("РЎРєРѕРїРёСЂРѕРІР°РЅРѕ")
+                showToast("Скопировано")
                 actionMessage = nil
             }
-            Button("РЈРґР°Р»РёС‚СЊ", role: .destructive) {
+            Button("Удалить", role: .destructive) {
                 env.deleteMessage(id: message.id)
                 actionMessage = nil
             }
-            Button("РћС‚РјРµРЅР°", role: .cancel) { actionMessage = nil }
+            Button("Отмена", role: .cancel) { actionMessage = nil }
         }
     }
 
     private var subtitle: String {
         guard let chat else { return "" }
         switch chat.kind {
-        case .direct: return "Р»РѕРєР°Р»СЊРЅС‹Р№ С‡Р°С‚"
+        case .direct: return "локальный чат"
         case .group: return Format.members(chat.memberIds.count)
-        case .channel: return "РєР°РЅР°Р»"
+        case .channel: return "канал"
         }
     }
 
-    // MARK: - РЎРїРёСЃРѕРє СЃРѕРѕР±С‰РµРЅРёР№
+    // MARK: - Список сообщений
 
     private var messageList: some View {
         ScrollViewReader { proxy in
@@ -128,10 +128,10 @@ struct ChatDetailView: View {
                 LazyVStack(spacing: 2) {
                     if messages.isEmpty {
                         VStack(spacing: 8) {
-                            Text("РЎРѕРѕР±С‰РµРЅРёР№ РїРѕРєР° РЅРµС‚")
+                            Text("Сообщений пока нет")
                                 .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(Theme.textSecondary)
-                            Text("РќР°РїРёС€РёС‚Рµ РїРµСЂРІС‹Рј вЂ” СЌС‚Рѕ Р»РѕРєР°Р»СЊРЅС‹Р№ С‡Р°С‚.")
+                            Text("Напишите первым — это локальный чат.")
                                 .font(.system(size: 13))
                                 .foregroundColor(Theme.textSecondary.opacity(0.8))
                         }
@@ -191,7 +191,7 @@ struct ChatDetailView: View {
                 .frame(width: 2)
                 .clipShape(Capsule())
             VStack(alignment: .leading, spacing: 1) {
-                Text("Р—Р°РєСЂРµРїР»С‘РЅРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ")
+                Text("Закреплённое сообщение")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Theme.accentBright)
                 Text(message.text)
@@ -212,7 +212,7 @@ struct ChatDetailView: View {
         .background(Theme.panel.opacity(0.95))
     }
 
-    // MARK: - РџРѕР»Рµ РІРІРѕРґР°
+    // MARK: - Поле ввода
 
     private var composer: some View {
         VStack(spacing: 0) {
@@ -221,7 +221,7 @@ struct ChatDetailView: View {
                     Image(systemName: "pencil")
                         .foregroundColor(Theme.accentBright)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ")
+                        Text("Редактирование")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(Theme.accentBright)
                         Text(editing.text)
@@ -253,7 +253,7 @@ struct ChatDetailView: View {
                         .frame(width: 36, height: 38)
                 }
 
-                TextField(isChannel ? "РќР°РїРёСЃР°С‚СЊ РІ РєР°РЅР°Р»вЂ¦" : "РЎРѕРѕР±С‰РµРЅРёРµ", text: $draft, axis: .vertical)
+                TextField(isChannel ? "Написать в канал…" : "Сообщение", text: $draft, axis: .vertical)
                     .lineLimit(1...6)
                     .font(.system(size: 16))
                     .foregroundColor(Theme.textPrimary)
@@ -280,18 +280,18 @@ struct ChatDetailView: View {
             .padding(.vertical, 7)
             .background(Theme.panel)
         }
-        .confirmationDialog("Р’Р»РѕР¶РµРЅРёРµ", isPresented: $showAttach) {
-            Button("Р¤РѕС‚Рѕ РёР»Рё РІРёРґРµРѕ") { showToast("Р›РѕРєР°Р»СЊРЅС‹Р№ СЂРµР¶РёРј: РІР»РѕР¶РµРЅРёСЏ РЅРµ РѕС‚РїСЂР°РІР»СЏСЋС‚СЃСЏ") }
-            Button("Р”РѕРєСѓРјРµРЅС‚") { showToast("Р›РѕРєР°Р»СЊРЅС‹Р№ СЂРµР¶РёРј: РІР»РѕР¶РµРЅРёСЏ РЅРµ РѕС‚РїСЂР°РІР»СЏСЋС‚СЃСЏ") }
-            Button("Р“РµРѕР»РѕРєР°С†РёСЏ") { showToast("Р›РѕРєР°Р»СЊРЅС‹Р№ СЂРµР¶РёРј: РіРµРѕР»РѕРєР°С†РёСЏ РЅРµРґРѕСЃС‚СѓРїРЅР°") }
-            Button("РћС‚РјРµРЅР°", role: .cancel) {}
+        .confirmationDialog("Вложение", isPresented: $showAttach) {
+            Button("Фото или видео") { showToast("Локальный режим: вложения не отправляются") }
+            Button("Документ") { showToast("Локальный режим: вложения не отправляются") }
+            Button("Геолокация") { showToast("Локальный режим: геолокация недоступна") }
+            Button("Отмена", role: .cancel) {}
         }
     }
 
     private func submit() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else {
-            showToast("Р“РѕР»РѕСЃРѕРІС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ РїРѕСЏРІСЏС‚СЃСЏ РїРѕР·Р¶Рµ")
+            showToast("Голосовые сообщения появятся позже")
             return
         }
         if let editing {
@@ -326,7 +326,7 @@ struct ChatDetailView: View {
     }
 }
 
-/// РџСѓР·С‹СЂСЊ СЃРѕРѕР±С‰РµРЅРёСЏ.
+/// Пузырь сообщения.
 struct MessageBubble: View {
     let message: Message
     let isMine: Bool
@@ -362,7 +362,7 @@ struct MessageBubble: View {
                         Image(systemName: "pin.fill").font(.system(size: 9))
                     }
                     if message.isEdited {
-                        Text("РёР·Рј.").font(.system(size: 10))
+                        Text("изм.").font(.system(size: 10))
                     }
                     Text(Format.time(message.createdAt)).font(.system(size: 10.5))
                     if isMine {
@@ -389,7 +389,7 @@ struct MessageBubble: View {
             }
             .contextMenu {
                 Button(action: onLongPress) {
-                    Label("Р”РµР№СЃС‚РІРёСЏ", systemImage: "ellipsis.circle")
+                    Label("Действия", systemImage: "ellipsis.circle")
                 }
             }
             .onLongPressGesture { onLongPress() }
@@ -399,4 +399,3 @@ struct MessageBubble: View {
         .padding(.vertical, 1)
     }
 }
-

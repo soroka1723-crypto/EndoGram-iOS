@@ -1,7 +1,7 @@
-﻿import SwiftUI
+import SwiftUI
 import Foundation
 
-/// Р¦РІРµС‚Р° Рё СЂР°Р·РјРµСЂС‹ РІ РґСѓС…Рµ Telegram (С‚С‘РјРЅР°СЏ С‚РµРјР°).
+/// Цвета и размеры в духе Telegram (тёмная тема).
 enum Theme {
 
     static let background = Color(hex: "#0E1621")
@@ -50,7 +50,7 @@ extension Color {
     }
 }
 
-/// Р¤РѕРЅ РїРµСЂРµРїРёСЃРєРё вЂ” РјСЏРіРєРёРµ РїСЏС‚РЅР°, РєР°Рє РѕР±РѕРё Telegram.
+/// Фон переписки — мягкие пятна, как обои Telegram.
 struct ChatWallpaper: View {
     var body: some View {
         ZStack {
@@ -71,4 +71,3 @@ struct ChatWallpaper: View {
         .ignoresSafeArea()
     }
 }
-
