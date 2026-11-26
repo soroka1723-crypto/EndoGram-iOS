@@ -23,6 +23,33 @@ targets:
       - path: Resources
     info:
       path: Support/Info.plist
+      properties:
+        CFBundleDisplayName: EndoGram
+        CFBundleDevelopmentRegion: ru
+        CFBundleLocalizations:
+          - ru
+          - en
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LSApplicationCategoryType: public.app-category.social-networking
+        LSRequiresIPhoneOS: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIRequiredDeviceCapabilities:
+          - arm64
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIUserInterfaceStyle: Dark
+        NSMicrophoneUsageDescription: "Микрофон нужен для записи голосовых сообщений. Записи сохраняются только на этом устройстве и никуда не отправляются."
+        NSPhotoLibraryUsageDescription: "Доступ к фото нужен, чтобы прикрепить изображение. В офлайн-режиме вложения не отправляются."
     settings:
       base:
         PRODUCT_NAME: EndoGram
