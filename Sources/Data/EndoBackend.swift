@@ -50,6 +50,11 @@ protocol EndoBackend: AnyObject {
     func createFolder(title: String, icon: String, chatIds: [String]) -> ChatFolder
     func logCall(peerName: String, isVideo: Bool, isOutgoing: Bool, isMissed: Bool, duration: TimeInterval)
 
+    func addStory(caption: String, colorHex: String) -> Story
+    func deleteStory(id: String)
+    func setStoryArchived(id: String, archived: Bool)
+    func markStoryViewed(id: String)
+
     func updateSettings(_ settings: AppSettings)
     func resetAccount()
 }

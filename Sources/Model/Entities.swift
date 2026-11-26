@@ -163,8 +163,34 @@ struct LedgerEntry: Codable, Identifiable, Hashable {
     var balanceAfter: Int
 }
 
-struct Gift: Codable, Identifiable, Hashable {
+// MARK: - Истории
+
+/// Локальная история — как `Settings_MyStories` в Telegram.
+///
+/// Истории живут 24 часа, потом уходят в архив (`Settings_StoriesArchive`).
+/// Картинок нет: обложка — градиент из палитры плюс подпись, чтобы всё
+/// оставалось офлайн и без файлов, которые некуда загрузить.
+struct Story: Codable, Identifiable, Hashable {
     var id: String
+    var authorName: String
+    var caption: String
+    var colorHex: String
+    var createdAt: Date
+    var expiresAt: Date
+    var isArchived: Bool = false
+    var views: Int = 0
+    /// Порядковый номер просмотра — сколько раз открывали.
+    var lastViewedAt: Date? = nil
+
+    var isExpired: Bool { expiresAt <= Date() }
+
+    /// Осталось часов до архива — для подписи «осталось N ч».
+    var hoursLeft: Int {
+        max(0, Int(ceil(expiresAt.timeIntervalSinceNow / 3600)))
+    }
+}
+
+struct Gift: Codable, Identifiable, Hashable {    var id: String
     var name: String
     var emoji: String
     var price: Int
@@ -480,4 +506,53 @@ struct StoreSnapshot: Codable {
     var ownedNFTs: [OwnedNFT]
     var calls: [CallRecord]
     var settings: AppSettings
+    var stories: [Story] = []
+
+    /// Терпимое декодирование всего хранилища.
+    ///
+    /// Синтезированный декодер требует presence каждого неопционального поля:
+    /// стоило добавить новую коллекцию — и файл, записанный прошлой версией,
+    /// перестал бы читаться, а аккаунт сбросился бы в новый. Поэтому каждая
+    /// коллекция читается через `decodeIfPresent` со значением по умолчанию,
+    /// а обязательным остаётся только профиль — без него аккаунта нет.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = c.lenient(.schemaVersion, 1)
+        createdAt = c.lenient(.createdAt, Date())
+        updatedAt = c.lenient(.updatedAt, Date())
+        profile = try c.decode(UserProfile.self, forKey: .profile)
+        stars = c.lenient(.stars, 0)
+        contacts = c.lenient(.contacts, [])
+        chats = c.lenient(.chats, [])
+        folders = c.lenient(.folders, [])
+        messages = c.lenient(.messages, [])
+        ledger = c.lenient(.ledger, [])
+        ownedGifts = c.lenient(.ownedGifts, [])
+        ownedNFTs = c.lenient(.ownedNFTs, [])
+        calls = c.lenient(.calls, [])
+        settings = c.lenient(.settings, AppSettings())
+        stories = c.lenient(.stories, [])
+    }
+
+    init(schemaVersion: Int, createdAt: Date, updatedAt: Date, profile: UserProfile,
+         stars: Int, contacts: [UserProfile], chats: [Chat], folders: [ChatFolder],
+         messages: [Message], ledger: [LedgerEntry], ownedGifts: [OwnedGift],
+         ownedNFTs: [OwnedNFT], calls: [CallRecord], settings: AppSettings,
+         stories: [Story] = []) {
+        self.schemaVersion = schemaVersion
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.profile = profile
+        self.stars = stars
+        self.contacts = contacts
+        self.chats = chats
+        self.folders = folders
+        self.messages = messages
+        self.ledger = ledger
+        self.ownedGifts = ownedGifts
+        self.ownedNFTs = ownedNFTs
+        self.calls = calls
+        self.settings = settings
+        self.stories = stories
+    }
 }

@@ -1369,45 +1369,6 @@ struct SavedMessagesView: View {
     }
 }
 
-// MARK: - Мои истории
-
-/// «Мои истории» — раздел оригинала `Settings_MyStories`.
-/// Истории требуют сервера и медиахранилища, поэтому раздел честно об этом говорит.
-struct MyStoriesView: View {
-    var body: some View {
-        ZStack {
-            Theme.background.ignoresSafeArea()
-            List {
-                Section {
-                    VStack(spacing: 10) {
-                        Image(systemName: "circle.dashed")
-                            .font(.system(size: 42))
-                            .foregroundColor(Theme.textSecondary)
-                        Text("Историй нет")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(Theme.textPrimary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                }
-                .listRowBackground(Theme.panel)
-
-                Section {
-                    SettingsValueRow(title: "Активные истории", value: "0")
-                    SettingsValueRow(title: "Архив историй", value: "0")
-                } footer: {
-                    Text("Истории — серверная функция Telegram: они живут 24 часа и хранятся в облаке с медиафайлами. В офлайн-сборке их создать нельзя, поэтому раздел существует только как часть структуры настроек.")
-                        .font(.system(size: 12))
-                        .foregroundColor(Theme.textSecondary)
-                }
-                .listRowBackground(Theme.panel)
-            }
-            .telegramList()
-        }
-        .telegramNavTitle("Мои истории")
-    }
-}
-
 // MARK: - Заблокированные пользователи
 
 /// «Заблокированные пользователи» — раздел оригинала `BlockedUsersController`.

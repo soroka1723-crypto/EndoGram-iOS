@@ -308,6 +308,43 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
+    // MARK: - Истории
+
+    /// Активные истории: не истёкшие и не в архиве.
+    var activeStories: [Story] {
+        snapshot.stories
+            .filter { !$0.isArchived && !$0.isExpired }
+            .sorted { $0.createdAt > $1.createdAt }
+    }
+
+    var archivedStories: [Story] {
+        snapshot.stories
+            .filter { $0.isArchived || $0.isExpired }
+            .sorted { $0.createdAt > $1.createdAt }
+    }
+
+    @discardableResult
+    func addStory(caption: String, colorHex: String) -> Story {
+        let story = backend.addStory(caption: caption, colorHex: colorHex)
+        refresh()
+        return story
+    }
+
+    func deleteStory(id: String) {
+        backend.deleteStory(id: id)
+        refresh()
+    }
+
+    func setStoryArchived(id: String, archived: Bool) {
+        backend.setStoryArchived(id: id, archived: archived)
+        refresh()
+    }
+
+    func markStoryViewed(id: String) {
+        backend.markStoryViewed(id: id)
+        refresh()
+    }
+
     func updateSettings(_ transform: (inout AppSettings) -> Void) {
         var settings = snapshot.settings
         transform(&settings)

@@ -38,6 +38,8 @@ enum SettingsSearchIndex {
         // Основные
         entry("saved", "Избранное", "Избранное", .saved, "избранное saved messages заметки"),
         entry("stories", "Мои истории", "Мои истории", .stories, "истории stories"),
+        entry("stories.archive", "Архив историй", "Мои истории", .storiesArchive,
+              "архив историй stories archive"),
         entry("stars", "Мои звёзды", "Мои звёзды", .stars, "звёзды баланс stars баланс пополнить"),
         entry("premium", "Telegram Premium", "Telegram Premium", .premium,
               "премиум подписка premium"),
@@ -268,6 +270,7 @@ struct SettingsSearchResults: View {
         case .blocked:       return "hand.raised.fill"
         case .saved:         return "bookmark.fill"
         case .stories:       return "circle.dashed"
+        case .storiesArchive: return "archivebox.fill"
         }
     }
 

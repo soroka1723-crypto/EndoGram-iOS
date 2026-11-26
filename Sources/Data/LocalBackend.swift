@@ -52,6 +52,11 @@ final class LocalBackend: EndoBackend {
             snapshot.profile.premiumUntil = nil
             appendLedger(kind: .premium, title: "Premium истёк", amount: 0)
         }
+        // История живёт 24 часа — как в Telegram, дальше уходит в архив.
+        for index in snapshot.stories.indices
+        where snapshot.stories[index].isExpired && !snapshot.stories[index].isArchived {
+            snapshot.stories[index].isArchived = true
+        }
         snapshot.updatedAt = Date()
         persist()
     }
@@ -573,6 +578,44 @@ final class LocalBackend: EndoBackend {
             ),
             at: 0
         )
+        persist()
+    }
+
+    // MARK: - Истории
+
+    func addStory(caption: String, colorHex: String) -> Story {
+        let trimmed = caption.trimmingCharacters(in: .whitespacesAndNewlines)
+        let story = Story(
+            id: IDs.next("story"),
+            authorName: snapshot.profile.displayName,
+            caption: trimmed,
+            colorHex: colorHex,
+            createdAt: Date(),
+            expiresAt: Date().addingTimeInterval(24 * 3600),
+            isArchived: false,
+            views: 0
+        )
+        snapshot.stories.insert(story, at: 0)
+        appendLedger(kind: .grant, title: "История опубликована", amount: 0)
+        persist()
+        return story
+    }
+
+    func deleteStory(id: String) {
+        snapshot.stories.removeAll { $0.id == id }
+        persist()
+    }
+
+    func setStoryArchived(id: String, archived: Bool) {
+        guard let index = snapshot.stories.firstIndex(where: { $0.id == id }) else { return }
+        snapshot.stories[index].isArchived = archived
+        persist()
+    }
+
+    func markStoryViewed(id: String) {
+        guard let index = snapshot.stories.firstIndex(where: { $0.id == id }) else { return }
+        snapshot.stories[index].views += 1
+        snapshot.stories[index].lastViewedAt = Date()
         persist()
     }
 

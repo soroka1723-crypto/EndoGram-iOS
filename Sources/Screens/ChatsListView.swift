@@ -46,6 +46,8 @@ struct ChatsListView: View {
                 } else {
                     searchField
                     folderStrip
+                    StoriesStrip()
+                        .environmentObject(env)
 
                     if visibleChats.isEmpty && env.archivedChats.isEmpty {
                         EmptyStateView(
