@@ -31,7 +31,8 @@ struct ChatsListView: View {
 
     var body: some View {
         ZStack {
-            Theme.panel.ignoresSafeArea()
+            // theme.chatList.backgroundColor — 0x000000
+            Theme.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 searchField

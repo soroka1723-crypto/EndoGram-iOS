@@ -412,13 +412,15 @@ struct DataAndStorageSettingsView: View {
                 }
                 .listRowBackground(Theme.panel)
 
-                Section("Звонки и медиа") {
+                Section {
                     SettingsToggleRow(icon: "phone.arrow.down.left.fill", title: "Экономить трафик в звонках",
                                       tint: Theme.accent, isOn: boolBind(\.dataSaverCalls))
                     SettingsToggleRow(icon: "ear.fill", title: "Поднимать для прослушивания",
                                       tint: Theme.warning, isOn: boolBind(\.raiseToListen))
                     SettingsToggleRow(icon: "music.note", title: "Пауза музыки при записи",
                                       tint: Color(hex: Palette.pink), isOn: boolBind(\.pauseMusicOnRecording))
+                } header: {
+                    Text("Звонки и медиа")
                 } footer: {
                     Text("Сеть приложением не используется: настройки автозагрузки влияют только на локальное поведение.")
                         .font(.system(size: 12))

@@ -25,6 +25,8 @@ enum Theme {
     static let divider = Color(hex: "#545458").opacity(0.55)
     /// `theme.chatList.pinnedItemBackgroundColor` — 0x1C1C1D
     static let pinnedRow = Color(hex: "#1C1C1D")
+    /// `theme.chatList.regularSearchBarColor` — 0x272728
+    static let searchBar = Color(hex: "#272728")
 
     // MARK: - Пузыри сообщений
 
