@@ -251,6 +251,36 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
+    // MARK: - Блокировка и автоудаление для контакта
+
+    func isBlocked(_ contactId: String) -> Bool {
+        snapshot.settings.blockedContactIds.contains(contactId)
+    }
+
+    func setBlocked(_ contactId: String, blocked: Bool) {
+        updateSettings { settings in
+            if blocked {
+                if !settings.blockedContactIds.contains(contactId) {
+                    settings.blockedContactIds.append(contactId)
+                }
+            } else {
+                settings.blockedContactIds.removeAll { $0 == contactId }
+            }
+        }
+    }
+
+    /// Прямой чат с контактом: существующий или только что созданный.
+    func directChat(with contact: UserProfile) -> Chat? {
+        snapshot.chats.first { $0.kind == .direct && $0.peerId == contact.id }
+    }
+
+    /// «Без звука» из профиля: уведомления чата с этим контактом.
+    func setMuted(for contact: UserProfile, muted: Bool) {
+        let chat = directChat(with: contact) ?? backend.createDirectChat(peer: contact)
+        backend.setMuted(chatId: chat.id, muted: muted)
+        refresh()
+    }
+
     /// Обои, которые нужно показать в этом чате: свои, иначе из настроек.
     func wallpaperStyle(for chatId: String) -> WallpaperStyle {
         let own = chat(chatId)?.wallpaperId

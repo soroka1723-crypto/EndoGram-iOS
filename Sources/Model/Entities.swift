@@ -221,8 +221,7 @@ struct Story: Codable, Identifiable, Hashable {
     /// Порядковый номер просмотра — сколько раз открывали.
     var lastViewedAt: Date? = nil
     /// «Кто видит» — `Story.Context.Privacy`. nil трактуется как «Все».
-    var privacy: String? = nil
-    /// Имя файла фото или видео в песочнице приложения.
+    var privacy: String? = nil    /// Имя файла фото или видео в песочнице приложения.
     var mediaFileName: String? = nil
     /// `photo` или `video`.
     var mediaKind: String? = nil
@@ -373,6 +372,10 @@ struct AppSettings: Codable, Hashable {
     var secretChatsLinkPreviews: Bool = true
     var passkeyEnabled: Bool = false
     var loginEmailEnabled: Bool = false
+    /// Заблокированные контакты — список хранится на устройстве, как и всё остальное.
+    var blockedContactIds: [String] = []
+    /// Автоудаление сообщений для отдельного контакта: id → срок.
+    var autoDeleteByContact: [String: String] = [:]
 
     // Данные и память
     var autoDownloadMedia: Bool = false
@@ -450,6 +453,7 @@ struct AppSettings: Codable, Hashable {
         case archivedStickerPacks, featuredStickerPacks, quickReactionEnabled
         case showTranslateButton, doNotTranslate
         case profileColor, birthday, personalChannel
+        case blockedContactIds, autoDeleteByContact
     }
 
     init(from decoder: Decoder) throws {
@@ -546,6 +550,8 @@ struct AppSettings: Codable, Hashable {
         profileColor = c.lenient(.profileColor, "blue")
         birthday = c.lenient(.birthday, "")
         personalChannel = c.lenient(.personalChannel, "")
+        blockedContactIds = c.lenient(.blockedContactIds, [])
+        autoDeleteByContact = c.lenient(.autoDeleteByContact, [:])
     }
 }
 

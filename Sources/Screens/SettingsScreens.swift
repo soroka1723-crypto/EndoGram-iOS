@@ -1373,12 +1373,48 @@ struct SavedMessagesView: View {
 /// Список локальный: блокировка скрывает контакт из адресной книги приложения.
 struct BlockedUsersView: View {
     @EnvironmentObject private var env: AppEnvironment
-    @State private var blocked = Set<String>()
+
+    /// Список блокировок теперь живёт в настройках, а не в @State экрана:
+    /// раньше он терялся, стоило уйти с этой страницы.
+    private var blockedIds: [String] { env.snapshot.settings.blockedContactIds }
 
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
             List {
+                Section {
+                    let blockedContacts = env.snapshot.contacts.filter { blockedIds.contains($0.id) }
+                    if blockedContacts.isEmpty {
+                        Text("Заблокированных нет")
+                            .foregroundColor(Theme.textSecondary)
+                    } else {
+                        ForEach(blockedContacts) { contact in
+                            HStack(spacing: 12) {
+                                AvatarView(title: contact.displayName, colorHex: contact.avatarColor, size: 40)
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(contact.displayName).foregroundColor(Theme.textPrimary)
+                                    Text("заблокирован")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Theme.danger)
+                                }
+                                Spacer()
+                                Button("Разблокировать") {
+                                    env.setBlocked(contact.id, blocked: false)
+                                }
+                                .font(.system(size: 14))
+                                .tint(Theme.accent)
+                            }
+                            .listRowBackground(Theme.panel)
+                        }
+                    }
+                } header: {
+                    TelegramSectionHeader(title: "Заблокированы")
+                } footer: {
+                    Text("Список хранится на устройстве вместе с остальными данными аккаунта.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+
                 if env.snapshot.contacts.isEmpty {
                     Section {
                         Text("Контактов нет")
@@ -1389,23 +1425,19 @@ struct BlockedUsersView: View {
                     Section {
                         ForEach(env.snapshot.contacts) { contact in
                             Button {
-                                if blocked.contains(contact.id) {
-                                    blocked.remove(contact.id)
-                                } else {
-                                    blocked.insert(contact.id)
-                                }
+                                env.setBlocked(contact.id, blocked: !blockedIds.contains(contact.id))
                             } label: {
                                 HStack(spacing: 12) {
                                     AvatarView(title: contact.displayName, colorHex: contact.avatarColor, size: 40)
                                     VStack(alignment: .leading, spacing: 1) {
                                         Text(contact.displayName)
                                             .foregroundColor(Theme.textPrimary)
-                                        Text(blocked.contains(contact.id) ? "заблокирован" : "@" + contact.username)
+                                        Text(blockedIds.contains(contact.id) ? "заблокирован" : "@" + contact.username)
                                             .font(.system(size: 13))
-                                            .foregroundColor(blocked.contains(contact.id) ? Theme.danger : Theme.textSecondary)
+                                            .foregroundColor(blockedIds.contains(contact.id) ? Theme.danger : Theme.textSecondary)
                                     }
                                     Spacer()
-                                    if blocked.contains(contact.id) {
+                                    if blockedIds.contains(contact.id) {
                                         Image(systemName: "hand.raised.fill")
                                             .foregroundColor(Theme.danger)
                                     }
@@ -1416,10 +1448,7 @@ struct BlockedUsersView: View {
                             .listRowBackground(Theme.panel)
                         }
                     } header: {
-                        Text("Нажмите, чтобы заблокировать или разблокировать")
-                            .font(.system(size: 13))
-                            .foregroundColor(Theme.textSecondary)
-                            .textCase(nil)
+                        TelegramSectionHeader(title: "Нажмите, чтобы заблокировать или разблокировать")
                     } footer: {
                         Text("Блокировка хранится только на этом устройстве и не отправляется никуда: в офлайн-режиме сообщения и так не доставляются.")
                             .font(.system(size: 12))

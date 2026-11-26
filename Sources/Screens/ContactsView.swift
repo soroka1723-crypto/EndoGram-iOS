@@ -234,8 +234,28 @@ struct ContactProfileView: View {
     @Environment(\.dismiss) private var dismiss
     let contact: UserProfile
     @State private var openChat: Chat?
+    @State private var callToast: String?
 
     private var peerColor: Color { Color(hex: Palette.peerColor(for: contact.displayName)) }
+    private var isBlocked: Bool { env.isBlocked(contact.id) }
+    private var isMuted: Bool { env.directChat(with: contact)?.isMuted ?? false }
+
+    /// «Автоудаление сообщений» — `PeerInfo.AutoremoveMessages`.
+    private let autoDeleteOptions: [(String, String)] = [
+        ("off", "Никогда"),
+        ("day", "1 день"),
+        ("week", "1 неделя"),
+        ("month", "1 месяц"),
+    ]
+
+    private var autoDeleteBinding: Binding<String> {
+        Binding(
+            get: { env.snapshot.settings.autoDeleteByContact[contact.id] ?? "off" },
+            set: { value in
+                env.updateSettings { $0.autoDeleteByContact[contact.id] = value }
+            }
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -250,6 +270,21 @@ struct ContactProfileView: View {
                     }
                     .padding(.bottom, 28)
                 }
+                if let callToast {
+                    VStack {
+                        Spacer()
+                        Text(callToast)
+                            .font(.system(size: 14))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Capsule().fill(Color.black.opacity(0.82)))
+                            .padding(.horizontal, 24)
+                            .padding(.bottom, 40)
+                    }
+                    .transition(.opacity)
+                }
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -260,6 +295,12 @@ struct ContactProfileView: View {
                 }
             }
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .onChange(of: callToast) { _, value in
+                guard let value else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.9) {
+                    if callToast == value { callToast = nil }
+                }
+            }
             .navigationDestination(item: $openChat) { chat in
                 ChatDetailView(chatId: chat.id).environmentObject(env)
             }
@@ -288,18 +329,74 @@ struct ContactProfileView: View {
     }
 
     private var actionRow: some View {
-        HStack(spacing: 12) {
-            roundAction(icon: "message.fill", title: "Написать") {
+        HStack(spacing: 10) {
+            roundAction(icon: "message.fill", title: "Сообщение") {
                 openChat = env.openDirectChat(with: contact)
             }
             roundAction(icon: "phone.fill", title: "Звонок") {
                 env.logCall(peerName: contact.displayName, isVideo: false, isOutgoing: true, isMissed: false, duration: 0)
+                callToast = "Звонок записан в журнал — на этом устройстве"
             }
             roundAction(icon: "video.fill", title: "Видео") {
                 env.logCall(peerName: contact.displayName, isVideo: true, isOutgoing: true, isMissed: false, duration: 0)
+                callToast = "Видеозвонок записан в журнал — на этом устройстве"
             }
+            roundAction(icon: isMuted ? "bell.fill" : "bell.slash.fill",
+                        title: isMuted ? "Включить звук" : "Без звука") {
+                env.setMuted(for: contact, muted: !isMuted)
+                callToast = isMuted ? "Уведомления включены" : "Уведомления отключены"
+            }
+            moreAction
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
+    }
+
+    /// «Ещё» — `PeerInfo.ButtonMore`: блокировка и очистка переписки.
+    private var moreAction: some View {
+        Menu {
+            Button {
+                env.setBlocked(contact.id, blocked: !isBlocked)
+                callToast = isBlocked ? "Контакт разблокирован" : "Контакт заблокирован"
+            } label: {
+                Label(isBlocked ? "Разблокировать" : "Заблокировать",
+                      systemImage: isBlocked ? "hand.raised.slash.fill" : "hand.raised.fill")
+            }
+            if let chat = env.directChat(with: contact) {
+                Button {
+                    env.setArchived(chat.id, true)
+                    callToast = "Чат убран в архив"
+                } label: {
+                    Label("В архив", systemImage: "archivebox")
+                }
+            }
+            Divider()
+            Button(role: .destructive) {
+                if let chat = env.directChat(with: contact) {
+                    env.deleteChat(chat.id)
+                    callToast = "Локальная переписка удалена"
+                } else {
+                    callToast = "Переписки ещё нет"
+                }
+            } label: {
+                Label("Удалить переписку", systemImage: "trash")
+            }
+        } label: {
+            VStack(spacing: 6) {
+                Circle()
+                    .fill(Theme.accent)
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 21, weight: .medium))
+                            .foregroundColor(.white)
+                    )
+                Text("Ещё")
+                    .font(.system(size: 12))
+                    .foregroundColor(Theme.accent)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
     }
 
     private func roundAction(icon: String, title: String, action: @escaping () -> Void) -> some View {
@@ -332,8 +429,22 @@ struct ContactProfileView: View {
             }
 
             TelegramBlock {
+                SettingsPickerRow(icon: "timer", title: "Автоудаление сообщений",
+                                  options: autoDeleteOptions, selection: autoDeleteBinding,
+                                  tint: Theme.neutral)
+                DividerLine(inset: 56)
+                infoRow(icon: isMuted ? "bell.slash.fill" : "bell.fill",
+                        title: "Уведомления",
+                        value: isMuted ? "отключены" : "включены",
+                        tint: isMuted ? Theme.danger : Theme.success)
+                DividerLine(inset: 56)
                 infoRow(icon: "info.circle.fill", title: "О контакте",
                         value: "Локальный контакт на этом устройстве", tint: Theme.textSecondary)
+                if isBlocked {
+                    DividerLine(inset: 56)
+                    infoRow(icon: "hand.raised.fill", title: "Статус",
+                            value: "заблокирован", tint: Theme.danger)
+                }
             }
         }
         .padding(.horizontal, 16)
