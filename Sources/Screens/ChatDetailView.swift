@@ -8,7 +8,7 @@ struct ChatDetailView: View {
 
     @State private var draft = ""
     @State private var editing: Message?
-    @State private var actionMessage: Message?
+    @State private var replyingTo: Message?
     @State private var showInfo = false
     @State private var showAttach = false
     @State private var toast: String?
@@ -81,34 +81,6 @@ struct ChatDetailView: View {
         .sheet(isPresented: $showInfo) {
             ChatInfoView(chatId: chatId).environmentObject(env)
         }
-        .confirmationDialog(
-            "Сообщение",
-            isPresented: Binding(
-                get: { actionMessage != nil },
-                set: { if !$0 { actionMessage = nil } }
-            ),
-            presenting: actionMessage
-        ) { message in
-            Button("Редактировать") {
-                editing = message
-                draft = message.text
-                actionMessage = nil
-            }
-            Button(message.isPinned ? "Открепить" : "Закрепить") {
-                env.togglePin(messageId: message.id)
-                actionMessage = nil
-            }
-            Button("Копировать") {
-                UIPasteboard.general.string = message.text
-                showToast("Скопировано")
-                actionMessage = nil
-            }
-            Button("Удалить", role: .destructive) {
-                env.deleteMessage(id: message.id)
-                actionMessage = nil
-            }
-            Button("Отмена", role: .cancel) { actionMessage = nil }
-        }
     }
 
     private var subtitle: String {
@@ -159,7 +131,16 @@ struct ChatDetailView: View {
                             isMine: message.senderId == env.profile.id,
                             isGroup: chat?.kind == .group,
                             showAuthor: shouldShowAuthor(before: previous, current: message),
-                            onLongPress: { actionMessage = message }
+                            quoted: messages.first { $0.id == message.replyToId },
+                            onReply: { replyingTo = message; inputFocused = true },
+                            onCopy: {
+                                UIPasteboard.general.string = message.text
+                                showToast("Скопировано")
+                            },
+                            onPin: { env.togglePin(messageId: message.id) },
+                            onEdit: editAction(for: message),
+                            onDelete: { env.deleteMessage(id: message.id) },
+                            onReact: { emoji in env.setReaction(messageId: message.id, emoji: emoji) }
                         )
                         .id(message.id)
                     }
@@ -182,6 +163,17 @@ struct ChatDetailView: View {
         guard let before else { return true }
         if before.senderId != current.senderId { return true }
         return current.createdAt.timeIntervalSince(before.createdAt) > 600
+    }
+
+    /// Изменять можно только свои текстовые сообщения — как в Telegram.
+    private func editAction(for message: Message) -> (() -> Void)? {
+        guard message.senderId == env.profile.id, message.kind == .text else { return nil }
+        return {
+            editing = message
+            replyingTo = nil
+            draft = message.text
+            inputFocused = true
+        }
     }
 
     private func pinnedBar(_ message: Message) -> some View {
@@ -216,6 +208,9 @@ struct ChatDetailView: View {
 
     private var composer: some View {
         VStack(spacing: 0) {
+            if let replyingTo {
+                replyBar(replyingTo)
+            }
             if let editing {
                 HStack(spacing: 10) {
                     Image(systemName: "pencil")
@@ -297,6 +292,43 @@ struct ChatDetailView: View {
         }
     }
 
+    /// Полоса ответа над полем ввода — как в Telegram.
+    private func replyBar(_ message: Message) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "arrowshape.turn.up.left.fill")
+                .font(.system(size: 14))
+                .foregroundColor(Theme.accent)
+            Rectangle()
+                .fill(Theme.accent)
+                .frame(width: 2)
+                .clipShape(Capsule())
+            VStack(alignment: .leading, spacing: 1) {
+                Text(message.senderId == env.profile.id ? "Вы" : message.authorName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Theme.accent)
+                    .lineLimit(1)
+                Text(message.text)
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.textSecondary)
+                    .lineLimit(1)
+            }
+            Spacer()
+            Button {
+                replyingTo = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 14))
+                    .foregroundColor(Theme.textSecondary)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
+        .background(Theme.inputPanel)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Theme.inputSeparator).frame(height: 0.5)
+        }
+    }
+
     private func submit() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else {
@@ -307,7 +339,8 @@ struct ChatDetailView: View {
             env.editMessage(id: editing.id, text: text)
             self.editing = nil
         } else {
-            env.sendMessage(chatId: chatId, text: text)
+            env.sendMessage(chatId: chatId, text: text, replyToId: replyingTo?.id)
+            replyingTo = nil
         }
         draft = ""
         inputFocused = true
@@ -341,7 +374,18 @@ struct MessageBubble: View {
     let isMine: Bool
     let isGroup: Bool
     let showAuthor: Bool
-    let onLongPress: () -> Void
+    /// Сообщение, на которое отвечали — для цитаты над текстом.
+    var quoted: Message? = nil
+    /// Доступные действия из контекстного меню (как в оригинале).
+    var onReply: () -> Void = {}
+    var onCopy: () -> Void = {}
+    var onPin: () -> Void = {}
+    var onEdit: (() -> Void)? = nil
+    var onDelete: () -> Void = {}
+    var onReact: (String?) -> Void = { _ in }
+
+    /// Быстрые реакции Telegram.
+    private static let quickReactions = ["👍", "❤️", "🔥", "🎉", "😁", "🤔"]
 
     /// Заливка пузыря как в Telegram: исходящее — вертикальный градиент,
     /// входящее — сплошной 0x1D1D1D с альфой 0.9, служебное — блок 0x2C2C2E.
@@ -381,6 +425,9 @@ struct MessageBubble: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(Color(hex: Palette.peerColor(for: message.authorName)))
                 }
+                if let quoted {
+                    quoteBlock(quoted)
+                }
                 Text(message.text)
                     .font(.system(size: 16))
                     .foregroundColor(Theme.textPrimary)
@@ -416,15 +463,81 @@ struct MessageBubble: View {
                     .offset(x: isMine ? 4 : -4, y: 4)
                     .clipped()
             }
-            .contextMenu {
-                Button(action: onLongPress) {
-                    Label("Действия", systemImage: "ellipsis.circle")
+            .overlay(alignment: isMine ? .bottomLeading : .bottomTrailing) {
+                if let reaction = message.reaction {
+                    reactionChip(reaction)
+                        .offset(x: isMine ? -6 : 6, y: 12)
                 }
             }
-            .onLongPressGesture { onLongPress() }
+            .contextMenu { menu }
 
             if !isMine { Spacer(minLength: 50) }
         }
         .padding(.vertical, 1)
+        .padding(.bottom, message.reaction == nil ? 0 : 12)
+    }
+
+    /// Цитата ответа — вертикальная черта и подпись автора, как в Telegram.
+    private func quoteBlock(_ quoted: Message) -> some View {
+        HStack(spacing: 6) {
+            Rectangle()
+                .fill(isMine ? Color.white.opacity(0.85) : Theme.accent)
+                .frame(width: 2)
+                .clipShape(Capsule())
+            VStack(alignment: .leading, spacing: 1) {
+                Text(quoted.senderId == message.senderId ? "Вы" : quoted.authorName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(isMine ? .white : Theme.accent)
+                    .lineLimit(1)
+                Text(quoted.text)
+                    .font(.system(size: 13))
+                    .foregroundColor(isMine ? Color.white.opacity(0.85) : Theme.textSecondary)
+                    .lineLimit(2)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: 220, alignment: .leading)
+        .padding(.bottom, 2)
+    }
+
+    private func reactionChip(_ emoji: String) -> some View {
+        Text(emoji)
+            .font(.system(size: 13))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                Capsule()
+                    .fill(isMine ? Theme.bubbleOutgoingBottom : Theme.panelElevated)
+            )
+            .overlay(Capsule().stroke(Theme.background.opacity(0.6), lineWidth: 1))
+    }
+
+    @ViewBuilder
+    private var menu: some View {
+        ControlGroup {
+            ForEach(Self.quickReactions, id: \.self) { emoji in
+                Button(emoji) { onReact(emoji) }
+            }
+        }
+        if message.reaction != nil {
+            Button {
+                onReact(nil)
+            } label: {
+                Label("Убрать реакцию", systemImage: "face.smiling")
+            }
+        }
+        Divider()
+        Button(action: onReply) { Label("Ответить", systemImage: "arrowshape.turn.up.left") }
+        Button(action: onCopy) { Label("Копировать", systemImage: "doc.on.doc") }
+        Button(action: onPin) {
+            Label(message.isPinned ? "Открепить" : "Закрепить", systemImage: message.isPinned ? "pin.slash" : "pin")
+        }
+        if let onEdit {
+            Button(action: onEdit) { Label("Изменить", systemImage: "pencil") }
+        }
+        Divider()
+        Button(role: .destructive, action: onDelete) {
+            Label("Удалить", systemImage: "trash")
+        }
     }
 }

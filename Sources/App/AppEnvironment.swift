@@ -121,10 +121,15 @@ final class AppEnvironment: ObservableObject {
     // MARK: - Действия
 
     @discardableResult
-    func sendMessage(chatId: String, text: String) -> Message {
-        let message = backend.sendMessage(chatId: chatId, text: text)
+    func sendMessage(chatId: String, text: String, replyToId: String? = nil) -> Message {
+        let message = backend.sendMessage(chatId: chatId, text: text, replyToId: replyToId)
         refresh()
         return message
+    }
+
+    func setReaction(messageId: String, emoji: String?) {
+        backend.setReaction(messageId: messageId, emoji: emoji)
+        refresh()
     }
 
     func editMessage(id: String, text: String) {

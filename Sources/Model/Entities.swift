@@ -101,6 +101,10 @@ struct Message: Codable, Identifiable, Hashable {
     var kind: MessageKind = .text
     /// Локальная отметка «прочитано мной» для галочек в канале.
     var isRead: Bool = true
+    /// Ответ на сообщение — как `reply_to` в Telegram.
+    var replyToId: String? = nil
+    /// Реакция на сообщение. Хранится локально, в сеть не уходит.
+    var reaction: String? = nil
 
     var isEdited: Bool { editedAt != nil }
 }

@@ -71,7 +71,7 @@ final class LocalBackend: EndoBackend {
 
     // MARK: - Сообщения
 
-    func sendMessage(chatId: String, text: String) -> Message {
+    func sendMessage(chatId: String, text: String, replyToId: String?) -> Message {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let message = Message(
             id: IDs.next("msg"),
@@ -82,7 +82,10 @@ final class LocalBackend: EndoBackend {
             createdAt: Date(),
             editedAt: nil,
             isPinned: false,
-            kind: .text
+            kind: .text,
+            isRead: true,
+            replyToId: replyToId,
+            reaction: nil
         )
         snapshot.messages.append(message)
         if let index = snapshot.chats.firstIndex(where: { $0.id == chatId }) {
@@ -91,6 +94,12 @@ final class LocalBackend: EndoBackend {
         snapshot.updatedAt = Date()
         persist()
         return message
+    }
+
+    func setReaction(messageId: String, emoji: String?) {
+        guard let index = snapshot.messages.firstIndex(where: { $0.id == messageId }) else { return }
+        snapshot.messages[index].reaction = emoji
+        persist()
     }
 
     func editMessage(id: String, text: String) {

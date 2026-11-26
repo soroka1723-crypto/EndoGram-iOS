@@ -12,7 +12,8 @@ protocol EndoBackend: AnyObject {
     func bootstrap() -> StoreSnapshot
     func persist()
 
-    func sendMessage(chatId: String, text: String) -> Message
+    func sendMessage(chatId: String, text: String, replyToId: String?) -> Message
+    func setReaction(messageId: String, emoji: String?)
     func editMessage(id: String, text: String)
     func deleteMessage(id: String)
     func togglePinMessage(id: String)
