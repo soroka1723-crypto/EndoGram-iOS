@@ -49,7 +49,7 @@ jobs:
 
       - name: Build (unsigned)
         run: |
-          set -e
+          set -o pipefail
           cd .
           xcodebuild \
             -project EndoGram.xcodeproj \
@@ -61,7 +61,15 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=NO \
-            build
+            build 2>&1 | tee build.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: warn
 
       - name: Package IPA
         run: |
