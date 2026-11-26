@@ -9,7 +9,6 @@ extension View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .background(Theme.background.ignoresSafeArea())
-            .toolbarBackground(Theme.background, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
     }
 
@@ -17,7 +16,6 @@ extension View {
         self
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(large ? .large : .inline)
-            .toolbarBackground(Theme.background, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }

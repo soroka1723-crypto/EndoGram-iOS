@@ -110,7 +110,6 @@ struct GiftShopView: View {
         }
         .navigationTitle("Подарки")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(item: $selected) { gift in
             GiftPurchaseView(gift: gift, onResult: { message in
@@ -360,7 +359,6 @@ struct GiftPurchaseView: View {
                     Button("Отмена") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
@@ -411,7 +409,6 @@ struct NFTMarketView: View {
         }
         .navigationTitle("NFT")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(item: $selected) { item in
             NFTDetailView(item: item) { message in
@@ -569,7 +566,6 @@ struct NFTDetailView: View {
                     Button("Закрыть") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
@@ -731,7 +727,6 @@ struct InventoryView: View {
         }
         .navigationTitle("Мои подарки")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }
@@ -803,7 +798,6 @@ struct PremiumView: View {
         }
         .navigationTitle("Telegram Premium")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 

@@ -545,7 +545,6 @@ struct NewStorySheet: View {
                         .disabled(loadingLibrary)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .fullScreenCover(isPresented: $showCameraPhoto) {

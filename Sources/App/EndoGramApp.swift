@@ -5,6 +5,11 @@ struct EndoGramApp: App {
     @StateObject private var environment = AppEnvironment()
     @State private var isReady = false
 
+    init() {
+        // Единый «хром» Telegram: блюр навбаров, разделители, цвета таббара.
+        Chrome.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             ZStack {

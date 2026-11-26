@@ -72,7 +72,6 @@ struct ContactsView: View {
                 .accessibilityLabel(ContactsStrings.newContact)
             }
         }
-        .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(isPresented: $showNewContact) {
             NewContactSheet().environmentObject(env)
@@ -205,7 +204,6 @@ struct NewContactSheet: View {
                         .tint(canSave ? Theme.accent : Theme.textDisabled)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationDestination(item: $created) { contact in
                 ChatDetailView(chatId: env.openDirectChat(with: contact).id)
@@ -261,7 +259,6 @@ struct ContactProfileView: View {
                         .tint(Theme.accent)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationDestination(item: $openChat) { chat in
                 ChatDetailView(chatId: chat.id).environmentObject(env)
@@ -453,7 +450,6 @@ struct CallsView: View {
                 .accessibilityLabel("Новый звонок")
             }
         }
-        .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(isPresented: $showPicker) {
             CallPickerView().environmentObject(env)
@@ -551,7 +547,6 @@ struct CallPickerView: View {
                         .tint(Theme.accent)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }

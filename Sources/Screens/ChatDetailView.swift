@@ -119,7 +119,6 @@ struct ChatDetailView: View {
                 }
             }
         }
-        .toolbarBackground(Theme.rootNavigationBar.opacity(0.9), for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear { env.markRead(chatId: chatId) }
         .onDisappear {
@@ -1115,7 +1114,6 @@ struct ForwardPickerView: View {
                         .tint(Theme.accent)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .onChange(of: done) { _, finished in
@@ -1210,7 +1208,6 @@ struct BulkForwardPicker: View {
                         .tint(Theme.accent)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .onChange(of: done) { _, finished in

@@ -75,7 +75,6 @@ struct MediaSendSheet: View {
                     Button("Отмена") { dismiss() }.tint(Theme.accent)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
@@ -274,7 +273,6 @@ struct MediaLibraryPicker: View {
                     Button("Отмена") { dismiss() }.tint(Theme.accent)
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .onChange(of: item) { _, picked in

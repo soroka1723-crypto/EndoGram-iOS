@@ -24,7 +24,6 @@ struct StarsView: View {
         }
         .navigationTitle("Звёзды")
         .navigationBarTitleDisplayMode(.large)
-        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationDestination(for: Route.self) { route in
             switch route {
@@ -261,7 +260,6 @@ struct LedgerView: View {
         }
         .navigationTitle("История операций")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 

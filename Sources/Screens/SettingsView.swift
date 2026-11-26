@@ -36,7 +36,6 @@ struct SettingsView: View {
         .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
         .navigationTitle("Настройки")
         .navigationBarTitleDisplayMode(.large)
-        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationDestination(for: Route.self) { route in
             switch route {
@@ -341,7 +340,6 @@ struct HelpSheet: View {
                     Button("Готово") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }

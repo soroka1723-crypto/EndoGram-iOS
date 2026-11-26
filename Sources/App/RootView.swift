@@ -35,17 +35,5 @@ struct RootView: View {
                 .tag(Tab.settings)
         }
         .tint(Theme.accent)
-        .onAppear(perform: styleTabBar)
-    }
-
-    private func styleTabBar() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        // theme.rootController.tabBar:
-        // backgroundColor 0x1D1D1D (alpha 0.9), separatorColor 0x545458 (alpha 0.55)
-        appearance.backgroundColor = UIColor(red: 0.1137, green: 0.1137, blue: 0.1137, alpha: 1)
-        appearance.shadowColor = UIColor(red: 0.3294, green: 0.3294, blue: 0.3451, alpha: 0.55)
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }

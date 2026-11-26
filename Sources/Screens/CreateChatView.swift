@@ -105,7 +105,6 @@ struct CreateChatView: View {
                     .accessibilityLabel("Новый канал")
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationDestination(item: $openChat) { chat in
                 ChatDetailView(chatId: chat.id).environmentObject(env)
@@ -169,7 +168,6 @@ struct NewGroupChannelSheet: View {
                     }
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
@@ -405,7 +403,6 @@ struct ChatInfoView: View {
                     Button("Готово") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .alert("Добавить участника", isPresented: $showAdd) {
                 TextField("Имя", text: $newMemberName)
