@@ -85,6 +85,10 @@ enum Theme {
     static let draft = Color(hex: "#DD4B39")
     /// `theme.chatList.secretIconColor` — 0x00B12C
     static let secret = Color(hex: "#00B12C")
+    /// `theme.list.itemSwitchColors.contentColor` — 0x67CE67 (зелёный включатель Telegram)
+    static let switchOn = Color(hex: "#67CE67")
+    /// `theme.list.itemSwitchColors.frameColor` — 0x39393D
+    static let switchFrame = Color(hex: "#39393D")
 
     // MARK: - Метрики
 

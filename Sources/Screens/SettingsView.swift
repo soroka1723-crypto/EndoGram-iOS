@@ -1,175 +1,61 @@
 import SwiftUI
 
-/// Настройки: профиль, данные, звёзды, папки, оформление.
+/// Настройки — корневой экран. Структура разделов повторяет Telegram
+/// (инвентарь взят из submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift):
+/// профиль → Избранное / Звёзды / Premium → Основные → Помощь → выход.
 struct SettingsView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var showReset = false
+    @State private var helpSheet: HelpTopic?
 
     enum Route: Hashable {
-        case profile, folders, data, about, ledger
+        case profile, stars, premium, notifications, privacy, data
+        case folders, devices, language, stickers, appearance, ledger, about
+    }
+
+    enum HelpTopic: String, Identifiable {
+        case question, faq, policy
+        var id: String { rawValue }
     }
 
     var body: some View {
         ZStack {
-            Theme.panel.ignoresSafeArea()
+            Theme.background.ignoresSafeArea()
             List {
-                Section {
-                    NavigationLink(value: Route.profile) {
-                        HStack(spacing: 14) {
-                            AvatarView(title: env.profile.displayName, colorHex: env.profile.avatarColor, size: 62)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(env.profile.displayName)
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(Theme.textPrimary)
-                                Text("@" + env.profile.username)
-                                    .font(.system(size: 13))
-                                    .foregroundColor(Theme.textSecondary)
-                                if env.profile.premiumActive {
-                                    Text("Premium")
-                                        .font(.system(size: 11, weight: .semibold))
-                                        .foregroundColor(Theme.star)
-                                }
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(Theme.textSecondary.opacity(0.7))
-                        }
-                        .padding(.vertical, 6)
-                    }
-                    .listRowBackground(Theme.panel)
-                }
-
-                Section("Аккаунт") {
-                    NavigationLink(value: Route.profile) {
-                        SettingsRow(icon: "person.fill", title: "Профиль", tint: Theme.accent)
-                    }
-                    .listRowBackground(Theme.panel)
-
-                    NavigationLink(value: Route.ledger) {
-                        SettingsRow(icon: "star.fill", title: "Мои звёзды", value: Format.number(env.stars), tint: Theme.star)
-                    }
-                    .listRowBackground(Theme.panel)
-
-                    NavigationLink(value: Route.folders) {
-                        SettingsRow(icon: "folder.fill", title: "Папки с чатами", value: "\(env.snapshot.folders.count)", tint: Theme.accentBright)
-                    }
-                    .listRowBackground(Theme.panel)
-                }
-
-                Section("Оформление и уведомления") {
-                    Toggle(isOn: Binding(
-                        get: { env.snapshot.settings.notificationsEnabled },
-                        set: { value in env.updateSettings { $0.notificationsEnabled = value } }
-                    )) {
-                        Label("Уведомления", systemImage: "bell.fill")
-                            .foregroundColor(Theme.textPrimary)
-                    }
-                    .tint(Theme.accent)
-                    .listRowBackground(Theme.panel)
-
-                    Toggle(isOn: Binding(
-                        get: { env.snapshot.settings.soundsEnabled },
-                        set: { value in env.updateSettings { $0.soundsEnabled = value } }
-                    )) {
-                        Label("Звуки", systemImage: "speaker.wave.2.fill")
-                            .foregroundColor(Theme.textPrimary)
-                    }
-                    .tint(Theme.accent)
-                    .listRowBackground(Theme.panel)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Label("Размер текста", systemImage: "textformat.size")
-                                .foregroundColor(Theme.textPrimary)
-                            Spacer()
-                            Text("\(Int(env.snapshot.settings.fontSize)) pt")
-                                .foregroundColor(Theme.textSecondary)
-                        }
-                        Slider(
-                            value: Binding(
-                                get: { env.snapshot.settings.fontSize },
-                                set: { value in env.updateSettings { $0.fontSize = value } }
-                            ),
-                            in: 13...23,
-                            step: 1
-                        )
-                        .tint(Theme.accent)
-                    }
-                    .listRowBackground(Theme.panel)
-                }
-
-                Section("Приватность") {
-                    Toggle(isOn: Binding(
-                        get: { env.snapshot.settings.showLastSeen },
-                        set: { value in env.updateSettings { $0.showLastSeen = value } }
-                    )) {
-                        Label("Показывать время в сети", systemImage: "clock.fill")
-                            .foregroundColor(Theme.textPrimary)
-                    }
-                    .tint(Theme.accent)
-                    .listRowBackground(Theme.panel)
-
-                    Toggle(isOn: Binding(
-                        get: { env.snapshot.settings.readReceipts },
-                        set: { value in env.updateSettings { $0.readReceipts = value } }
-                    )) {
-                        Label("Отчёты о прочтении", systemImage: "checkmark.message.fill")
-                            .foregroundColor(Theme.textPrimary)
-                    }
-                    .tint(Theme.accent)
-                    .listRowBackground(Theme.panel)
-                }
-
-                Section("Данные") {
-                    NavigationLink(value: Route.data) {
-                        SettingsRow(icon: "internaldrive.fill", title: "Хранилище", value: env.storageDescription, tint: Theme.textSecondary)
-                    }
-                    .listRowBackground(Theme.panel)
-                }
-
-                Section {
-                    Button(role: .destructive) {
-                        showReset = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "trash.fill")
-                            Text("Сбросить аккаунт")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .listRowBackground(Theme.panel)
-                } footer: {
-                    Text("EndoGram работает офлайн. Серверы Telegram и собственные серверы не используются.")
-                        .font(.system(size: 12))
-                        .foregroundColor(Theme.textSecondary)
-                }
-
-                Section {
-                    HStack {
-                        Text("Версия")
-                            .foregroundColor(Theme.textPrimary)
-                        Spacer()
-                        Text("1.0.0 · офлайн")
-                            .foregroundColor(Theme.textSecondary)
-                    }
-                    .listRowBackground(Theme.panel)
-                }
+                profileSection
+                primarySection
+                generalSection
+                helpSection
+                dangerSection
+                versionSection
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
+            .background(Theme.background.ignoresSafeArea())
         }
         .navigationTitle("Настройки")
         .navigationBarTitleDisplayMode(.large)
-        .toolbarBackground(Theme.panel, for: .navigationBar)
+        .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationDestination(for: Route.self) { route in
             switch route {
-            case .profile: ProfileView().environmentObject(env)
-            case .folders: FoldersView().environmentObject(env)
-            case .data: StorageView().environmentObject(env)
-            case .about: AboutView()
-            case .ledger: LedgerView().environmentObject(env)
+            case .profile:      ProfileView().environmentObject(env)
+            case .stars:        MyStarsView().environmentObject(env)
+            case .premium:      PremiumView().environmentObject(env)
+            case .notifications: NotificationsSettingsView().environmentObject(env)
+            case .privacy:      PrivacySettingsView().environmentObject(env)
+            case .data:         DataAndStorageSettingsView().environmentObject(env)
+            case .folders:      FoldersView().environmentObject(env)
+            case .devices:      DevicesSettingsView()
+            case .language:     LanguageSettingsView().environmentObject(env)
+            case .stickers:     StickersSettingsView()
+            case .appearance:   AppearanceSettingsView().environmentObject(env)
+            case .ledger:       LedgerView().environmentObject(env)
+            case .about:        AboutView()
             }
+        }
+        .sheet(item: $helpSheet) { topic in
+            HelpSheet(topic: topic)
         }
         .alert("Сбросить аккаунт?", isPresented: $showReset) {
             Button("Сбросить", role: .destructive) { env.resetAccount() }
@@ -178,249 +64,219 @@ struct SettingsView: View {
             Text("Все чаты, сообщения, подарки и NFT будут удалены. Будет создан новый локальный аккаунт с 1 000 000 звёзд.")
         }
     }
-}
 
-/// Редактирование профиля.
-struct ProfileView: View {
-    @EnvironmentObject private var env: AppEnvironment
-    @State private var name = ""
-    @State private var username = ""
-    @State private var bio = ""
-    @State private var saved = false
+    // MARK: - Секции
 
-    var body: some View {
-        ZStack {
-            Theme.background.ignoresSafeArea()
-            ScrollView {
-                VStack(spacing: 18) {
-                    AvatarView(title: name.isEmpty ? env.profile.displayName : name, colorHex: env.profile.avatarColor, size: 96)
-                        .padding(.top, 20)
-
-                    VStack(spacing: 12) {
-                        field("Имя", text: $name)
-                        field("Имя пользователя", text: $username)
-                        field("О себе", text: $bio)
+    private var profileSection: some View {
+        Section {
+            NavigationLink(value: Route.profile) {
+                HStack(spacing: 14) {
+                    AvatarView(title: env.profile.displayName, colorHex: env.profile.avatarColor, size: 62)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(env.profile.displayName)
+                            .font(.system(size: 19, weight: .semibold))
+                            .foregroundColor(Theme.textPrimary)
+                        Text("@" + env.profile.username)
+                            .font(.system(size: 14))
+                            .foregroundColor(Theme.textSecondary)
+                        if env.profile.premiumActive {
+                            Text("Telegram Premium")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Theme.star)
+                        }
                     }
-                    .padding(.horizontal, 16)
+                    Spacer(minLength: 6)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Theme.disclosure)
+                }
+                .padding(.vertical, 8)
+            }
+            .listRowBackground(Theme.panel)
+        }
+    }
 
-                    Button {
-                        env.updateProfile(displayName: name, username: username, bio: bio)
-                        saved = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { saved = false }
-                    } label: {
-                        Text(saved ? "Сохранено" : "Сохранить")
-                    }
-                    .buttonStyle(StarButtonStyle())
-                    .padding(.horizontal, 16)
+    private var primarySection: some View {
+        Section {
+            NavigationLink(value: Route.ledger) {
+                SettingsRow(icon: "bookmark.fill", title: "Избранное", tint: Theme.accent)
+            }
+            .listRowBackground(Theme.panel)
 
-                    SectionCard(title: "Аккаунт") {
-                        SettingsRow(icon: "number", title: "ID", value: String(env.profile.id.suffix(8)), showsChevron: false)
-                        DividerLine()
-                        SettingsRow(icon: "calendar", title: "Создан", value: Format.fullDate(env.profile.createdAt), showsChevron: false)
-                        DividerLine()
-                        SettingsRow(icon: "crown.fill", title: "Premium", value: env.profile.premiumActive ? "активен" : "нет", tint: Theme.star, showsChevron: false)
-                    }
+            NavigationLink(value: Route.stars) {
+                SettingsRow(icon: "star.fill", title: "Мои звёзды",
+                            value: Format.number(env.stars), tint: Theme.star)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.premium) {
+                SettingsRow(icon: "crown.fill", title: "Telegram Premium",
+                            value: env.profile.premiumActive ? "Активен" : nil, tint: Theme.star)
+            }
+            .listRowBackground(Theme.panel)
+        }
+    }
+
+    private var generalSection: some View {
+        Section("Основные") {
+            NavigationLink(value: Route.notifications) {
+                SettingsRow(icon: "bell.fill", title: "Уведомления и звуки", tint: Theme.danger)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.privacy) {
+                SettingsRow(icon: "lock.fill", title: "Конфиденциальность", tint: Theme.accent)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.data) {
+                SettingsRow(icon: "internaldrive.fill", title: "Данные и память",
+                            value: env.storageDescription, tint: Theme.success)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.folders) {
+                SettingsRow(icon: "folder.fill", title: "Папки с чатами",
+                            value: "\(env.nonSystemFolders.count)", tint: Theme.warning)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.devices) {
+                SettingsRow(icon: "laptopcomputer", title: "Устройства", tint: Theme.neutral)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.language) {
+                SettingsRow(icon: "globe", title: "Язык", value: "Русский", tint: Theme.accent)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.stickers) {
+                SettingsRow(icon: "face.smiling.fill", title: "Стикеры и эмодзи", tint: Theme.warning)
+            }
+            .listRowBackground(Theme.panel)
+
+            NavigationLink(value: Route.appearance) {
+                SettingsRow(icon: "paintpalette.fill", title: "Оформление", tint: Palette.purple)
+            }
+            .listRowBackground(Theme.panel)
+        }
+    }
+
+    private var helpSection: some View {
+        Section("Помощь") {
+            Button { helpSheet = .question } label: {
+                SettingsRow(icon: "questionmark.circle.fill", title: "Задать вопрос", tint: Theme.accent)
+            }
+            .listRowBackground(Theme.panel)
+
+            Button { helpSheet = .faq } label: {
+                SettingsRow(icon: "text.book.closed.fill", title: "Telegram FAQ", tint: Theme.accent)
+            }
+            .listRowBackground(Theme.panel)
+
+            Button { helpSheet = .policy } label: {
+                SettingsRow(icon: "hand.raised.fill", title: "Политика конфиденциальности", tint: Theme.neutral)
+            }
+            .listRowBackground(Theme.panel)
+        }
+    }
+
+    private var dangerSection: some View {
+        Section {
+            Button { showReset = true } label: {
+                HStack {
+                    Spacer()
+                    Text("Сбросить аккаунт").foregroundColor(Theme.danger)
                     Spacer()
                 }
             }
-        }
-        .navigationTitle("Профиль")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .onAppear {
-            name = env.profile.displayName
-            username = env.profile.username
-            bio = env.profile.bio
-        }
-    }
+            .listRowBackground(Theme.panel)
 
-    private func field(_ title: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(title)
-                .font(.system(size: 12, weight: .semibold))
+            NavigationLink(value: Route.about) {
+                SettingsRow(icon: "info.circle.fill", title: "О приложении", tint: Theme.neutral)
+            }
+            .listRowBackground(Theme.panel)
+        } footer: {
+            Text("EndoGram работает офлайн: серверы Telegram и собственные серверы не используются, данные хранятся на устройстве.")
+                .font(.system(size: 12))
                 .foregroundColor(Theme.textSecondary)
-            TextField(title, text: text)
-                .padding(12)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
         }
     }
-}
 
-/// Папки с чатами.
-struct FoldersView: View {
-    @EnvironmentObject private var env: AppEnvironment
-    @State private var showCreate = false
-    @State private var title = ""
-    @State private var selected = Set<String>()
-
-    var body: some View {
-        ZStack {
-            Theme.background.ignoresSafeArea()
-            ScrollView {
-                VStack(spacing: 16) {
-                    SectionCard(title: "Системные") {
-                        ForEach(env.snapshot.folders.filter(\.isSystem)) { folder in
-                            SettingsRow(icon: folder.icon, title: folder.title, value: "\(env.chats(for: folder).count) чатов", showsChevron: false)
-                            if folder.id != env.snapshot.folders.filter(\.isSystem).last?.id {
-                                DividerLine()
-                            }
-                        }
-                    }
-
-                    if !env.nonSystemFolders.isEmpty {
-                        SectionCard(title: "Мои папки") {
-                            ForEach(env.nonSystemFolders) { folder in
-                                SettingsRow(icon: folder.icon, title: folder.title, value: "\(folder.chatIds.count)", showsChevron: false)
-                                DividerLine()
-                            }
-                        }
-                    }
-
-                    Button { showCreate = true } label: {
-                        Label("Создать папку", systemImage: "plus")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 13)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.accent))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 12)
-                }
-                .padding(.vertical, 12)
-            }
-        }
-        .navigationTitle("Папки")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .sheet(isPresented: $showCreate) {
-            NavigationStack {
-                ZStack {
-                    Theme.background.ignoresSafeArea()
-                    ScrollView {
-                        VStack(spacing: 14) {
-                            TextField("Название папки", text: $title)
-                                .padding(12)
-                                .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
-                                .padding(.horizontal, 16)
-
-                            SectionCard(title: "Чаты в папке") {
-                                ForEach(env.sorted(env.snapshot.chats)) { chat in
-                                    Button {
-                                        if selected.contains(chat.id) { selected.remove(chat.id) }
-                                        else { selected.insert(chat.id) }
-                                    } label: {
-                                        HStack(spacing: 10) {
-                                            AvatarView(title: chat.title, colorHex: chat.avatarColor, size: 34)
-                                            Text(chat.title).foregroundColor(Theme.textPrimary).lineLimit(1)
-                                            Spacer()
-                                            Image(systemName: selected.contains(chat.id) ? "checkmark.circle.fill" : "circle")
-                                                .foregroundColor(selected.contains(chat.id) ? Theme.accentBright : Theme.textSecondary)
-                                        }
-                                        .padding(.horizontal, 14)
-                                        .padding(.vertical, 8)
-                                    }
-                                    .buttonStyle(.plain)
-                                    if chat.id != env.sorted(env.snapshot.chats).last?.id { DividerLine() }
-                                }
-                            }
-
-                            Button {
-                                let name = title.trimmingCharacters(in: .whitespaces)
-                                guard !name.isEmpty else { return }
-                                env.createFolder(title: name, icon: "folder.fill", chatIds: Array(selected))
-                                title = ""
-                                selected = []
-                                showCreate = false
-                            } label: {
-                                Text("Создать")
-                            }
-                            .buttonStyle(StarButtonStyle())
-                            .padding(.horizontal, 16)
-                        }
-                        .padding(.top, 12)
-                    }
-                }
-                .navigationTitle("Новая папка")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Отмена") { showCreate = false }
-                    }
-                }
-                .toolbarBackground(Theme.panel, for: .navigationBar)
-                .toolbarColorScheme(.dark, for: .navigationBar)
-            }
-        }
-    }
-}
-
-/// Хранилище: где лежат данные и сколько занимают.
-struct StorageView: View {
-    @EnvironmentObject private var env: AppEnvironment
-    @State private var showClear = false
-
-    var body: some View {
-        ZStack {
-            Theme.background.ignoresSafeArea()
-            ScrollView {
-                VStack(spacing: 16) {
-                    SectionCard(title: "Локальные данные") {
-                        SettingsRow(icon: "internaldrive.fill", title: "Размер базы", value: env.storageDescription, tint: Theme.accent, showsChevron: false)
-                        DividerLine()
-                        SettingsRow(icon: "bubble.left.fill", title: "Сообщений", value: "\(env.snapshot.messages.count)", tint: Theme.accentBright, showsChevron: false)
-                        DividerLine()
-                        SettingsRow(icon: "folder.fill", title: "Чатов", value: "\(env.snapshot.chats.count)", tint: Color(hex: "#4DCD5E"), showsChevron: false)
-                        DividerLine()
-                        SettingsRow(icon: "gift.fill", title: "Подарков", value: "\(env.snapshot.ownedGifts.count)", tint: Color(hex: "#E4572E"), showsChevron: false)
-                        DividerLine()
-                        SettingsRow(icon: "sparkles", title: "NFT", value: "\(env.snapshot.ownedNFTs.count)", tint: Color(hex: "#7C5CFF"), showsChevron: false)
-                    }
-
-                    Text("Данные хранятся в файле \(AppConfig.storageFile) внутри приложения и не передаются никуда.")
-                        .font(.system(size: 12))
-                        .foregroundColor(Theme.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                }
-                .padding(.vertical, 12)
-            }
-        }
-        .navigationTitle("Хранилище")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-    }
-}
-
-/// О приложении.
-struct AboutView: View {
-    var body: some View {
-        ZStack {
-            Theme.background.ignoresSafeArea()
-            VStack(spacing: 14) {
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 56))
-                    .foregroundColor(Theme.accentBright)
-                Text("EndoGram")
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundColor(Theme.textPrimary)
-                Text("Этап 1 · полностью офлайн")
-                    .font(.system(size: 14))
-                    .foregroundColor(Theme.textSecondary)
-                Text("Аккаунт создаётся автоматически при первом запуске. Чаты, подарки, NFT и Premium хранятся на устройстве. Сеть не используется.")
-                    .font(.system(size: 14))
-                    .foregroundColor(Theme.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 36)
-                    .padding(.top, 6)
+    private var versionSection: some View {
+        Section {
+            HStack {
+                Text("Версия").foregroundColor(Theme.textPrimary)
                 Spacer()
+                Text("\(AppConfig.appVersion) · офлайн").foregroundColor(Theme.textListItemSecondary)
             }
-            .padding(.top, 50)
+            .listRowBackground(Theme.panel)
         }
-        .navigationTitle("О приложении")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.background, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+}
+
+// MARK: - Помощь
+
+struct HelpSheet: View {
+    let topic: SettingsView.HelpTopic
+    @Environment(\.dismiss) private var dismiss
+
+    private var title: String {
+        switch topic {
+        case .question: return "Задать вопрос"
+        case .faq:      return "Telegram FAQ"
+        case .policy:   return "Политика конфиденциальности"
+        }
+    }
+
+    private var text: String {
+        switch topic {
+        case .question:
+            return """
+            Это локальная тестовая сборка EndoGram. Она не подключена к Telegram, поэтому вопрос некуда отправить: сетевых запросов приложение не делает.
+
+            Всё, что здесь происходит, — локальные действия на этом устройстве.
+            """
+        case .faq:
+            return """
+            EndoGram — офлайн-клон Telegram для тестирования интерфейса.
+
+            • Аккаунт создаётся автоматически при первом запуске, без номера и кодов.
+            • Стартовый баланс — 1 000 000 тестовых звёзд.
+            • Чаты, подарки, NFT, Premium и история операций хранятся в файле на устройстве.
+            • Собеседники не отвечают: это локальные записи, а не реальные люди.
+            """
+        case .policy:
+            return """
+            Приложение не собирает и не передаёт данные: у него нет сетевого доступа к каким-либо сервисам.
+
+            Вся информация — профиль, чаты, сообщения, подарки, NFT и баланс звёзд — записывается только в локальное хранилище приложения на этом устройстве и удаляется вместе с приложением.
+            """
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.background.ignoresSafeArea()
+                ScrollView {
+                    Text(text)
+                        .font(.system(size: 15))
+                        .foregroundColor(Theme.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Готово") { dismiss() }
+                }
+            }
+            .toolbarBackground(Theme.panel, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+        }
     }
 }

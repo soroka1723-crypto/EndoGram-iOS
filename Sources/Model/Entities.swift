@@ -211,15 +211,130 @@ struct CallRecord: Codable, Identifiable, Hashable {
 // MARK: - Настройки
 
 struct AppSettings: Codable, Hashable {
+    // Уведомления и звуки
     var notificationsEnabled: Bool = true
     var soundsEnabled: Bool = true
+    var messagePreview: Bool = true
+    var privateChatNotifications: Bool = true
+    var groupNotifications: Bool = true
+    var channelNotifications: Bool = true
+
+    // Внешний вид
     var darkTheme: Bool = true
     var fontSize: Double = 17
+    var bubbleCorners: Double = 17
     var wallpaper: String = "telegram"
+    var autoNightTheme: String = "off"
+    var animationsEnabled: Bool = true
+    var showNextMediaOnTap: Bool = true
+    var sendWithEnter: Bool = false
+
+    // Конфиденциальность
     var showLastSeen: Bool = true
     var readReceipts: Bool = true
+    var lastSeenVisibility: String = "contacts"
+    var profilePhotoVisibility: String = "everybody"
+    var phoneVisibility: String = "contacts"
+    var forwardsVisibility: String = "everybody"
+    var passcodeEnabled: Bool = false
+    var autoDeleteMessages: String = "off"
+    var sensitiveContent: Bool = false
+
+    // Данные и память
     var autoDownloadMedia: Bool = false
+    var autoDownloadCellular: Bool = false
+    var autoDownloadWiFi: Bool = true
+    var autoDownloadReset: Bool = false
+    var saveIncomingPhotos: Bool = true
+    var saveEditedPhotos: Bool = true
+    var keepMedia: String = "month"
+    var cacheLimitMb: Double = 2048
+    var dataSaverCalls: Bool = false
+    var raiseToListen: Bool = true
+    var pauseMusicOnRecording: Bool = true
+
+    // Язык и переводы
+    var appLanguage: String = "ru"
+    var translationsEnabled: Bool = false
+    var translateEntireChats: Bool = false
+
+    // Папки
+    var folderTags: Bool = false
+
+    // Прочее
     var offlineModeNotice: Bool = true
+
+    /// Декодирование терпимо к отсутствующим полям: старые файлы на устройстве
+    /// продолжают читаться после добавления новых настроек.
+    init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case notificationsEnabled, soundsEnabled, messagePreview
+        case privateChatNotifications, groupNotifications, channelNotifications
+        case darkTheme, fontSize, bubbleCorners, wallpaper, autoNightTheme
+        case animationsEnabled, showNextMediaOnTap, sendWithEnter
+        case showLastSeen, readReceipts, lastSeenVisibility, profilePhotoVisibility
+        case phoneVisibility, forwardsVisibility, passcodeEnabled, autoDeleteMessages, sensitiveContent
+        case autoDownloadMedia, autoDownloadCellular, autoDownloadWiFi, autoDownloadReset
+        case saveIncomingPhotos, saveEditedPhotos, keepMedia, cacheLimitMb
+        case dataSaverCalls, raiseToListen, pauseMusicOnRecording
+        case appLanguage, translationsEnabled, translateEntireChats
+        case folderTags, offlineModeNotice
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        notificationsEnabled = c.lenient(.notificationsEnabled, true)
+        soundsEnabled = c.lenient(.soundsEnabled, true)
+        messagePreview = c.lenient(.messagePreview, true)
+        privateChatNotifications = c.lenient(.privateChatNotifications, true)
+        groupNotifications = c.lenient(.groupNotifications, true)
+        channelNotifications = c.lenient(.channelNotifications, true)
+
+        darkTheme = c.lenient(.darkTheme, true)
+        fontSize = c.lenient(.fontSize, 17)
+        bubbleCorners = c.lenient(.bubbleCorners, 17)
+        wallpaper = c.lenient(.wallpaper, "telegram")
+        autoNightTheme = c.lenient(.autoNightTheme, "off")
+        animationsEnabled = c.lenient(.animationsEnabled, true)
+        showNextMediaOnTap = c.lenient(.showNextMediaOnTap, true)
+        sendWithEnter = c.lenient(.sendWithEnter, false)
+
+        showLastSeen = c.lenient(.showLastSeen, true)
+        readReceipts = c.lenient(.readReceipts, true)
+        lastSeenVisibility = c.lenient(.lastSeenVisibility, "contacts")
+        profilePhotoVisibility = c.lenient(.profilePhotoVisibility, "everybody")
+        phoneVisibility = c.lenient(.phoneVisibility, "contacts")
+        forwardsVisibility = c.lenient(.forwardsVisibility, "everybody")
+        passcodeEnabled = c.lenient(.passcodeEnabled, false)
+        autoDeleteMessages = c.lenient(.autoDeleteMessages, "off")
+        sensitiveContent = c.lenient(.sensitiveContent, false)
+
+        autoDownloadMedia = c.lenient(.autoDownloadMedia, false)
+        autoDownloadCellular = c.lenient(.autoDownloadCellular, false)
+        autoDownloadWiFi = c.lenient(.autoDownloadWiFi, true)
+        autoDownloadReset = c.lenient(.autoDownloadReset, false)
+        saveIncomingPhotos = c.lenient(.saveIncomingPhotos, true)
+        saveEditedPhotos = c.lenient(.saveEditedPhotos, true)
+        keepMedia = c.lenient(.keepMedia, "month")
+        cacheLimitMb = c.lenient(.cacheLimitMb, 2048)
+        dataSaverCalls = c.lenient(.dataSaverCalls, false)
+        raiseToListen = c.lenient(.raiseToListen, true)
+        pauseMusicOnRecording = c.lenient(.pauseMusicOnRecording, true)
+
+        appLanguage = c.lenient(.appLanguage, "ru")
+        translationsEnabled = c.lenient(.translationsEnabled, false)
+        translateEntireChats = c.lenient(.translateEntireChats, false)
+
+        folderTags = c.lenient(.folderTags, false)
+        offlineModeNotice = c.lenient(.offlineModeNotice, true)
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func lenient<T: Decodable>(_ key: Key, _ fallback: T) -> T {
+        (try? decodeIfPresent(T.self, forKey: key)) ?? fallback
+    }
 }
 
 // MARK: - Корень хранилища
