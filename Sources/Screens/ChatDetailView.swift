@@ -157,6 +157,8 @@ struct ChatDetailView: View {
                             isGroup: chat?.kind == .group,
                             showAuthor: shouldShowAuthor(before: previous, current: message),
                             quoted: messages.first { $0.id == message.replyToId },
+                            largeEmojiEnabled: env.snapshot.settings.largeEmoji,
+                            quickReactionsEnabled: env.snapshot.settings.quickReactionEnabled,
                             onReply: { replyingTo = message; inputFocused = true },
                             onCopy: {
                                 UIPasteboard.general.string = message.text
@@ -515,6 +517,10 @@ struct MessageBubble: View {
     let showAuthor: Bool
     /// Сообщение, на которое отвечали — для цитаты над текстом.
     var quoted: Message? = nil
+    /// «Большие эмодзи» — одиночный эмодзи рисуется крупно.
+    var largeEmojiEnabled: Bool = true
+    /// «Быстрые реакции» — ряд эмодзи в контекстном меню.
+    var quickReactionsEnabled: Bool = true
     /// Доступные действия из контекстного меню (как в оригинале).
     var onReply: () -> Void = {}
     var onCopy: () -> Void = {}
@@ -531,6 +537,18 @@ struct MessageBubble: View {
 
     /// Быстрые реакции Telegram.
     private static let quickReactions = ["👍", "❤️", "🔥", "🎉", "😁", "🤔"]
+
+    /// «Большие эмодзи» (`Appearance_LargeEmoji`): если сообщение целиком
+    /// состоит из небольшого числа эмодзи, Telegram показывает их крупно.
+    private var bigEmojiSize: CGFloat {
+        guard largeEmojiEnabled else { return 16 }
+        let trimmed = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.count <= 3 else { return 16 }
+        let allEmoji = trimmed.unicodeScalars.allSatisfy { scalar in
+            scalar.properties.isEmoji && !scalar.properties.isASCII
+        }
+        return allEmoji ? 44 : 16
+    }
 
     /// Заливка пузыря как в Telegram: исходящее — вертикальный градиент,
     /// входящее — сплошной 0x1D1D1D с альфой 0.9, служебное — блок 0x2C2C2E.
@@ -588,7 +606,7 @@ struct MessageBubble: View {
                     voiceContent
                 } else {
                     Text(message.text)
-                        .font(.system(size: 16))
+                        .font(.system(size: bigEmojiSize))
                         .foregroundColor(Theme.textPrimary)
                         .textSelection(.enabled)
                 }
@@ -703,9 +721,11 @@ struct MessageBubble: View {
 
     @ViewBuilder
     private var menu: some View {
-        ControlGroup {
-            ForEach(Self.quickReactions, id: \.self) { emoji in
-                Button(emoji) { onReact(emoji) }
+        if quickReactionsEnabled {
+            ControlGroup {
+                ForEach(Self.quickReactions, id: \.self) { emoji in
+                    Button(emoji) { onReact(emoji) }
+                }
             }
         }
         if message.reaction != nil {

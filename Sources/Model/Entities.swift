@@ -234,6 +234,16 @@ struct AppSettings: Codable, Hashable {
     var privateChatNotifications: Bool = true
     var groupNotifications: Bool = true
     var channelNotifications: Bool = true
+    // Как в notificationSearchableItems официального клиента
+    var storyNotifications: Bool = true
+    var reactionNotifications: Bool = true
+    var inAppSounds: Bool = true
+    var inAppVibrate: Bool = true
+    var inAppPreview: Bool = true
+    var displayNamesOnLockScreen: Bool = false
+    var badgeIncludeChannels: Bool = true
+    var badgeCountUnreadMessages: Bool = false
+    var contactJoinedNotifications: Bool = true
 
     // Внешний вид
     var darkTheme: Bool = true
@@ -264,6 +274,13 @@ struct AppSettings: Codable, Hashable {
     var savedMusicVisibility: String = "contacts"
     var voiceMessagesVisibility: String = "everybody"
     var autoArchiveEnabled: Bool = true
+    // Как в privacySearchableItems официального клиента
+    var topPeersEnabled: Bool = true
+    var deleteDraftsOnLogout: Bool = false
+    var contactsSyncEnabled: Bool = false
+    var secretChatsLinkPreviews: Bool = true
+    var passkeyEnabled: Bool = false
+    var loginEmailEnabled: Bool = false
 
     // Данные и память
     var autoDownloadMedia: Bool = false
@@ -277,19 +294,37 @@ struct AppSettings: Codable, Hashable {
     var dataSaverCalls: Bool = false
     var raiseToListen: Bool = true
     var pauseMusicOnRecording: Bool = true
+    var intentsEnabled: Bool = true
+    var useLessDataForCalls: Bool = false
 
     // Язык и переводы
     var appLanguage: String = "ru"
     var translationsEnabled: Bool = false
     var translateEntireChats: Bool = false
+    var showTranslateButton: Bool = false
+    var doNotTranslate: Bool = false
 
     // Папки
     var folderTags: Bool = false
+
+    // Стикеры и эмодзи — как в stickerSearchableItems
+    var suggestStickers: Bool = true
+    var largeEmoji: Bool = true
+    var dynamicStickerOrder: Bool = true
+    var archivedStickerPacks: Bool = false
+    var featuredStickerPacks: Bool = true
+    var quickReactionEnabled: Bool = true
+
+    // Профиль — как в profileSearchableItems
+    var profileColor: String = "blue"
+    var birthday: String = ""
+    var personalChannel: String = ""
 
     // Энергосбережение и прокси
     var energySavingEnabled: Bool = false
     var energySavingAutoDownload: Bool = true
     var proxyEnabled: Bool = false
+    var proxyUseForCalls: Bool = false
 
     // Прочее
     var offlineModeNotice: Bool = true
@@ -313,6 +348,16 @@ struct AppSettings: Codable, Hashable {
         case appLanguage, translationsEnabled, translateEntireChats
         case folderTags, offlineModeNotice
         case energySavingEnabled, energySavingAutoDownload, proxyEnabled
+        case storyNotifications, reactionNotifications, inAppSounds, inAppVibrate
+        case inAppPreview, displayNamesOnLockScreen, badgeIncludeChannels
+        case badgeCountUnreadMessages, contactJoinedNotifications
+        case topPeersEnabled, deleteDraftsOnLogout, contactsSyncEnabled
+        case secretChatsLinkPreviews, passkeyEnabled, loginEmailEnabled
+        case intentsEnabled, useLessDataForCalls, proxyUseForCalls
+        case suggestStickers, largeEmoji, dynamicStickerOrder
+        case archivedStickerPacks, featuredStickerPacks, quickReactionEnabled
+        case showTranslateButton, doNotTranslate
+        case profileColor, birthday, personalChannel
     }
 
     init(from decoder: Decoder) throws {
@@ -374,6 +419,41 @@ struct AppSettings: Codable, Hashable {
         energySavingEnabled = c.lenient(.energySavingEnabled, false)
         energySavingAutoDownload = c.lenient(.energySavingAutoDownload, true)
         proxyEnabled = c.lenient(.proxyEnabled, false)
+        proxyUseForCalls = c.lenient(.proxyUseForCalls, false)
+
+        storyNotifications = c.lenient(.storyNotifications, true)
+        reactionNotifications = c.lenient(.reactionNotifications, true)
+        inAppSounds = c.lenient(.inAppSounds, true)
+        inAppVibrate = c.lenient(.inAppVibrate, true)
+        inAppPreview = c.lenient(.inAppPreview, true)
+        displayNamesOnLockScreen = c.lenient(.displayNamesOnLockScreen, false)
+        badgeIncludeChannels = c.lenient(.badgeIncludeChannels, true)
+        badgeCountUnreadMessages = c.lenient(.badgeCountUnreadMessages, false)
+        contactJoinedNotifications = c.lenient(.contactJoinedNotifications, true)
+
+        topPeersEnabled = c.lenient(.topPeersEnabled, true)
+        deleteDraftsOnLogout = c.lenient(.deleteDraftsOnLogout, false)
+        contactsSyncEnabled = c.lenient(.contactsSyncEnabled, false)
+        secretChatsLinkPreviews = c.lenient(.secretChatsLinkPreviews, true)
+        passkeyEnabled = c.lenient(.passkeyEnabled, false)
+        loginEmailEnabled = c.lenient(.loginEmailEnabled, false)
+
+        intentsEnabled = c.lenient(.intentsEnabled, true)
+        useLessDataForCalls = c.lenient(.useLessDataForCalls, false)
+
+        suggestStickers = c.lenient(.suggestStickers, true)
+        largeEmoji = c.lenient(.largeEmoji, true)
+        dynamicStickerOrder = c.lenient(.dynamicStickerOrder, true)
+        archivedStickerPacks = c.lenient(.archivedStickerPacks, false)
+        featuredStickerPacks = c.lenient(.featuredStickerPacks, true)
+        quickReactionEnabled = c.lenient(.quickReactionEnabled, true)
+
+        showTranslateButton = c.lenient(.showTranslateButton, false)
+        doNotTranslate = c.lenient(.doNotTranslate, false)
+
+        profileColor = c.lenient(.profileColor, "blue")
+        birthday = c.lenient(.birthday, "")
+        personalChannel = c.lenient(.personalChannel, "")
     }
 }
 

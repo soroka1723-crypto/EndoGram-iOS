@@ -120,11 +120,38 @@ struct ProfileView: View {
                 .listRowBackground(Theme.panel)
 
                 Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Ваш цвет")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.textSecondary)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                colorSwatch(nil)
+                                ForEach(Palette.avatarColors, id: \.self) { hex in
+                                    colorSwatch(hex)
+                                }
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                } header: {
+                    Text("Настройки профиля")
+                } footer: {
+                    Text("Цвет применяется к вашему аватару и имени. Палитра — `PeerNameColors.defaultSingleColors` из официального клиента.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
                     field("Имя", text: $name)
                     field("О себе", text: $bio)
                     field("Имя пользователя", text: $username)
+                    field("День рождения", text: birthdayBinding)
+                    field("Личный канал", text: personalChannelBinding)
                 } footer: {
-                    Text("Имя пользователя можно использовать для упоминания вас в чатах.")
+                    Text("Имя пользователя можно использовать для упоминания вас в чатах. День рождения и личный канал — локальные поля профиля: в офлайн-режиме их никто, кроме вас, не видит.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -175,6 +202,48 @@ struct ProfileView: View {
                 .font(.system(size: 16, weight: .semibold))
             }
         }
+    }
+
+    /// Кружок выбора «Вашего цвета». `nil` — автоматически по имени.
+    private func colorSwatch(_ hex: String?) -> some View {
+        let current = env.snapshot.settings.profileColor
+        let isSelected = hex == nil ? (current == "auto" || current.isEmpty) : current == hex
+        let fill = hex.map { Color(hex: $0) } ?? Color(hex: Palette.peerColor(for: env.profile.displayName))
+
+        return Button {
+            env.setProfileColor(hex ?? "auto")
+        } label: {
+            ZStack {
+                Circle().fill(fill).frame(width: 34, height: 34)
+                if hex == nil {
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                if isSelected {
+                    Circle()
+                        .stroke(Theme.textPrimary, lineWidth: 2.5)
+                        .frame(width: 40, height: 40)
+                }
+            }
+            .frame(width: 42, height: 42)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(hex == nil ? "Автоматически" : "Цвет \(hex ?? "")")
+    }
+
+    private var birthdayBinding: Binding<String> {
+        Binding(
+            get: { env.snapshot.settings.birthday },
+            set: { value in env.updateSettings { $0.birthday = value } }
+        )
+    }
+
+    private var personalChannelBinding: Binding<String> {
+        Binding(
+            get: { env.snapshot.settings.personalChannel },
+            set: { value in env.updateSettings { $0.personalChannel = value } }
+        )
     }
 
     private func field(_ title: String, text: Binding<String>) -> some View {
@@ -259,8 +328,12 @@ struct NotificationsSettingsView: View {
                                       isOn: bind(\.notificationsEnabled))
                     SettingsToggleRow(icon: "speaker.wave.2.fill", title: "Звуки", tint: Theme.warning,
                                       isOn: bind(\.soundsEnabled))
+                    SettingsToggleRow(icon: "iphone.radiowaves.left.and.right", title: "Вибрация",
+                                      tint: Color(hex: Palette.purple), isOn: bind(\.inAppVibrate))
                     SettingsToggleRow(icon: "eye.fill", title: "Предпросмотр сообщений", tint: Theme.accent,
                                       isOn: bind(\.messagePreview))
+                    SettingsToggleRow(icon: "lock.display", title: "Имена на экране блокировки",
+                                      tint: Theme.neutral, isOn: bind(\.displayNamesOnLockScreen))
                 } footer: {
                     Text("Уведомления локальные: других устройств и серверов нет, поэтому приходят только уведомления этого приложения.")
                         .font(.system(size: 12))
@@ -275,6 +348,83 @@ struct NotificationsSettingsView: View {
                                       isOn: bind(\.groupNotifications))
                     SettingsToggleRow(icon: "megaphone.fill", title: "Каналы", tint: Theme.warning,
                                       isOn: bind(\.channelNotifications))
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsToggleRow(icon: "circle.dashed", title: "Истории", tint: Theme.warning,
+                                      isOn: bind(\.storyNotifications))
+                    SettingsToggleRow(icon: "hand.thumbsup.fill", title: "Реакции", tint: Theme.accent,
+                                      isOn: bind(\.reactionNotifications))
+                } header: {
+                    Text("Истории и реакции")
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsToggleRow(icon: "speaker.wave.1.fill", title: "Звуки в приложении",
+                                      tint: Theme.warning, isOn: bind(\.inAppSounds))
+                    SettingsToggleRow(icon: "rectangle.on.rectangle", title: "Предпросмотр в приложении",
+                                      tint: Theme.accent, isOn: bind(\.inAppPreview))
+                } header: {
+                    Text("В приложении")
+                } footer: {
+                    Text("Настройки «в приложении» касаются только этого устройства: push-уведомлений от сервера в офлайн-режиме нет.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsToggleRow(icon: "app.badge.fill", title: "Учитывать каналы",
+                                      tint: Theme.danger, isOn: bind(\.badgeIncludeChannels))
+                    SettingsToggleRow(icon: "number.circle.fill", title: "Считать непрочитанные сообщения",
+                                      tint: Theme.accent, isOn: bind(\.badgeCountUnreadMessages))
+                } header: {
+                    Text("Значок на иконке")
+                } footer: {
+                    Text("Значок считает непрочитанные сообщения в локальных чатах.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsToggleRow(icon: "person.badge.plus", title: "Контакты, которые присоединились",
+                                      tint: Theme.success, isOn: bind(\.contactJoinedNotifications))
+                } footer: {
+                    Text("В офлайн-режиме к аккаунту никто не присоединяется: настройка сохранена для будущего сервера EndoGram.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    Button(role: .destructive) {
+                        env.updateSettings { s in
+                            s.notificationsEnabled = true
+                            s.soundsEnabled = true
+                            s.inAppVibrate = true
+                            s.messagePreview = true
+                            s.displayNamesOnLockScreen = false
+                            s.privateChatNotifications = true
+                            s.groupNotifications = true
+                            s.channelNotifications = true
+                            s.storyNotifications = true
+                            s.reactionNotifications = true
+                            s.inAppSounds = true
+                            s.inAppPreview = true
+                            s.badgeIncludeChannels = true
+                            s.badgeCountUnreadMessages = false
+                            s.contactJoinedNotifications = true
+                        }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("Сбросить все настройки уведомлений")
+                            Spacer()
+                        }
+                    }
                 }
                 .listRowBackground(Theme.panel)
             }
@@ -370,6 +520,24 @@ struct PrivacySettingsView: View {
                 .listRowBackground(Theme.panel)
 
                 Section {
+                    SettingsToggleRow(icon: "star.circle.fill", title: "Часто используемые",
+                                      tint: Theme.star, isOn: boolBind(\.topPeersEnabled))
+                    SettingsToggleRow(icon: "doc.text.fill", title: "Удалять черновики",
+                                      tint: Theme.neutral, isOn: boolBind(\.deleteDraftsOnLogout))
+                    SettingsToggleRow(icon: "arrow.triangle.2.circlepath", title: "Синхронизация контактов",
+                                      tint: Theme.success, isOn: boolBind(\.contactsSyncEnabled))
+                    SettingsToggleRow(icon: "link", title: "Предпросмотр ссылок в секретных чатах",
+                                      tint: Theme.accent, isOn: boolBind(\.secretChatsLinkPreviews))
+                } header: {
+                    Text("Дополнительно")
+                } footer: {
+                    Text("«Часто используемые» — список исключений, которому видны ваш номер и время в сети, как `Privacy_TopPeers` в Telegram. В офлайн-режиме список пуст: рядом нет других людей.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
                     SettingsPickerRow(icon: "timer", title: "Автоудаление сообщений",
                                       options: autoDeleteOptions, selection: stringBind(\.autoDeleteMessages),
                                       tint: Theme.neutral)
@@ -395,9 +563,11 @@ struct PrivacySettingsView: View {
 
                 Section {
                     SettingsValueRow(title: "Облачный пароль", value: "не задан")
-                    SettingsValueRow(title: "Активные сеансы", value: "1")
+                    SettingsValueRow(title: "Ключ доступа", value: "недоступен офлайн")
+                    SettingsValueRow(title: "Почта для входа", value: "не задана")
+                    SettingsValueRow(title: "Активные сеансы", value: "1 · это устройство")
                 } footer: {
-                    Text("Облачный пароль и сеансы — серверные функции Telegram. В офлайн-режиме они недоступны; все данные защищены песочницей iOS.")
+                    Text("Облачный пароль, ключ доступа (passkey), почта для входа и сеансы — серверные функции Telegram. В офлайн-режиме они недоступны; все данные защищены песочницей iOS.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -474,6 +644,20 @@ struct DataAndStorageSettingsView: View {
                     Text("Звонки и медиа")
                 } footer: {
                     Text("Сеть приложением не используется: настройки автозагрузки влияют только на локальное поведение.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsValueRow(title: "Использование сети", value: "0 Б · офлайн")
+                    SettingsValueRow(title: "Мобильный трафик", value: "не расходуется")
+                    SettingsToggleRow(icon: "app.connected.to.app.below.fill", title: "Настройки Siri и ярлыков",
+                                      tint: Color(hex: Palette.purple), isOn: boolBind(\.intentsEnabled))
+                } header: {
+                    Text("Сеть и системные функции")
+                } footer: {
+                    Text("Сетевых запросов приложение не делает, поэтому счётчик трафика всегда нулевой. Ярлыки Siri работают локально.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -738,8 +922,20 @@ struct LanguageSettingsView: View {
                                         get: { env.snapshot.settings.translateEntireChats },
                                         set: { value in env.updateSettings { $0.translateEntireChats = value } }
                                       ))
+                    SettingsToggleRow(icon: "character.book.closed.fill", title: "Показывать кнопку перевода",
+                                      tint: Theme.success,
+                                      isOn: Binding(
+                                        get: { env.snapshot.settings.showTranslateButton },
+                                        set: { value in env.updateSettings { $0.showTranslateButton = value } }
+                                      ))
+                    SettingsToggleRow(icon: "nosign", title: "Не переводить",
+                                      tint: Theme.danger,
+                                      isOn: Binding(
+                                        get: { env.snapshot.settings.doNotTranslate },
+                                        set: { value in env.updateSettings { $0.doNotTranslate = value } }
+                                      ))
                 } footer: {
-                    Text("Перевод выполняется только при наличии сети, поэтому в офлайн-режиме не работает.")
+                    Text("Перевод выполняется только при наличии сети, поэтому в офлайн-режиме не работает. «Не переводить» отключает автоперевод для выбранных языков — список приходит с сервера.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -754,6 +950,8 @@ struct LanguageSettingsView: View {
 // MARK: - Стикеры и эмодзи
 
 struct StickersSettingsView: View {
+    @EnvironmentObject private var env: AppEnvironment
+
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
@@ -762,12 +960,13 @@ struct StickersSettingsView: View {
                     HStack {
                         Text("Установленные наборы").foregroundColor(Theme.textPrimary)
                         Spacer()
-                        Text("0").foregroundColor(Theme.textListItemSecondary)
+                        Text("\(StickerCatalog.installedCount)").foregroundColor(Theme.textListItemSecondary)
                     }
                     HStack {
                         Text("Архивные наборы").foregroundColor(Theme.textPrimary)
                         Spacer()
-                        Text("0").foregroundColor(Theme.textListItemSecondary)
+                        Text("\(env.snapshot.settings.archivedStickerPacks ? StickerCatalog.archivedCount : 0)")
+                            .foregroundColor(Theme.textListItemSecondary)
                     }
                     HStack {
                         Text("Избранные стикеры").foregroundColor(Theme.textPrimary)
@@ -777,23 +976,39 @@ struct StickersSettingsView: View {
                 } header: {
                     Text("Стикеры")
                 } footer: {
-                    Text("Наборы стикеров не загружены: каталог стикеров приходит с сервера, а приложение работает офлайн.")
+                    Text("Наборы стикеров не загружены: каталог стикеров приходит с сервера, а приложение работает офлайн. Настройки ниже сохраняются на устройстве и вступят в силу, когда появится сервер EndoGram.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
                 .listRowBackground(Theme.panel)
 
                 Section {
-                    HStack {
-                        Text("Маска для больших эмодзи").foregroundColor(Theme.textPrimary)
-                        Spacer()
-                        Toggle("", isOn: .constant(true))
-                            .labelsHidden()
-                            .tint(Theme.switchOn)
-                            .disabled(true)
-                    }
+                    SettingsToggleRow(icon: "sparkle.magnifyingglass", title: "Предлагать стикеры",
+                                      tint: Theme.accent, isOn: boolBind(\.suggestStickers))
+                    SettingsToggleRow(icon: "textformat.size.larger", title: "Большие эмодзи",
+                                      tint: Theme.warning, isOn: boolBind(\.largeEmoji))
+                    SettingsToggleRow(icon: "arrow.up.arrow.down", title: "Динамический порядок наборов",
+                                      tint: Theme.success, isOn: boolBind(\.dynamicStickerOrder))
+                } header: {
+                    Text("Отображение")
                 } footer: {
-                    Text("Настройка появится вместе с поддержкой анимированных эмодзи.")
+                    Text("«Большие эмодзи» уже работает: одиночный эмодзи в сообщении показывается крупнее текста.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .listRowBackground(Theme.panel)
+
+                Section {
+                    SettingsToggleRow(icon: "star.fill", title: "Рекомендуемые наборы",
+                                      tint: Theme.star, isOn: boolBind(\.featuredStickerPacks))
+                    SettingsToggleRow(icon: "archivebox.fill", title: "Архивные наборы",
+                                      tint: Theme.neutral, isOn: boolBind(\.archivedStickerPacks))
+                    SettingsToggleRow(icon: "hand.thumbsup.fill", title: "Быстрые реакции",
+                                      tint: Theme.accent, isOn: boolBind(\.quickReactionEnabled))
+                } header: {
+                    Text("Наборы")
+                } footer: {
+                    Text("«Быстрые реакции» управляют рядом эмодзи в меню долгого нажатия на сообщение.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -803,6 +1018,20 @@ struct StickersSettingsView: View {
         }
         .telegramNavTitle("Стикеры и эмодзи")
     }
+
+    private func boolBind(_ keyPath: WritableKeyPath<AppSettings, Bool>) -> Binding<Bool> {
+        Binding(
+            get: { env.snapshot.settings[keyPath: keyPath] },
+            set: { value in env.updateSettings { $0[keyPath: keyPath] = value } }
+        )
+    }
+}
+
+/// Локальная «библиотека» стикеров: каталога с сервера нет, поэтому числа
+/// фиксированные и честно описывают офлайн-состояние.
+enum StickerCatalog {
+    static let installedCount = 0
+    static let archivedCount = 0
 }
 
 // MARK: - Оформление
@@ -1077,6 +1306,8 @@ struct ProxySettingsView: View {
 
                 Section {
                     SettingsValueRow(title: "Тип", value: "SOCKS5")
+                    SettingsToggleRow(icon: "phone.fill", title: "Использовать для звонков",
+                                      tint: Theme.success, isOn: boolBind(\.proxyUseForCalls))
                 } header: {
                     Text("Соединение")
                 } footer: {

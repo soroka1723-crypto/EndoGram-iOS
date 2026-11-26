@@ -408,6 +408,18 @@ final class LocalBackend: EndoBackend {
         persist()
     }
 
+    func setProfileColor(_ hex: String) {
+        let value = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        snapshot.settings.profileColor = value
+        // Цвет применяется и к аватару, чтобы выбор был виден сразу везде.
+        if value == "auto" {
+            snapshot.profile.avatarColor = Palette.peerColor(for: snapshot.profile.displayName)
+        } else if !value.isEmpty {
+            snapshot.profile.avatarColor = value
+        }
+        persist()
+    }
+
     // MARK: - Экономика
 
     func buyGift(_ gift: Gift, toChatId: String?) -> OwnedGift? {

@@ -35,6 +35,8 @@ protocol EndoBackend: AnyObject {
 
     func addContact(displayName: String, username: String, phone: String) -> UserProfile
     func updateProfile(displayName: String, username: String, bio: String)
+    /// «Ваш цвет» — `Settings_YourColor` из профиля Telegram.
+    func setProfileColor(_ hex: String)
 
     func buyGift(_ gift: Gift, toChatId: String?) -> OwnedGift?
     func buyNFT(_ item: NFTItem) -> OwnedNFT?

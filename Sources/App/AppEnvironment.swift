@@ -244,6 +244,12 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
+    /// «Ваш цвет» из профиля: `auto` — цвет по имени, иначе hex из палитры Telegram.
+    func setProfileColor(_ hex: String) {
+        backend.setProfileColor(hex)
+        refresh()
+    }
+
     /// Покупка подарка. Возвращает текст ошибки или nil при успехе.
     func buyGift(_ gift: Gift, toChatId: String?) -> String? {
         guard stars >= gift.price else { return "Недостаточно звёзд: нужно \(Format.stars(gift.price))" }

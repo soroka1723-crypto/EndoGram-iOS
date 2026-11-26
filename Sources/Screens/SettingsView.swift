@@ -49,7 +49,7 @@ struct SettingsView: View {
             case .folders:      FoldersView().environmentObject(env)
             case .devices:      DevicesSettingsView()
             case .language:     LanguageSettingsView().environmentObject(env)
-            case .stickers:     StickersSettingsView()
+            case .stickers:     StickersSettingsView().environmentObject(env)
             case .appearance:   AppearanceSettingsView().environmentObject(env)
             case .about:        AboutView()
             case .energy:       EnergySavingView().environmentObject(env)
