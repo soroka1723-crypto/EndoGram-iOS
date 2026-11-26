@@ -112,7 +112,7 @@ enum CollectiblesCatalog {
     /// Номер экземпляра внутри тиража — стабильный, чтобы карточка не «мигала».
     static func serial(for slug: String, supply: Int) -> Int {
         guard supply > 0 else { return 1 }
-        return Int(hash(slug ^ "serial") % UInt32(supply)) + 1
+        return Int(hash(slug + "#serial") % UInt32(supply)) + 1
     }
 
     /// Эмодзи подбирается по ключевому слову в slug.
