@@ -45,14 +45,14 @@ enum SearchFilter: String, CaseIterable, Identifiable {
     }
 }
 
-/// Поиск — повторяет экран поиска Telegram: недавние запросы, категории
+/// Поиск — повторяет поиск Telegram: недавние запросы, категории
 /// и раздельные секции «Чаты и контакты» и «Сообщения».
-struct SearchView: View {
+/// Встраивается прямо в список чатов, без отдельного экрана.
+struct SearchResultsView: View {
     @EnvironmentObject private var env: AppEnvironment
-    @Environment(\.dismiss) private var dismiss
-    @State private var query = ""
+    @Binding var query: String
+    @Binding var selectedChat: Chat?
     @State private var filter: SearchFilter = .all
-    @State private var selectedChat: Chat?
     @AppStorage("endogram.recentSearches") private var recentRaw = ""
 
     // MARK: - Совпадения
@@ -92,10 +92,9 @@ struct SearchView: View {
     // MARK: - Тело
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Theme.background.ignoresSafeArea()
-                List {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+            List {
                     if query.isEmpty {
                         if !recent.isEmpty {
                             Section {
@@ -153,35 +152,29 @@ struct SearchView: View {
                         }
                     }
                 }
-                .listStyle(.insetGrouped)
-                .scrollContentBackground(.hidden)
-            }
-            .searchable(
-                text: $query,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Поиск сообщений и пользователей"
-            )
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
             .onSubmit(of: .search) { remember(query) }
-            .navigationTitle(filter == .all ? "Поиск" : filter.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if filter != .all {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Все") { filter = .all }
-                            .tint(Theme.accent)
-                    }
+        }
+        .overlay(alignment: .top) {
+            if filter != .all {
+                HStack {
+                    Button("Все") { filter = .all }
+                        .font(.system(size: 15))
+                        .foregroundColor(Theme.accent)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Theme.panelElevated))
+                    Spacer()
+                    Text(filter.title)
+                        .font(.system(size: 13))
+                        .foregroundColor(Theme.textSecondary)
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Отмена") { dismiss() }
-                        .tint(Theme.accent)
-                }
-            }
-            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .navigationDestination(item: $selectedChat) { chat in
-                ChatDetailView(chatId: chat.id).environmentObject(env)
+                .padding(.horizontal, 16)
+                .padding(.top, 4)
             }
         }
+        .animation(.easeInOut(duration: 0.15), value: filter)
     }
 
     // MARK: - Секции

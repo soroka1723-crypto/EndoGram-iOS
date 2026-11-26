@@ -7,8 +7,10 @@ struct ChatsListView: View {
     @State private var query = ""
     @State private var activeFolderId = "folder.all"
     @State private var showCompose = false
-    @State private var showSearch = false
+    @State private var searchActive = false
+    @State private var searchChat: Chat?
     @State private var selectedChat: Chat?
+    @FocusState private var searchFocused: Bool
 
     private var folders: [ChatFolder] { env.snapshot.folders }
 
@@ -35,17 +37,23 @@ struct ChatsListView: View {
             Theme.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                searchField
-                folderStrip
-
-                if visibleChats.isEmpty && env.archivedChats.isEmpty {
-                    EmptyStateView(
-                        icon: "bubble.left.and.bubble.right",
-                        title: "Пока нет чатов",
-                        subtitle: "Нажмите на карандаш в правом верхнем углу, чтобы создать чат, группу или канал."
-                    )
+                if searchActive {
+                    inlineSearchBar
+                    SearchResultsView(query: $query, selectedChat: $searchChat)
+                        .environmentObject(env)
                 } else {
-                    chatList
+                    searchField
+                    folderStrip
+
+                    if visibleChats.isEmpty && env.archivedChats.isEmpty {
+                        EmptyStateView(
+                            icon: "bubble.left.and.bubble.right",
+                            title: "Пока нет чатов",
+                            subtitle: "Нажмите на карандаш в правом верхнем углу, чтобы создать чат, группу или канал."
+                        )
+                    } else {
+                        chatList
+                    }
                 }
             }
         }
@@ -53,13 +61,22 @@ struct ChatsListView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showCompose = true
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                        .font(.system(size: 17, weight: .semibold))
+                if searchActive {
+                    Button("Отмена") {
+                        query = ""
+                        searchActive = false
+                        searchFocused = false
+                    }
+                    .tint(Theme.accent)
+                } else {
+                    Button {
+                        showCompose = true
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .tint(Theme.accentBright)
                 }
-                .tint(Theme.accentBright)
             }
         }
         .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
@@ -68,21 +85,58 @@ struct ChatsListView: View {
             CreateChatView()
                 .environmentObject(env)
         }
-        .sheet(isPresented: $showSearch) {
-            SearchView()
-                .environmentObject(env)
-        }
         .navigationDestination(item: $selectedChat) { chat in
             ChatDetailView(chatId: chat.id)
                 .environmentObject(env)
         }
+        .navigationDestination(item: $searchChat) { chat in
+            ChatDetailView(chatId: chat.id)
+                .environmentObject(env)
+        }
+    }
+
+    /// Поиск прямо в списке чатов — как в Telegram, вместо отдельного экрана.
+    private var inlineSearchBar: some View {
+        HStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14, weight: .semibold))
+                TextField("Поиск сообщений и пользователей", text: $query)
+                    .font(.system(size: 16))
+                    .foregroundColor(Theme.textPrimary)
+                    .focused($searchFocused)
+                    .submitLabel(.search)
+                    .autocorrectionDisabled()
+                if !query.isEmpty {
+                    Button {
+                        query = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 15))
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .foregroundColor(Theme.textSecondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Theme.searchBar)
+            )
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 4)
+        .padding(.bottom, 6)
+        .onAppear { searchFocused = true }
     }
 
     // MARK: - Поиск и папки
 
     private var searchField: some View {
         Button {
-            showSearch = true
+            searchActive = true
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
