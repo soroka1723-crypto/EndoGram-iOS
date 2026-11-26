@@ -406,11 +406,10 @@ struct CallsView: View {
         ZStack {
             Theme.background.ignoresSafeArea()
             VStack(spacing: 0) {
-                Picker("", selection: $showMissedOnly) {
-                    Text("Все").tag(false)
-                    Text("Пропущенные").tag(true)
-                }
-                .pickerStyle(.segmented)
+                TelegramSegmentedControl(
+                    options: [(false, "Все"), (true, "Пропущенные")],
+                    selection: $showMissedOnly
+                )
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
 

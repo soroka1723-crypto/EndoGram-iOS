@@ -165,6 +165,35 @@ struct LedgerEntry: Codable, Identifiable, Hashable {
 
 // MARK: - Истории
 
+/// Кто видит историю — как `Story.ContextPrivacy.Label*` в Telegram.
+enum StoryPrivacy: String, CaseIterable, Identifiable {
+    case everyone
+    case contacts
+    case closeFriends
+    case onlyMe
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .everyone:     return "Все"
+        case .contacts:     return "Мои контакты"
+        case .closeFriends: return "Близкие друзья"
+        case .onlyMe:       return "Только я"
+        }
+    }
+
+    /// Пояснение — как `Story.PrivacyTooltip*` оригинала.
+    var hint: String {
+        switch self {
+        case .everyone:     return "История видна всем."
+        case .contacts:     return "История видна всем вашим контактам."
+        case .closeFriends: return "История видна только близким друзьям."
+        case .onlyMe:       return "Историю видите только вы."
+        }
+    }
+}
+
 /// Локальная история — как `Settings_MyStories` в Telegram.
 ///
 /// Истории живут 24 часа, потом уходят в архив (`Settings_StoriesArchive`).
@@ -181,6 +210,21 @@ struct Story: Codable, Identifiable, Hashable {
     var views: Int = 0
     /// Порядковый номер просмотра — сколько раз открывали.
     var lastViewedAt: Date? = nil
+    /// «Кто видит» — `Story.Context.Privacy`. nil трактуется как «Все».
+    var privacy: String? = nil
+    /// Имя файла фото или видео в песочнице приложения.
+    var mediaFileName: String? = nil
+    /// `photo` или `video`.
+    var mediaKind: String? = nil
+    /// Длительность видео в секундах.
+    var mediaDuration: Double? = nil
+
+    var hasMedia: Bool { mediaFileName != nil }
+    var isVideo: Bool { mediaKind == "video" }
+
+    var privacyOption: StoryPrivacy {
+        StoryPrivacy(rawValue: privacy ?? "") ?? .everyone
+    }
 
     var isExpired: Bool { expiresAt <= Date() }
 

@@ -70,6 +70,14 @@ struct AvatarView: View {
 }
 
 /// Счётчик непрочитанных.
+///
+/// Точные токены ночной темы Telegram:
+/// `theme.chatList.unreadBadgeActiveBackgroundColor` — 0xFFFFFF @1,
+/// `unreadBadgeActiveTextColor` — 0x000000 @1,
+/// `unreadBadgeInactiveBackgroundColor` — 0x666666 @1,
+/// `unreadBadgeInactiveTextColor` — 0x000000 @1.
+/// То есть в ночной теме значок белый (или серый для чата без звука)
+/// с чёрной цифрой, а не синий.
 struct UnreadBadge: View {
     let count: Int
     var muted: Bool = false
@@ -78,14 +86,49 @@ struct UnreadBadge: View {
         if count > 0 {
             Text(count > 99 ? "99+" : "\(count)")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(muted ? .black : .white)
+                .foregroundColor(.black)
                 .padding(.horizontal, count > 9 ? 6 : 7)
                 .padding(.vertical, 3)
                 .background(
-                    // theme.chatList.unreadBadge*BackgroundColor
-                    Capsule().fill(muted ? Theme.neutral : Theme.accent)
+                    Capsule().fill(muted ? Theme.unreadBadgeMuted : Theme.unreadBadgeActive)
                 )
         }
+    }
+}
+
+/// Сегментированный переключатель как `theme.list.segmentedControl`:
+/// дорожка `segmentedBackgroundColor` — 0xFFFFFF @0.11, выбранный сегмент —
+/// приподнятая плашка с текстом `segmentedTextColor`, 0xFFFFFF @1.
+struct TelegramSegmentedControl<Value: Hashable>: View {
+    let options: [(value: Value, title: String)]
+    @Binding var selection: Value
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(options, id: \.value) { option in
+                let isSelected = option.value == selection
+                Button {
+                    withAnimation(.easeInOut(duration: 0.16)) { selection = option.value }
+                } label: {
+                    Text(option.title)
+                        .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(Theme.segmentedText)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(isSelected ? Theme.segmentedSelected : Color.clear)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(2)
+        .background(
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(Theme.segmentedBackground)
+        )
     }
 }
 

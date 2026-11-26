@@ -48,8 +48,9 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         UIUserInterfaceStyle: Dark
-        NSMicrophoneUsageDescription: "Микрофон нужен для записи голосовых сообщений. Записи сохраняются только на этом устройстве и никуда не отправляются."
-        NSPhotoLibraryUsageDescription: "Доступ к фото нужен, чтобы прикрепить изображение. В офлайн-режиме вложения не отправляются."
+        NSMicrophoneUsageDescription: "Микрофон нужен для записи голосовых сообщений и видео в историях. Записи сохраняются только на этом устройстве и никуда не отправляются."
+        NSPhotoLibraryUsageDescription: "Доступ к фото нужен, чтобы прикрепить изображение или опубликовать фото и видео в истории. В офлайн-режиме файлы остаются на устройстве."
+        NSCameraUsageDescription: "Камера нужна, чтобы снять фото или видео для истории. Файл сохраняется только на этом устройстве и никуда не отправляется."
     settings:
       base:
         PRODUCT_NAME: EndoGram

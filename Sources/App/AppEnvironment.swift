@@ -324,8 +324,10 @@ final class AppEnvironment: ObservableObject {
     }
 
     @discardableResult
-    func addStory(caption: String, colorHex: String) -> Story {
-        let story = backend.addStory(caption: caption, colorHex: colorHex)
+    func addStory(caption: String, colorHex: String, privacy: String, mediaFileName: String?, mediaKind: String?, mediaDuration: Double?) -> Story {
+        let story = backend.addStory(caption: caption, colorHex: colorHex, privacy: privacy,
+                                     mediaFileName: mediaFileName, mediaKind: mediaKind,
+                                     mediaDuration: mediaDuration)
         refresh()
         return story
     }

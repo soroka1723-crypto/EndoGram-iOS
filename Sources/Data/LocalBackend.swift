@@ -583,7 +583,7 @@ final class LocalBackend: EndoBackend {
 
     // MARK: - Истории
 
-    func addStory(caption: String, colorHex: String) -> Story {
+    func addStory(caption: String, colorHex: String, privacy: String, mediaFileName: String?, mediaKind: String?, mediaDuration: Double?) -> Story {
         let trimmed = caption.trimmingCharacters(in: .whitespacesAndNewlines)
         let story = Story(
             id: IDs.next("story"),
@@ -593,7 +593,12 @@ final class LocalBackend: EndoBackend {
             createdAt: Date(),
             expiresAt: Date().addingTimeInterval(24 * 3600),
             isArchived: false,
-            views: 0
+            views: 0,
+            lastViewedAt: nil,
+            privacy: privacy,
+            mediaFileName: mediaFileName,
+            mediaKind: mediaKind,
+            mediaDuration: mediaDuration
         )
         snapshot.stories.insert(story, at: 0)
         appendLedger(kind: .grant, title: "История опубликована", amount: 0)
@@ -602,6 +607,11 @@ final class LocalBackend: EndoBackend {
     }
 
     func deleteStory(id: String) {
+        // Медиа истории удаляем вместе с записью, чтобы файлы не копились.
+        if let story = snapshot.stories.first(where: { $0.id == id }),
+           let fileName = story.mediaFileName {
+            StoryMediaStorage.delete(fileName: fileName)
+        }
         snapshot.stories.removeAll { $0.id == id }
         persist()
     }

@@ -76,14 +76,30 @@ enum Format {
     }
 
     static func members(_ count: Int) -> String {
-        let mod10 = count % 10
-        let mod100 = count % 100
-        if mod100 >= 11 && mod100 <= 14 { return "\(count) участников" }
-        switch mod10 {
-        case 1: return "\(count) участник"
-        case 2, 3, 4: return "\(count) участника"
-        default: return "\(count) участников"
+        plural(count, one: "участник", few: "участника", many: "участников")
+    }
+
+    /// Русская форма числительного: «1 участник», «2 участника», «5 участников».
+    static func plural(_ count: Int, one: String, few: String, many: String) -> String {
+        let mod10 = abs(count) % 10
+        let mod100 = abs(count) % 100
+        let form: String
+        if mod100 >= 11 && mod100 <= 14 {
+            form = many
+        } else {
+            switch mod10 {
+            case 1: form = one
+            case 2, 3, 4: form = few
+            default: form = many
+            }
         }
+        return "\(number(count)) \(form)"
+    }
+
+    /// Просмотры истории — как `Story.Footer.NoViews` / `Views_1` / `Views_any`.
+    static func views(_ count: Int) -> String {
+        guard count > 0 else { return "Нет просмотров" }
+        return plural(count, one: "просмотр", few: "просмотра", many: "просмотров")
     }
 }
 

@@ -32,6 +32,21 @@ enum Theme {
     /// `theme.rootNavigationBar.separatorColor` — 0x545458 @0.55
     static let rootNavigationBarSeparator = Color(hex: "#545458").opacity(0.55)
 
+    // MARK: - Значки и сегменты
+
+    /// `theme.chatList.unreadBadgeActiveBackgroundColor` — 0xFFFFFF @1
+    static let unreadBadgeActive = Color.white
+    /// `theme.chatList.unreadBadgeInactiveBackgroundColor` — 0x666666 @1
+    static let unreadBadgeMuted = Color(hex: "#666666")
+    /// `theme.list.segmentedControl.segmentedBackgroundColor` — 0xFFFFFF @0.11
+    static let segmentedBackground = Color.white.opacity(0.11)
+    /// `theme.list.segmentedControl.segmentedTextColor` — 0xFFFFFF @1
+    static let segmentedText = Color.white
+    /// Плашка выбранного сегмента — светлее дорожки, 0xFFFFFF @0.18
+    static let segmentedSelected = Color.white.opacity(0.18)
+    /// `theme.list.itemSelectedBackgroundColor` — 0x191919
+    static let itemSelected = Color(hex: "#191919")
+
     // MARK: - Пузыри сообщений
 
     /// Исходящее: градиент `[0x61BCF9, 0x0088FF]` (theme.chat.message.outgoing.bubble.fill)
