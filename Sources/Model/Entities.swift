@@ -244,12 +244,24 @@ struct Story: Codable, Identifiable, Hashable {
     }
 }
 
-struct Gift: Codable, Identifiable, Hashable {    var id: String
+struct Gift: Codable, Identifiable, Hashable {
+    var id: String
     var name: String
     var emoji: String
     var price: Int
     var rarity: String
     var colorHex: String
+    /// Лимитированный подарок — как `Gift.Options.Gift.Limited` в Telegram.
+    var isLimited: Bool = false
+    /// Сколько осталось. nil — не ограничено.
+    var stock: Int? = nil
+    /// Коллекционный подарок — как `Gift.Options.Gift.Filter.Collectibles`.
+    var isCollectible: Bool = false
+
+    var isSoldOut: Bool {
+        guard let stock else { return false }
+        return stock <= 0
+    }
 }
 
 struct OwnedGift: Codable, Identifiable, Hashable {

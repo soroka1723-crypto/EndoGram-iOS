@@ -1,11 +1,47 @@
 import SwiftUI
 
-/// Магазин подарков.
+/// Магазин подарков — структура и подписи из `Gift.Options.*` оригинала.
+///
+/// Всё локально: «покупка» списывает тестовые звёзды и кладёт подарок
+/// в инвентарь на этом устройстве.
 struct GiftShopView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var selected: Gift?
-    @State private var error: String?
     @State private var toast: String?
+    @State private var filter: GiftFilter = .all
+
+    /// `Gift.Options.Gift.Filter.*`
+    enum GiftFilter: String, CaseIterable, Identifiable {
+        case all, limited, inStock, collectibles, mine
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .all:          return "Все подарки"
+            case .limited:      return "Лимитированные"
+            case .inStock:      return "В наличии"
+            case .collectibles: return "Коллекционные"
+            case .mine:         return "Мои подарки"
+            }
+        }
+    }
+
+    private var gifts: [Gift] {
+        switch filter {
+        case .all:
+            return env.giftCatalog
+        case .limited:
+            return env.giftCatalog.filter(\.isLimited)
+        case .inStock:
+            return env.giftCatalog.filter { !$0.isSoldOut }
+        case .collectibles:
+            return env.giftCatalog.filter(\.isCollectible)
+        case .mine:
+            let owned = Set(env.snapshot.ownedGifts.map(\.giftId))
+            return env.giftCatalog.filter { owned.contains($0.id) }
+        }
+    }
 
     private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
 
@@ -14,39 +50,62 @@ struct GiftShopView: View {
             Theme.background.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack {
-                        Text("⭐️ \(Format.number(env.stars))")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Theme.textPrimary)
-                        Spacer()
-                        Text("Подарки")
-                            .font(.system(size: 12))
-                            .foregroundColor(Theme.textSecondary)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.top, 8)
+                    balanceCard
+                    filterChips
 
-                    LazyVGrid(columns: columns, spacing: 10) {
-                        ForEach(env.giftCatalog) { gift in
-                            Button {
-                                selected = gift
-                            } label: {
-                                giftCard(gift)
-                            }
-                            .buttonStyle(.plain)
+                    if gifts.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "gift")
+                                .font(.system(size: 34))
+                                .foregroundColor(Theme.textSecondary)
+                            Text(filter == .mine ? "Подарков пока нет" : "Здесь пусто")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Theme.textPrimary)
+                            Text("Подарки хранятся на этом устройстве.")
+                                .font(.system(size: 13))
+                                .foregroundColor(Theme.textSecondary)
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 10) {
+                            ForEach(gifts) { gift in
+                                Button {
+                                    if gift.isSoldOut {
+                                        showToast("Подарок распродан — как `Gift.Options.SoldOut.Text` в Telegram")
+                                    } else {
+                                        selected = gift
+                                    }
+                                } label: {
+                                    giftCard(gift)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 12)
                     }
-                    .padding(.horizontal, 12)
+
+                    Text("Звёзды тестовые: покупка списывает локальный баланс и создаёт запись в истории операций. Настоящих платежей нет.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                        .padding(.horizontal, 16)
                 }
                 .padding(.bottom, 24)
             }
             if let toast {
-                Text(toast)
-                    .font(.system(size: 14))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Capsule().fill(Color.black.opacity(0.8)))
+                VStack {
+                    Spacer()
+                    Text(toast)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(Color.black.opacity(0.82)))
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 40)
+                }
+                .transition(.opacity)
             }
         }
         .navigationTitle("Подарки")
@@ -55,36 +114,130 @@ struct GiftShopView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(item: $selected) { gift in
             GiftPurchaseView(gift: gift, onResult: { message in
-                toast = message
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) { toast = nil }
+                showToast(message)
             })
             .environmentObject(env)
         }
     }
 
-    private func giftCard(_ gift: Gift) -> some View {
-        VStack(spacing: 6) {
-            Text(gift.emoji)
-                .font(.system(size: 46))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: gift.colorHex).opacity(0.14))
-                )
-            Text(gift.name)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Theme.textPrimary)
-                .lineLimit(1)
-            HStack(spacing: 3) {
-                Text("⭐️").font(.system(size: 11))
-                Text(Format.number(gift.price))
-                    .font(.system(size: 13, weight: .medium))
+    /// `Gift.Send.PayWithStars.Info` — «Ваш баланс: N ⭐️».
+    private var balanceCard: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "star.circle.fill")
+                .font(.system(size: 34))
+                .foregroundColor(Theme.star)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Ваш баланс")
+                    .font(.system(size: 13))
                     .foregroundColor(Theme.textSecondary)
+                Text("\(Format.number(env.stars)) ⭐️")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Theme.textPrimary)
             }
+            Spacer()
+            NavigationLink { MyStarsView().environmentObject(env) } label: {
+                Text("Пополнить")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.accentBright)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Capsule().fill(Theme.accent.opacity(0.16)))
+            }
+            .buttonStyle(.plain)
         }
-        .padding(8)
-        .background(RoundedRectangle(cornerRadius: Theme.corner).fill(Theme.panel))
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous).fill(Theme.panel))
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
+    }
+
+    private var filterChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(GiftFilter.allCases) { item in
+                    let isActive = item == filter
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.16)) { filter = item }
+                    } label: {
+                        Text(item.title)
+                            .font(.system(size: 13, weight: isActive ? .semibold : .regular))
+                            .foregroundColor(isActive ? .white : Theme.textSecondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule().fill(isActive ? Theme.accent : Theme.panel)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 12)
+        }
+    }
+
+    private func giftCard(_ gift: Gift) -> some View {
+        VStack(spacing: 0) {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(hex: gift.colorHex).opacity(0.34),
+                             Color(hex: gift.colorHex).opacity(0.10)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                Text(gift.emoji)
+                    .font(.system(size: 52))
+                    .opacity(gift.isSoldOut ? 0.35 : 1)
+
+                if gift.isSoldOut {
+                    Text("распродано")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.black.opacity(0.6)))
+                } else if gift.isLimited, let stock = gift.stock {
+                    Text("осталось \(stock)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.black.opacity(0.55)))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .padding(7)
+                }
+            }
+            .frame(height: 96)
+
+            VStack(spacing: 3) {
+                Text(gift.name)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Theme.textPrimary)
+                    .lineLimit(1)
+                Text(gift.rarity)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: gift.colorHex))
+                HStack(spacing: 3) {
+                    Text("⭐️").font(.system(size: 11))
+                    Text(Format.number(gift.price))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Theme.textSecondary)
+                }
+            }
+            .padding(.vertical, 8)
+        }
+        .background(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous).fill(Theme.panel))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                .stroke(gift.isCollectible ? Theme.star.opacity(0.45) : Color.clear, lineWidth: 1)
+        )
+    }
+
+    private func showToast(_ text: String) {
+        withAnimation { toast = text }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation { if toast == text { toast = nil } }
+        }
     }
 }
 

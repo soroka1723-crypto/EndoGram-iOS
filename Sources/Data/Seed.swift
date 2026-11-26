@@ -134,11 +134,16 @@ enum Seed {
         Gift(id: "gift.rose", name: "Роза", emoji: "🌹", price: 25, rarity: "Обычный", colorHex: "#E4572E"),
         Gift(id: "gift.cake", name: "Торт", emoji: "🎂", price: 50, rarity: "Обычный", colorHex: "#F2B5D4"),
         Gift(id: "gift.rocket", name: "Ракета", emoji: "🚀", price: 100, rarity: "Редкий", colorHex: "#5288C1"),
-        Gift(id: "gift.crown", name: "Корона", emoji: "👑", price: 250, rarity: "Редкий", colorHex: "#F5C542"),
-        Gift(id: "gift.diamond", name: "Алмаз", emoji: "💎", price: 500, rarity: "Эпический", colorHex: "#5BC8F5"),
-        Gift(id: "gift.planet", name: "Планета", emoji: "🪐", price: 1_000, rarity: "Эпический", colorHex: "#9B7EDE"),
-        Gift(id: "gift.unicorn", name: "Единорог", emoji: "🦄", price: 2_500, rarity: "Легендарный", colorHex: "#FF8FD0"),
-        Gift(id: "gift.ufo", name: "НЛО", emoji: "🛸", price: 5_000, rarity: "Легендарный", colorHex: "#6EE7B7"),
+        Gift(id: "gift.crown", name: "Корона", emoji: "👑", price: 250, rarity: "Редкий",
+             colorHex: "#F5C542", isLimited: true, stock: 120),
+        Gift(id: "gift.diamond", name: "Алмаз", emoji: "💎", price: 500, rarity: "Эпический",
+             colorHex: "#5BC8F5", isLimited: true, stock: 40),
+        Gift(id: "gift.planet", name: "Планета", emoji: "🪐", price: 1_000, rarity: "Эпический",
+             colorHex: "#9B7EDE", isLimited: true, stock: 12, isCollectible: true),
+        Gift(id: "gift.unicorn", name: "Единорог", emoji: "🦄", price: 2_500, rarity: "Легендарный",
+             colorHex: "#FF8FD0", isLimited: true, stock: 3, isCollectible: true),
+        Gift(id: "gift.ufo", name: "НЛО", emoji: "🛸", price: 5_000, rarity: "Легендарный",
+             colorHex: "#6EE7B7", isLimited: true, stock: 0, isCollectible: true),
     ]
 
     static let nftCatalog: [NFTItem] = [
