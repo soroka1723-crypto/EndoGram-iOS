@@ -496,33 +496,40 @@ struct PremiumView: View {
 
     /// Состав подписки перенесён из инвентаря настроек Telegram
     /// (`premiumSearchableItems`): ключ оригинала → иконка → название → описание.
-    private let features: [(key: String, icon: String, title: String, detail: String)] = [
-        ("Premium_DoubledLimits", "infinity", "Удвоенные лимиты",
-         "До 1000 каналов, 20 папок, 10 закреплённых чатов, 20 публичных ссылок."),
-        ("Premium_UploadSize", "arrow.up.doc.fill", "Загрузка до 4 ГБ",
-         "Размер одного документа увеличен с 2 ГБ до 4 ГБ, объём хранилища не ограничен."),
-        ("Premium_FasterSpeed", "bolt.fill", "Скорость скачивания выше",
-         "Без ограничений скорости при загрузке медиа и документов."),
-        ("Premium_VoiceToText", "waveform", "Голос в текст",
-         "Расшифровка любого входящего голосового сообщения."),
-        ("Premium_NoAds", "hand.raised.fill", "Без рекламы",
-         "В публичных каналах больше не показывается реклама."),
-        ("Premium_EmojiStatus", "face.smiling.inverse", "Эмодзи-статус",
-         "Эмодзи рядом с именем, которое видят другие пользователи."),
-        ("Premium_Reactions", "heart.circle.fill", "Уникальные реакции",
-         "Дополнительные анимированные реакции на сообщения."),
-        ("Premium_Stickers", "square.stack.3d.up.fill", "Премиум-стикеры",
-         "Эксклюзивные увеличенные стикеры с дополнительными эффектами."),
-        ("Premium_AnimatedEmoji", "sparkles", "Анимированные эмодзи",
-         "Анимированные эмодзи в сообщениях и реакциях."),
-        ("Premium_ChatManagement", "folder.badge.gearshape", "Продвинутое управление чатами",
-         "Папка по умолчанию, автоархив и скрытие новых чатов от незнакомцев."),
-        ("Premium_Badge", "checkmark.seal.fill", "Значок в профиле",
-         "Отметка подписчика рядом с вашим именем."),
-        ("Premium_Avatar", "person.crop.circle.badge.plus", "Анимированный аватар",
-         "Аватар с анимацией и дополнительными эффектами."),
-        ("Premium_AppIcon", "app.badge.fill", "Иконки приложения",
-         "Набор дополнительных иконок EndoGram."),
+    private struct PremiumFeature: Identifiable {
+        let id: String
+        let icon: String
+        let title: String
+        let detail: String
+    }
+
+    private let features: [PremiumFeature] = [
+        PremiumFeature(id: "Premium_DoubledLimits", icon: "infinity", title: "Удвоенные лимиты",
+                       detail: "До 1000 каналов, 20 папок, 10 закреплённых чатов, 20 публичных ссылок."),
+        PremiumFeature(id: "Premium_UploadSize", icon: "arrow.up.doc.fill", title: "Загрузка до 4 ГБ",
+                       detail: "Размер одного документа увеличен с 2 ГБ до 4 ГБ, объём хранилища не ограничен."),
+        PremiumFeature(id: "Premium_FasterSpeed", icon: "bolt.fill", title: "Скорость скачивания выше",
+                       detail: "Без ограничений скорости при загрузке медиа и документов."),
+        PremiumFeature(id: "Premium_VoiceToText", icon: "waveform", title: "Голос в текст",
+                       detail: "Расшифровка любого входящего голосового сообщения."),
+        PremiumFeature(id: "Premium_NoAds", icon: "hand.raised.fill", title: "Без рекламы",
+                       detail: "В публичных каналах больше не показывается реклама."),
+        PremiumFeature(id: "Premium_EmojiStatus", icon: "face.smiling.inverse", title: "Эмодзи-статус",
+                       detail: "Эмодзи рядом с именем, которое видят другие пользователи."),
+        PremiumFeature(id: "Premium_Reactions", icon: "heart.circle.fill", title: "Уникальные реакции",
+                       detail: "Дополнительные анимированные реакции на сообщения."),
+        PremiumFeature(id: "Premium_Stickers", icon: "square.stack.3d.up.fill", title: "Премиум-стикеры",
+                       detail: "Эксклюзивные увеличенные стикеры с дополнительными эффектами."),
+        PremiumFeature(id: "Premium_AnimatedEmoji", icon: "sparkles", title: "Анимированные эмодзи",
+                       detail: "Анимированные эмодзи в сообщениях и реакциях."),
+        PremiumFeature(id: "Premium_ChatManagement", icon: "folder.badge.gearshape", title: "Продвинутое управление чатами",
+                       detail: "Папка по умолчанию, автоархив и скрытие новых чатов от незнакомцев."),
+        PremiumFeature(id: "Premium_Badge", icon: "checkmark.seal.fill", title: "Значок в профиле",
+                       detail: "Отметка подписчика рядом с вашим именем."),
+        PremiumFeature(id: "Premium_Avatar", icon: "person.crop.circle.badge.plus", title: "Анимированный аватар",
+                       detail: "Аватар с анимацией и дополнительными эффектами."),
+        PremiumFeature(id: "Premium_AppIcon", icon: "app.badge.fill", title: "Иконки приложения",
+                       detail: "Набор дополнительных иконок EndoGram."),
     ]
 
     var body: some View {
@@ -633,7 +640,7 @@ struct PremiumView: View {
 
     private var featureList: some View {
         VStack(spacing: 0) {
-            ForEach(features, id: \.key) { feature in
+            ForEach(features) { feature in
                 HStack(alignment: .top, spacing: 12) {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(Theme.star.opacity(0.16))
@@ -656,7 +663,7 @@ struct PremiumView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                if feature.key != features.last?.key {
+                if feature.id != features.last?.id {
                     DividerLine(inset: 60)
                 }
             }
