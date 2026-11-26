@@ -172,7 +172,7 @@ struct StoryViewer: View {
             progress = 0
             startTimer()
         }
-        .onDisappear { timer?.cancel() }
+        .onDisappear { timer?.invalidate() }
         .alert("Удалить историю?", isPresented: $confirmDelete) {
             Button("Удалить", role: .destructive) {
                 if let story = current { env.deleteStory(id: story.id) }
@@ -289,7 +289,7 @@ struct StoryViewer: View {
     }
 
     private func startTimer() {
-        timer?.cancel()
+        timer?.invalidate()
         let tick = 0.05
         timer = Timer.scheduledTimer(withTimeInterval: tick, repeats: true) { _ in
             guard !paused else { return }
