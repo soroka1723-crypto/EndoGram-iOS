@@ -488,97 +488,215 @@ struct InventoryView: View {
     }
 }
 
-/// Экран Premium.
+
+/// Экран Telegram Premium.
 struct PremiumView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var message: String?
 
-    private let features: [(String, String, String)] = [
-        ("bolt.fill", "Быстрее и без рекламы", "Локальный режим уже без рекламы — Premium добавляет статус и коллекции."),
-        ("star.circle.fill", "Звёзды в подарок", "Каждый месяц — бонусные звёзды в локальном кошельке."),
-        ("gift.fill", "Эксклюзивные подарки", "Доступ к премиальным коллекциям подарков."),
-        ("person.2.fill", "Больше участников", "Лимиты групп и каналов выше, чем у обычных аккаунтов."),
+    /// Состав подписки перенесён из инвентаря настроек Telegram
+    /// (`premiumSearchableItems`): ключ оригинала → иконка → название → описание.
+    private let features: [(key: String, icon: String, title: String, detail: String)] = [
+        ("Premium_DoubledLimits", "infinity", "Удвоенные лимиты",
+         "До 1000 каналов, 20 папок, 10 закреплённых чатов, 20 публичных ссылок."),
+        ("Premium_UploadSize", "arrow.up.doc.fill", "Загрузка до 4 ГБ",
+         "Размер одного документа увеличен с 2 ГБ до 4 ГБ, объём хранилища не ограничен."),
+        ("Premium_FasterSpeed", "bolt.fill", "Скорость скачивания выше",
+         "Без ограничений скорости при загрузке медиа и документов."),
+        ("Premium_VoiceToText", "waveform", "Голос в текст",
+         "Расшифровка любого входящего голосового сообщения."),
+        ("Premium_NoAds", "hand.raised.fill", "Без рекламы",
+         "В публичных каналах больше не показывается реклама."),
+        ("Premium_EmojiStatus", "face.smiling.inverse", "Эмодзи-статус",
+         "Эмодзи рядом с именем, которое видят другие пользователи."),
+        ("Premium_Reactions", "heart.circle.fill", "Уникальные реакции",
+         "Дополнительные анимированные реакции на сообщения."),
+        ("Premium_Stickers", "square.stack.3d.up.fill", "Премиум-стикеры",
+         "Эксклюзивные увеличенные стикеры с дополнительными эффектами."),
+        ("Premium_AnimatedEmoji", "sparkles", "Анимированные эмодзи",
+         "Анимированные эмодзи в сообщениях и реакциях."),
+        ("Premium_ChatManagement", "folder.badge.gearshape", "Продвинутое управление чатами",
+         "Папка по умолчанию, автоархив и скрытие новых чатов от незнакомцев."),
+        ("Premium_Badge", "checkmark.seal.fill", "Значок в профиле",
+         "Отметка подписчика рядом с вашим именем."),
+        ("Premium_Avatar", "person.crop.circle.badge.plus", "Анимированный аватар",
+         "Аватар с анимацией и дополнительными эффектами."),
+        ("Premium_AppIcon", "app.badge.fill", "Иконки приложения",
+         "Набор дополнительных иконок EndoGram."),
     ]
 
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
             ScrollView {
-                VStack(spacing: 16) {
-                    VStack(spacing: 10) {
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 46))
-                            .foregroundColor(Theme.star)
-                        Text("EndoGram Premium")
-                            .font(.system(size: 25, weight: .bold))
-                            .foregroundColor(Theme.textPrimary)
-                        if env.profile.premiumActive {
-                            Text("Активен до \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "—")")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.online)
-                        } else {
-                            Text("Годовая подписка за \(Format.stars(AppConfig.premiumPrice))")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.textSecondary)
-                        }
-                    }
-                    .padding(.top, 20)
-
-                    SectionCard(title: "Возможности") {
-                        ForEach(features, id: \.1) { feature in
-                            HStack(alignment: .top, spacing: 12) {
-                                Image(systemName: feature.0)
-                                    .font(.system(size: 15))
-                                    .foregroundColor(Theme.star)
-                                    .frame(width: 28, height: 28)
-                                    .background(Circle().fill(Theme.star.opacity(0.14)))
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(feature.1)
-                                        .font(.system(size: 15, weight: .medium))
-                                        .foregroundColor(Theme.textPrimary)
-                                    Text(feature.2)
-                                        .font(.system(size: 12))
-                                        .foregroundColor(Theme.textSecondary)
-                                }
-                                Spacer()
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            if feature.1 != features.last?.1 { DividerLine() }
-                        }
-                    }
-
+                VStack(spacing: 18) {
+                    header
+                    planCard
+                    featureList
                     if let message {
                         Text(message)
                             .font(.system(size: 13))
                             .foregroundColor(Theme.online)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
                     }
-
-                    Button {
-                        if env.profile.premiumActive {
-                            message = "Premium уже активен"
-                        } else if let error = env.activatePremium() {
-                            message = error
-                        } else {
-                            message = "Premium активирован до \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "")"
-                        }
-                    } label: {
-                        Text(env.profile.premiumActive ? "Premium активен" : "Активировать за \(Format.stars(AppConfig.premiumPrice))")
-                    }
-                    .buttonStyle(StarButtonStyle(filled: !env.profile.premiumActive))
-                    .disabled(env.profile.premiumActive)
-                    .padding(.horizontal, 16)
-
-                    Text("Баланс: \(Format.stars(env.stars))")
-                        .font(.system(size: 12))
-                        .foregroundColor(Theme.textSecondary)
-                        .padding(.bottom, 30)
+                    activateButton
+                    offlineNote
                 }
+                .padding(.bottom, 30)
             }
         }
-        .navigationTitle("Premium")
+        .navigationTitle("Telegram Premium")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Theme.background, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private var header: some View {
+        VStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.star, Color(hex: Palette.orange)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 92, height: 92)
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.white)
+            }
+            Text("Telegram Premium")
+                .font(.system(size: 26, weight: .bold))
+                .foregroundColor(Theme.textPrimary)
+            Text("Больше возможностей и поддержка разработки.")
+                .font(.system(size: 14))
+                .foregroundColor(Theme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+        }
+        .padding(.top, 22)
+    }
+
+    private var planCard: some View {
+        VStack(spacing: 12) {
+            if env.profile.premiumActive {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundColor(Theme.online)
+                    Text("Premium активен")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Theme.textPrimary)
+                    Spacer()
+                }
+                Text("Действует до \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "—")")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: 12) {
+                    planTile(title: "Месяц", price: Format.stars(AppConfig.premiumPrice / 12), selected: false)
+                    planTile(title: "Год", price: Format.stars(AppConfig.premiumPrice), selected: true)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.corner + 2, style: .continuous)
+                .fill(Theme.panel)
+        )
+        .padding(.horizontal, 16)
+    }
+
+    private func planTile(title: String, price: String, selected: Bool) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Theme.textPrimary)
+            Text(price)
+                .font(.system(size: 13))
+                .foregroundColor(Theme.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                .fill(selected ? Theme.star.opacity(0.16) : Theme.panelElevated)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                .stroke(selected ? Theme.star : Color.clear, lineWidth: 1.5)
+        )
+    }
+
+    private var featureList: some View {
+        VStack(spacing: 0) {
+            ForEach(features, id: \.key) { feature in
+                HStack(alignment: .top, spacing: 12) {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Theme.star.opacity(0.16))
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            Image(systemName: feature.icon)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Theme.star)
+                        )
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(feature.title)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(Theme.textPrimary)
+                        Text(feature.detail)
+                            .font(.system(size: 12.5))
+                            .foregroundColor(Theme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                if feature.key != features.last?.key {
+                    DividerLine(inset: 60)
+                }
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: Theme.corner + 2, style: .continuous)
+                .fill(Theme.panel)
+        )
+        .padding(.horizontal, 16)
+    }
+
+    private var activateButton: some View {
+        Button {
+            if env.profile.premiumActive {
+                message = "Premium уже активен"
+            } else if let error = env.activatePremium() {
+                message = error
+            } else {
+                message = "Premium активирован до \(env.profile.premiumUntil.map { Format.fullDate($0) } ?? "")"
+            }
+        } label: {
+            Text(env.profile.premiumActive
+                 ? "Premium активен"
+                 : "Активировать за \(Format.stars(AppConfig.premiumPrice))")
+        }
+        .buttonStyle(StarButtonStyle(filled: !env.profile.premiumActive))
+        .disabled(env.profile.premiumActive)
+        .padding(.horizontal, 16)
+    }
+
+    private var offlineNote: some View {
+        VStack(spacing: 6) {
+            Text("Баланс: \(Format.stars(env.stars))")
+                .font(.system(size: 12))
+                .foregroundColor(Theme.textSecondary)
+            Text("Названия и состав подписки перенесены из Telegram. В офлайн-режиме серверные возможности (загрузка файлов, голос в текст, анимированные аватары) не работают — здесь Premium включает локальные эффекты: значок в профиле, статус и эксклюзивные подарки.")
+                .font(.system(size: 12))
+                .foregroundColor(Theme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+        }
     }
 }
