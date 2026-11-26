@@ -18,6 +18,7 @@ protocol EndoBackend: AnyObject {
     func deleteMessage(id: String)
     func togglePinMessage(id: String)
     func markChatRead(chatId: String)
+    func markChatUnread(chatId: String)
 
     func createDirectChat(peer: UserProfile) -> Chat
     func createGroup(title: String, memberIds: [String]) -> Chat

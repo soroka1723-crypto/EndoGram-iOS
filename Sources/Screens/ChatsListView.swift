@@ -226,6 +226,42 @@ struct ChatsListView: View {
             }
             .tint(Theme.textSecondary)
         }
+        .contextMenu {
+            Button {
+                env.setPinned(chat.id, !chat.isPinned)
+            } label: {
+                Label(chat.isPinned ? "Открепить" : "Закрепить",
+                      systemImage: chat.isPinned ? "pin.slash" : "pin")
+            }
+            Button {
+                env.setMuted(chat.id, !chat.isMuted)
+            } label: {
+                Label(chat.isMuted ? "Включить звук" : "Без звука",
+                      systemImage: chat.isMuted ? "bell" : "bell.slash")
+            }
+            Button {
+                if chat.unreadCount > 0 {
+                    env.markRead(chatId: chat.id)
+                } else {
+                    env.markUnread(chatId: chat.id)
+                }
+            } label: {
+                Label(chat.unreadCount > 0 ? "Прочитано" : "Отметить как непрочитанное",
+                      systemImage: chat.unreadCount > 0 ? "checkmark.circle" : "circle")
+            }
+            Button {
+                env.setArchived(chat.id, !chat.isArchived)
+            } label: {
+                Label(chat.isArchived ? "Из архива" : "В архив",
+                      systemImage: chat.isArchived ? "tray.and.arrow.up" : "archivebox")
+            }
+            Divider()
+            Button(role: .destructive) {
+                env.deleteChat(chat.id)
+            } label: {
+                Label("Удалить", systemImage: "trash")
+            }
+        }
     }
 }
 

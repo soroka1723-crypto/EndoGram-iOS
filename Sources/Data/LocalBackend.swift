@@ -134,6 +134,12 @@ final class LocalBackend: EndoBackend {
         persist()
     }
 
+    func markChatUnread(chatId: String) {
+        guard let index = snapshot.chats.firstIndex(where: { $0.id == chatId }) else { return }
+        snapshot.chats[index].unreadCount = max(1, snapshot.chats[index].unreadCount)
+        persist()
+    }
+
     // MARK: - Чаты
 
     func createDirectChat(peer: UserProfile) -> Chat {

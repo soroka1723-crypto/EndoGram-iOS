@@ -153,6 +153,12 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
+    /// «Отметить как непрочитанное» из контекстного меню списка чатов.
+    func markUnread(chatId: String) {
+        backend.markChatUnread(chatId: chatId)
+        refresh()
+    }
+
     func openDirectChat(with contact: UserProfile) -> Chat {
         let chat = backend.createDirectChat(peer: contact)
         refresh()

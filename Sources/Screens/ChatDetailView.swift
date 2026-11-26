@@ -11,6 +11,7 @@ struct ChatDetailView: View {
     @State private var replyingTo: Message?
     @State private var showInfo = false
     @State private var showAttach = false
+    @State private var showEmoji = false
     @State private var toast: String?
     @FocusState private var inputFocused: Bool
 
@@ -28,6 +29,13 @@ struct ChatDetailView: View {
                 }
                 messageList
                 composer
+                if showEmoji {
+                    EmojiPanel { emoji in
+                        draft += emoji
+                    }
+                    .frame(height: 296)
+                    .transition(.move(edge: .bottom))
+                }
             }
             if let toast {
                 toastView(toast)
@@ -240,13 +248,15 @@ struct ChatDetailView: View {
 
             HStack(alignment: .bottom, spacing: 8) {
                 Button {
-                    showAttach = true
+                    showEmoji = true
+                    inputFocused = false
                 } label: {
-                    Image(systemName: "paperclip")
-                        .font(.system(size: 20, weight: .medium))
+                    Image(systemName: "face.smiling")
+                        .font(.system(size: 20, weight: .regular))
                         .foregroundColor(Theme.textSecondary)
-                        .frame(width: 36, height: 38)
+                        .frame(width: 34, height: 38)
                 }
+                .accessibilityLabel("Эмодзи и стикеры")
 
                 TextField(isChannel ? "Написать в канал…" : "Сообщение", text: $draft, axis: .vertical)
                     .lineLimit(1...6)
@@ -263,6 +273,17 @@ struct ChatDetailView: View {
                             .stroke(Theme.inputStroke, lineWidth: 1)
                     )
                     .focused($inputFocused)
+
+                Button {
+                    showAttach = true
+                    inputFocused = false
+                } label: {
+                    Image(systemName: "paperclip")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(Theme.textSecondary)
+                        .frame(width: 32, height: 38)
+                }
+                .accessibilityLabel("Прикрепить")
 
                 Button(action: submit) {
                     Image(systemName: draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
