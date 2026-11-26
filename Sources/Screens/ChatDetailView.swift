@@ -284,11 +284,14 @@ struct ChatDetailView: View {
                     .frame(height: 0.5)
             }
         }
-        .confirmationDialog("Вложение", isPresented: $showAttach) {
-            Button("Фото или видео") { showToast("Локальный режим: вложения не отправляются") }
-            Button("Документ") { showToast("Локальный режим: вложения не отправляются") }
-            Button("Геолокация") { showToast("Локальный режим: геолокация недоступна") }
-            Button("Отмена", role: .cancel) {}
+        .sheet(isPresented: $showAttach) {
+            AttachmentMenu { title in
+                showAttach = false
+                showToast("Офлайн-режим: «\(title)» пока не поддерживается, сообщение не отправлено")
+            }
+            .presentationDetents([.height(292)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(Theme.panelElevated)
         }
     }
 
@@ -539,5 +542,76 @@ struct MessageBubble: View {
         Button(role: .destructive, action: onDelete) {
             Label("Удалить", systemImage: "trash")
         }
+    }
+}
+
+/// Меню вложений в стиле Telegram: сетка круглых значков.
+/// Все пункты честно сообщают, что вложения в офлайн-режиме не отправляются.
+struct AttachmentMenu: View {
+    let onSelect: (String) -> Void
+
+    private struct Item: Identifiable {
+        let id = UUID()
+        let title: String
+        let icon: String
+        let color: String
+    }
+
+    private var items: [Item] {
+        [
+            Item(title: "Фото или видео", icon: "photo.fill", color: Palette.blue),
+            Item(title: "Файл", icon: "doc.fill", color: Palette.purple),
+            Item(title: "Геопозиция", icon: "location.fill", color: Palette.green),
+            Item(title: "Контакт", icon: "person.crop.circle.fill", color: Palette.orange),
+            Item(title: "Опрос", icon: "chart.bar.fill", color: Palette.cyan),
+            Item(title: "Музыка", icon: "music.note", color: Palette.pink)
+        ]
+    }
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Text("Вложение")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Theme.textPrimary)
+                .padding(.top, 14)
+
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(items) { item in
+                    Button {
+                        onSelect(item.title)
+                    } label: {
+                        VStack(spacing: 8) {
+                            Circle()
+                                .fill(Color(hex: item.color))
+                                .frame(width: 60, height: 60)
+                                .overlay(
+                                    Image(systemName: item.icon)
+                                        .font(.system(size: 24, weight: .medium))
+                                        .foregroundColor(.white)
+                                )
+                            Text(item.title)
+                                .font(.system(size: 12))
+                                .foregroundColor(Theme.textPrimary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16)
+
+            Text("Офлайн-режим: вложения не отправляются и не сохраняются.")
+                .font(.system(size: 12))
+                .foregroundColor(Theme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+        .background(Theme.panelElevated)
     }
 }
