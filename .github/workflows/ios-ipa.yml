@@ -1,0 +1,81 @@
+﻿name: Build iOS IPA
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show project
+        run: |
+          set -e
+          ls -la .
+          find Sources -name '*.swift' | wc -l
+
+      - name: Select Xcode
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: |
+          set -e
+          cd .
+          xcodegen generate
+          ls -la
+
+      - name: Build (unsigned)
+        run: |
+          set -e
+          cd .
+          xcodebuild \
+            -project EndoGram.xcodeproj \
+            -scheme EndoGram \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          set -e
+          cd .
+          APP=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name "*.app" | head -1)
+          echo "APP=$APP"
+          ls -la "$APP"
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          cd out
+          zip -qry EndoGram-unsigned.ipa Payload
+          ls -la EndoGram-unsigned.ipa
+
+      - name: Verify
+        run: |
+          set -e
+          cd .
+          APP=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name "*.app" | head -1)
+          file "$APP/EndoGram"
+          lipo -info "$APP/EndoGram"
+          plutil -p "$APP/Info.plist" | head -25
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: EndoGram-ipa
+          path: out/EndoGram-unsigned.ipa
+          if-no-files-found: error
+
