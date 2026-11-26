@@ -52,8 +52,8 @@ struct ChatsListView: View {
                     if visibleChats.isEmpty && env.archivedChats.isEmpty {
                         EmptyStateView(
                             icon: "bubble.left.and.bubble.right",
-                            title: "Пока нет чатов",
-                            subtitle: "Нажмите на карандаш в правом верхнем углу, чтобы создать чат, группу или канал."
+                            title: "У вас пока нет переписки",
+                            subtitle: "Начните переписку кнопкой-карандашом в правом верхнем углу или перейдите в раздел «Контакты»."
                         )
                     } else {
                         chatList
@@ -68,7 +68,9 @@ struct ChatsListView: View {
                 .transition(.move(edge: .bottom))
             }
         }
-        .navigationTitle("Чаты")
+        .navigationTitle(editing
+                         ? (selection.isEmpty ? "Выберите чаты" : "Выбрано: \(selection.count)")
+                         : "Чаты")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -118,39 +120,13 @@ struct ChatsListView: View {
 
     /// Поиск прямо в списке чатов — как в Telegram, вместо отдельного экрана.
     private var inlineSearchBar: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14, weight: .semibold))
-                TextField("Поиск сообщений и пользователей", text: $query)
-                    .font(.system(size: 16))
-                    .foregroundColor(Theme.textPrimary)
-                    .focused($searchFocused)
-                    .submitLabel(.search)
-                    .autocorrectionDisabled()
-                if !query.isEmpty {
-                    Button {
-                        query = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 15))
-                            .foregroundColor(Theme.textSecondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .foregroundColor(Theme.textSecondary)
+        SearchField(placeholder: "Поиск сообщений и пользователей",
+                    text: $query,
+                    focused: $searchFocused)
             .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Theme.searchBar)
-            )
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 4)
-        .padding(.bottom, 6)
-        .onAppear { searchFocused = true }
+            .padding(.top, 4)
+            .padding(.bottom, 6)
+            .onAppear { searchFocused = true }
     }
 
     // MARK: - Поиск и папки
@@ -209,17 +185,8 @@ struct ChatsListView: View {
                     .buttonStyle(.plain)
                 }
 
-                Button {
-                    showCompose = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Theme.textSecondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(Theme.background))
-                }
-                .buttonStyle(.plain)
+                // В Telegram в полосе папок нет кнопки «плюс»: создание чата —
+                // только карандашом в правом верхнем углу.
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
@@ -337,7 +304,7 @@ struct ChatsListView: View {
                     env.markUnread(chatId: chat.id)
                 }
             } label: {
-                Label(chat.unreadCount > 0 ? "Прочитано" : "Отметить как непрочитанное",
+                Label(chat.unreadCount > 0 ? "Отметить прочитанным" : "Отметить непрочитанным",
                       systemImage: chat.unreadCount > 0 ? "checkmark.circle" : "circle")
             }
             Button {
@@ -345,6 +312,12 @@ struct ChatsListView: View {
             } label: {
                 Label(chat.isArchived ? "Из архива" : "В архив",
                       systemImage: chat.isArchived ? "tray.and.arrow.up" : "archivebox")
+            }
+            Button {
+                // «Выбрать» из контекстного меню — `ChatList.Context.Select`.
+                beginEditing(with: chat.id)
+            } label: {
+                Label("Выбрать", systemImage: "checkmark.circle")
             }
             Divider()
             Button(role: .destructive) {
@@ -412,6 +385,14 @@ struct ChatsListView: View {
         withAnimation(.easeInOut(duration: 0.18)) {
             editing = false
             selection.removeAll()
+        }
+    }
+
+    /// Вход в режим правки с уже отмеченным чатом — `ChatList.Context.Select`.
+    private func beginEditing(with chatId: String) {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            editing = true
+            selection = [chatId]
         }
     }
 }
