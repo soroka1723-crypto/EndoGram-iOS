@@ -10,6 +10,8 @@ struct ChatsListView: View {
     @State private var searchActive = false
     @State private var searchChat: Chat?
     @State private var selectedChat: Chat?
+    @State private var editing = false
+    @State private var selection = Set<String>()
     @FocusState private var searchFocused: Bool
 
     private var folders: [ChatFolder] { env.snapshot.folders }
@@ -56,10 +58,28 @@ struct ChatsListView: View {
                     }
                 }
             }
+            if editing {
+                VStack {
+                    Spacer()
+                    editBar
+                }
+                .transition(.move(edge: .bottom))
+            }
         }
         .navigationTitle("Чаты")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                if !searchActive && !visibleChats.isEmpty {
+                    Button(editing ? "Готово" : "Правка") {
+                        withAnimation(.easeInOut(duration: 0.18)) {
+                            editing.toggle()
+                            selection.removeAll()
+                        }
+                    }
+                    .tint(Theme.accent)
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 if searchActive {
                     Button("Отмена") {
@@ -250,16 +270,32 @@ struct ChatsListView: View {
 
     private func chatRow(_ chat: Chat, pinned: Bool) -> some View {
         Button {
-            selectedChat = chat
+            if editing {
+                if selection.contains(chat.id) {
+                    selection.remove(chat.id)
+                } else {
+                    selection.insert(chat.id)
+                }
+            } else {
+                selectedChat = chat
+            }
         } label: {
-            ChatRowView(chat: chat)
+            HStack(spacing: 10) {
+                if editing {
+                    Image(systemName: selection.contains(chat.id) ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 21))
+                        .foregroundColor(selection.contains(chat.id) ? Theme.accent : Theme.textDisabled)
+                        .transition(.scale.combined(with: .opacity))
+                }
+                ChatRowView(chat: chat)
+            }
         }
         .buttonStyle(.plain)
         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
         // theme.chatList.pinnedItemBackgroundColor — 0x1C1C1D, обычные — 0x000000
         .listRowBackground(pinned ? Theme.pinnedRow : Theme.background)
         .listRowSeparatorTint(Theme.divider)
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+        .swipeActions(edge: .trailing, allowsFullSwipe: !editing) {
             Button(role: .destructive) {
                 env.deleteChat(chat.id)
             } label: {
@@ -315,6 +351,66 @@ struct ChatsListView: View {
             } label: {
                 Label("Удалить", systemImage: "trash")
             }
+        }
+    }
+    /// Нижняя панель режима «Правка» — действия над выбранными чатами.
+    private var editBar: some View {
+        HStack(spacing: 0) {
+            editAction(icon: "checkmark.circle", title: "Прочитано", enabled: !selection.isEmpty) {
+                for id in selection { env.markRead(chatId: id) }
+                finishEditing()
+            }
+            editAction(icon: "pin", title: "Закрепить", enabled: !selection.isEmpty) {
+                for id in selection { env.setPinned(id, true) }
+                finishEditing()
+            }
+            editAction(icon: "bell.slash", title: "Без звука", enabled: !selection.isEmpty) {
+                for id in selection { env.setMuted(id, true) }
+                finishEditing()
+            }
+            editAction(icon: "archivebox", title: "В архив", enabled: !selection.isEmpty) {
+                for id in selection { env.setArchived(id, true) }
+                finishEditing()
+            }
+            editAction(icon: "trash", title: "Удалить", enabled: !selection.isEmpty, destructive: true) {
+                for id in selection { env.deleteChat(id) }
+                finishEditing()
+            }
+        }
+        .padding(.vertical, 8)
+        .background(Theme.rootNavigationBar)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Theme.divider).frame(height: 0.5)
+        }
+    }
+
+    private func editAction(
+        icon: String,
+        title: String,
+        enabled: Bool,
+        destructive: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 19))
+                Text(title)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity)
+            .foregroundColor(enabled ? (destructive ? Theme.danger : Theme.accent) : Theme.textDisabled)
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+    }
+
+    private func finishEditing() {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            editing = false
+            selection.removeAll()
         }
     }
 }
