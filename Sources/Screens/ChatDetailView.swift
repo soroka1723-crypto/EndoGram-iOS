@@ -334,8 +334,28 @@ struct MessageBubble: View {
     let showAuthor: Bool
     let onLongPress: () -> Void
 
-    private var bubbleColor: Color {
-        message.kind == .service ? Theme.panelElevated.opacity(0.9) : (isMine ? Theme.bubbleMine : Theme.bubbleTheirs)
+    /// Заливка пузыря как в Telegram: исходящее — вертикальный градиент,
+    /// входящее — сплошной 0x1D1D1D с альфой 0.9, служебное — блок 0x2C2C2E.
+    private var bubbleFill: AnyShapeStyle {
+        if message.kind == .service {
+            return AnyShapeStyle(Theme.panelElevated.opacity(0.9))
+        }
+        if isMine {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Theme.bubbleOutgoingTop, Theme.bubbleOutgoingBottom],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        }
+        return AnyShapeStyle(Theme.bubbleIncoming)
+    }
+
+    /// Цвет «хвостика» — нижняя точка градиента для исходящих.
+    private var tailColor: Color {
+        if message.kind == .service { return Theme.panelElevated.opacity(0.9) }
+        return isMine ? Theme.bubbleOutgoingBottom : Theme.bubbleIncoming
     }
 
     var body: some View {
@@ -343,14 +363,14 @@ struct MessageBubble: View {
             if isMine { Spacer(minLength: 50) }
 
             if !isMine && isGroup {
-                AvatarView(title: message.authorName, colorHex: Palette.blue, size: 28)
+                AvatarView(title: message.authorName, colorHex: Palette.peerColor(for: message.authorName), size: 28)
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 if !isMine && isGroup && showAuthor {
                     Text(message.authorName)
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Theme.accentBright)
+                        .foregroundColor(Color(hex: Palette.peerColor(for: message.authorName)))
                 }
                 Text(message.text)
                     .font(.system(size: 16))
@@ -368,21 +388,21 @@ struct MessageBubble: View {
                     if isMine {
                         Image(systemName: "checkmark")
                             .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(Theme.accentBright)
+                            .foregroundColor(.white)
                     }
                 }
-                .foregroundColor(.white.opacity(0.6))
+                .foregroundColor(Theme.bubbleSecondaryMine)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(bubbleColor)
+                RoundedRectangle(cornerRadius: Theme.bubbleCorner, style: .continuous)
+                    .fill(bubbleFill)
             )
             .overlay(alignment: isMine ? .bottomTrailing : .bottomLeading) {
                 Circle()
-                    .fill(bubbleColor)
+                    .fill(tailColor)
                     .frame(width: 12, height: 12)
                     .offset(x: isMine ? 4 : -4, y: 4)
                     .clipped()

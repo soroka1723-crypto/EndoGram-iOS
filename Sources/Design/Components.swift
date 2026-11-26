@@ -49,11 +49,12 @@ struct UnreadBadge: View {
         if count > 0 {
             Text(count > 99 ? "99+" : "\(count)")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(muted ? .black : .white)
                 .padding(.horizontal, count > 9 ? 6 : 7)
                 .padding(.vertical, 3)
                 .background(
-                    Capsule().fill(muted ? Theme.textSecondary.opacity(0.5) : Theme.accentBright)
+                    // theme.chatList.unreadBadge*BackgroundColor
+                    Capsule().fill(muted ? Theme.neutral : Theme.accent)
                 )
         }
     }
@@ -86,8 +87,8 @@ struct SectionCard<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let title {
-                Text(title.uppercased())
-                    .font(.system(size: 12, weight: .semibold))
+                Text(title)
+                    .font(.system(size: 13, weight: .regular))
                     .foregroundColor(Theme.textSecondary)
                     .padding(.horizontal, 16)
             }
@@ -119,13 +120,13 @@ struct SettingsRow: View {
             Spacer(minLength: 8)
             if let value {
                 Text(value)
-                    .foregroundColor(Theme.textSecondary)
+                    .foregroundColor(Theme.textListItemSecondary)
                     .lineLimit(1)
             }
             if showsChevron {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Theme.textSecondary.opacity(0.7))
+                    .foregroundColor(Theme.disclosure)
             }
         }
         .padding(.horizontal, 14)

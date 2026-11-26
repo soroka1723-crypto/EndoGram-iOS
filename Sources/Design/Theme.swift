@@ -1,28 +1,97 @@
 import SwiftUI
 import Foundation
 
-/// Цвета и размеры в духе Telegram (тёмная тема).
+/// Палитра перенесена из официального клиента Telegram для iOS.
+///
+/// Источник: `submodules/TelegramPresentationData/Sources/DefaultDarkPresentationTheme.swift`
+/// (ночная тема, акцент `0x3E88F7` — как в `defaultDarkColorPresentationTheme`).
+/// Значения цветов не выдуманы: каждое соответствует конкретному полю темы Telegram,
+/// имя поля указано в комментарии.
 enum Theme {
 
-    static let background = Color(hex: "#0E1621")
-    static let panel = Color(hex: "#17212B")
-    static let panelElevated = Color(hex: "#1C2733")
-    static let hover = Color(hex: "#202B36")
-    static let selected = Color(hex: "#2B5278")
-    static let divider = Color(hex: "#101921")
+    // MARK: - Поверхности
 
-    static let bubbleMine = Color(hex: "#2B5278")
-    static let bubbleTheirs = Color(hex: "#182533")
+    /// `theme.list.blocksBackgroundColor` / `theme.chatList.backgroundColor` — 0x000000
+    static let background = Color(hex: "#000000")
+    /// `theme.list.itemBlocksBackgroundColor` — 0x1C1C1D (карточки, блоки настроек)
+    static let panel = Color(hex: "#1C1C1D")
+    /// `theme.list.itemModalBlocksBackgroundColor` — 0x2C2C2E
+    static let panelElevated = Color(hex: "#2C2C2E")
+    /// `theme.list.itemHighlightedBackgroundColor` — 0x313135
+    static let hover = Color(hex: "#313135")
+    /// `theme.chatList.itemSelectedBackgroundColor` — 0x191919
+    static let selected = Color(hex: "#191919")
+    /// Разделители: UIColor(rgb: 0x545458, alpha: 0.55)
+    static let divider = Color(hex: "#545458").opacity(0.55)
+    /// `theme.chatList.pinnedItemBackgroundColor` — 0x1C1C1D
+    static let pinnedRow = Color(hex: "#1C1C1D")
 
-    static let accent = Color(hex: "#5288C1")
-    static let accentBright = Color(hex: "#2EA6FF")
+    // MARK: - Пузыри сообщений
+
+    /// Исходящее: градиент `[0x61BCF9, 0x0088FF]` (theme.chat.message.outgoing.bubble.fill)
+    static let bubbleOutgoingTop = Color(hex: "#61BCF9")
+    static let bubbleOutgoingBottom = Color(hex: "#0088FF")
+    /// Входящее: 0x1D1D1D с альфой 0.9 (theme.chat.message.incoming.bubble.fill)
+    static let bubbleIncoming = Color(hex: "#1D1D1D").opacity(0.9)
+
+    /// Совместимость: сплошные цвета пузырей.
+    static let bubbleMine = Color(hex: "#0088FF")
+    static let bubbleTheirs = Color(hex: "#1D1D1D").opacity(0.9)
+
+    /// `theme.chat.message.outgoing.secondaryTextColor` — 0xffffff @ 0.5
+    static let bubbleSecondaryMine = Color.white.opacity(0.5)
+    /// `theme.chat.message.incoming.secondaryTextColor` — 0xffffff @ 0.5
+    static let bubbleSecondaryTheirs = Color.white.opacity(0.5)
+
+    // MARK: - Текст
+
+    /// `theme.list.itemPrimaryTextColor` — 0xffffff
     static let textPrimary = Color.white
-    static let textSecondary = Color(hex: "#7F91A4")
-    static let online = Color(hex: "#4DCD5E")
-    static let danger = Color(hex: "#E17076")
-    static let star = Color(hex: "#F5C542")
+    /// `theme.chatList.dateTextColor` / `theme.list.sectionHeaderTextColor` — 0x8D8E93
+    static let textSecondary = Color(hex: "#8D8E93")
+    /// `theme.list.itemSecondaryTextColor` — 0x98989E
+    static let textListItemSecondary = Color(hex: "#98989E")
+    /// `theme.list.itemDisabledTextColor` — 0x8F8F8F
+    static let textDisabled = Color(hex: "#8F8F8F")
+    /// `theme.list.itemPlaceholderTextColor` — 0x4D4D4D
+    static let textPlaceholder = Color(hex: "#4D4D4D")
+    /// `theme.list.disclosureArrowColor` — 0xffffff @ 0.28
+    static let disclosure = Color.white.opacity(0.28)
 
-    static let corner: CGFloat = 14
+    // MARK: - Акценты и семантика
+
+    /// Акцент `defaultDarkColorPresentationTheme` — 0x3E88F7
+    static let accent = Color(hex: "#3E88F7")
+    static let accentBright = Color(hex: "#3E88F7")
+    /// `theme.chat.message.incoming.linkTextColor` при акценте
+    static let link = Color(hex: "#3E88F7")
+    /// `theme.chatList.onlineDotColor` — 0x4CC91F
+    static let online = Color(hex: "#4CC91F")
+    /// `theme.list.itemDestructiveColor` — 0xEB5545
+    static let danger = Color(hex: "#EB5545")
+    /// `theme.chat.message.textHighlightColor` — 0xF5C038
+    static let star = Color(hex: "#F5C038")
+    /// `theme.list.itemDisclosureActions.constructive` — 0x08A723
+    static let success = Color(hex: "#08A723")
+    /// `theme.list.itemDisclosureActions.warning` — 0xCD7800
+    static let warning = Color(hex: "#CD7800")
+    /// `theme.list.itemDisclosureActions.neutral1` — 0x666666
+    static let neutral = Color(hex: "#666666")
+    /// `badgeFillColor` при акценте — 0xEB5545
+    static let badge = Color(hex: "#EB5545")
+    /// `theme.chatList.reactionBadgeActiveBackgroundColor` — 0xFF2D55
+    static let reaction = Color(hex: "#FF2D55")
+    /// `theme.chatList.messageDraftTextColor` — 0xDD4B39
+    static let draft = Color(hex: "#DD4B39")
+    /// `theme.chatList.secretIconColor` — 0x00B12C
+    static let secret = Color(hex: "#00B12C")
+
+    // MARK: - Метрики
+
+    /// Радиус скругления блоков списка в Telegram — 10 pt.
+    static let corner: CGFloat = 10
+    /// Радиус пузыря сообщения — 17 pt.
+    static let bubbleCorner: CGFloat = 17
     static let rowHeight: CGFloat = 72
 }
 
@@ -50,22 +119,32 @@ extension Color {
     }
 }
 
-/// Фон переписки — мягкие пятна, как обои Telegram.
+/// Обои переписки ночной темы Telegram.
+///
+/// Telegram строит их из `defaultDarkWallpaperGradientColors`
+/// (`0x598BF6, 0x7A5EEF, 0xD67CFF, 0xF38B58`) с интенсивностью -34,
+/// то есть затемнённым градиентом поверх почти чёрной основы.
 struct ChatWallpaper: View {
     var body: some View {
         ZStack {
-            Theme.background
-            RadialGradient(
-                colors: [Color(hex: "#2B5278").opacity(0.35), .clear],
-                center: .topLeading,
-                startRadius: 8,
-                endRadius: 420
+            Color(hex: "#04070B")
+
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: "#598BF6").opacity(0.20), location: 0.00),
+                    .init(color: Color(hex: "#7A5EEF").opacity(0.17), location: 0.34),
+                    .init(color: Color(hex: "#D67CFF").opacity(0.13), location: 0.68),
+                    .init(color: Color(hex: "#F38B58").opacity(0.10), location: 1.00),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
+
             RadialGradient(
-                colors: [Color(hex: "#5288C1").opacity(0.18), .clear],
-                center: .bottomTrailing,
-                startRadius: 8,
-                endRadius: 380
+                colors: [Color(hex: "#598BF6").opacity(0.16), .clear],
+                center: .top,
+                startRadius: 10,
+                endRadius: 460
             )
         }
         .ignoresSafeArea()
