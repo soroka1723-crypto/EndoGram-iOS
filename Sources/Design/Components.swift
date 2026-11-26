@@ -14,6 +14,19 @@ extension View {
             self
         }
     }
+
+    /// Выделение текста, включаемое по условию.
+    ///
+    /// В режиме выбора сообщений выделение нужно выключить, иначе долгое
+    /// нажатие на текст перехватывается и не доходит до выбора сообщения.
+    @ViewBuilder
+    func textSelectionIf(_ enabled: Bool) -> some View {
+        if enabled {
+            self.textSelection(.enabled)
+        } else {
+            self.textSelection(.disabled)
+        }
+    }
 }
 
 /// Круглый аватар с инициалами — как заглушки Telegram.

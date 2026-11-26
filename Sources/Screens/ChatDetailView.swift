@@ -725,7 +725,7 @@ struct MessageBubble: View {
                     Text(message.text)
                         .font(.system(size: bigEmojiSize))
                         .foregroundColor(Theme.textPrimary)
-                        .textSelection(selectionMode ? .disabled : .enabled)
+                        .textSelectionIf(!selectionMode)
                 }
 
                 HStack(spacing: 4) {
