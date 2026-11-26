@@ -96,7 +96,7 @@ struct ChatsListView: View {
             .padding(.vertical, 9)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Theme.background)
+                    .fill(Theme.searchBar)
             )
             .padding(.horizontal, 12)
             .padding(.top, 4)
@@ -159,44 +159,42 @@ struct ChatsListView: View {
                 NavigationLink(value: ArchiveRoute()) {
                     HStack(spacing: 12) {
                         Image(systemName: "archivebox.fill")
+                            .font(.system(size: 17))
                             .foregroundColor(.white)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 54, height: 54)
                             .background(Circle().fill(Theme.accent))
                         Text("Архив")
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(Theme.textPrimary)
                         Spacer()
                         Text("\(env.archivedChats.count)")
-                            .foregroundColor(Theme.accentBright)
+                            .font(.system(size: 15))
+                            .foregroundColor(Theme.accent)
                     }
+                    .padding(.vertical, 6)
                 }
-                .listRowBackground(Theme.panel)
+                .listRowBackground(Theme.background)
             }
 
             if !pinned.isEmpty {
                 Section {
-                    ForEach(pinned) { chat in chatRow(chat) }
-                } header: {
-                    Text("Закреплённые").font(.system(size: 12, weight: .semibold))
+                    ForEach(pinned) { chat in chatRow(chat, pinned: true) }
                 }
             }
 
             Section {
-                ForEach(regular) { chat in chatRow(chat) }
-            } header: {
-                if !pinned.isEmpty {
-                    Text("Все чаты").font(.system(size: 12, weight: .semibold))
-                }
+                ForEach(regular) { chat in chatRow(chat, pinned: false) }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(Theme.panel)
+        .background(Theme.background)
         .navigationDestination(for: ArchiveRoute.self) { _ in
             ArchiveView().environmentObject(env)
         }
     }
 
-    private func chatRow(_ chat: Chat) -> some View {
+    private func chatRow(_ chat: Chat, pinned: Bool) -> some View {
         Button {
             selectedChat = chat
         } label: {
@@ -204,7 +202,8 @@ struct ChatsListView: View {
         }
         .buttonStyle(.plain)
         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
-        .listRowBackground(Theme.panel)
+        // theme.chatList.pinnedItemBackgroundColor — 0x1C1C1D, обычные — 0x000000
+        .listRowBackground(pinned ? Theme.pinnedRow : Theme.background)
         .listRowSeparatorTint(Theme.divider)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
@@ -298,7 +297,7 @@ struct ArchiveView: View {
 
     var body: some View {
         ZStack {
-            Theme.panel.ignoresSafeArea()
+            Theme.background.ignoresSafeArea()
             if env.archivedChats.isEmpty {
                 EmptyStateView(icon: "archivebox", title: "Архив пуст", subtitle: "Смахивайте чаты влево и отправляйте в архив.")
             } else {
@@ -306,7 +305,8 @@ struct ArchiveView: View {
                     ForEach(env.sorted(env.archivedChats)) { chat in
                         Button { selectedChat = chat } label: { ChatRowView(chat: chat) }
                             .buttonStyle(.plain)
-                            .listRowBackground(Theme.panel)
+                            .listRowBackground(Theme.background)
+                            .listRowSeparatorTint(Theme.divider)
                             .swipeActions {
                                 Button {
                                     env.setArchived(chat.id, false)
