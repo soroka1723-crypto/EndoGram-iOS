@@ -7,6 +7,11 @@ struct SettingsView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var showReset = false
     @State private var helpSheet: HelpTopic?
+    @State private var search = ""
+
+    private var isSearching: Bool {
+        !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     enum Route: Hashable {
         case profile, stars, premium, notifications, privacy, data
@@ -22,19 +27,13 @@ struct SettingsView: View {
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
-            List {
-                profileSection
-                primarySection
-                generalSection
-                networkSection
-                helpSection
-                dangerSection
-                versionSection
+            if isSearching {
+                SettingsSearchResults(query: search)
+            } else {
+                settingsList
             }
-            .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
-            .background(Theme.background.ignoresSafeArea())
         }
+        .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
         .navigationTitle("Настройки")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Theme.background, for: .navigationBar)
@@ -69,6 +68,23 @@ struct SettingsView: View {
         } message: {
             Text("Все чаты, сообщения, подарки и NFT будут удалены. Будет создан новый локальный аккаунт с 1 000 000 звёзд.")
         }
+    }
+
+    // MARK: - Список
+
+    private var settingsList: some View {
+        List {
+            profileSection
+            primarySection
+            generalSection
+            networkSection
+            helpSection
+            dangerSection
+            versionSection
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(Theme.background.ignoresSafeArea())
     }
 
     // MARK: - Секции
