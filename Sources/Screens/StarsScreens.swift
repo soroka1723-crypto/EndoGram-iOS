@@ -423,11 +423,24 @@ struct NFTMarketView: View {
     }
 
     private func nftCard(_ item: NFTItem) -> some View {
-        HStack(spacing: 12) {
-            Text(item.emoji)
-                .font(.system(size: 40))
-                .frame(width: 74, height: 74)
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: item.colorHex).opacity(0.16)))
+        let level = NFTVisuals.rarityLevel(item.rarity)
+        let animated = env.snapshot.settings.animationsEnabled
+
+        return HStack(spacing: 12) {
+            ZStack {
+                CardGlow(colorHex: item.colorHex, animated: animated,
+                         intensity: level >= 3 ? 1.4 : 1.0)
+                FloatingNFTEmoji(emoji: item.emoji, colorHex: item.colorHex,
+                                 size: 34, rarity: item.rarity, animated: animated)
+            }
+            .frame(width: 74, height: 74)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(NFTVisuals.rarityColor(item.rarity).opacity(level >= 2 ? 0.55 : 0.2),
+                            lineWidth: 1)
+            )
+            .shimmer(animated: animated && level >= 3, period: 3.2)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.collection)
@@ -452,10 +465,17 @@ struct NFTMarketView: View {
                 .foregroundColor(Theme.textPrimary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Capsule().fill(Color(hex: item.colorHex).opacity(0.25)))
+                .background(Capsule().fill(NFTVisuals.rarityColor(item.rarity).opacity(0.28)))
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: Theme.corner).fill(Theme.panel))
+        .background(
+            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                .fill(Theme.panel)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                .stroke(NFTVisuals.rarityColor(item.rarity).opacity(level >= 3 ? 0.35 : 0), lineWidth: 1)
+        )
         .padding(.horizontal, 12)
     }
 }
@@ -471,74 +491,76 @@ struct NFTDetailView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Theme.background.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    Text(item.emoji)
-                        .font(.system(size: 92))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 26)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(hex: item.colorHex).opacity(0.35), Color(hex: item.colorHex).opacity(0.08)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .padding(.horizontal, 16)
-                        .padding(.top, 10)
+                // Анимированный фон из цвета коллекции.
+                AnimatedAurora(colorHex: item.colorHex,
+                               secondaryHex: Palette.purple,
+                               animated: env.snapshot.settings.animationsEnabled)
+                    .ignoresSafeArea()
 
-                    VStack(spacing: 5) {
-                        Text(item.collection)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(Theme.accentBright)
-                        Text(item.name)
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(Theme.textPrimary)
-                        Text("#\(item.serial) из \(item.totalSupply) · \(item.rarity)")
-                            .font(.system(size: 13))
+                ScrollView {
+                    VStack(spacing: 16) {
+                        heroPanel
+
+                        VStack(spacing: 5) {
+                            Text(item.collection)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.accentBright)
+                            Text(item.name)
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(Theme.textPrimary)
+                            HStack(spacing: 6) {
+                                Text("#\(item.serial) из \(item.totalSupply)")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Theme.textSecondary)
+                                Text(item.rarity)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Capsule().fill(NFTVisuals.rarityColor(item.rarity).opacity(0.85)))
+                            }
+                        }
+
+                        Text(item.description)
+                            .font(.system(size: 14))
+                            .foregroundColor(Theme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+
+                        rarityFacts
+
+                        HStack(spacing: 5) {
+                            Text("⭐️")
+                            Text(Format.number(item.price))
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(Theme.star)
+                        }
+
+                        if let error {
+                            Text(error)
+                                .font(.system(size: 13))
+                                .foregroundColor(Theme.danger)
+                        }
+
+                        Button {
+                            if let error = env.buyNFT(item) {
+                                self.error = error
+                            } else {
+                                onResult("NFT «\(item.name)» добавлен в коллекцию")
+                                dismiss()
+                            }
+                        } label: {
+                            Text("Купить за \(Format.stars(item.price))")
+                        }
+                        .buttonStyle(StarButtonStyle())
+                        .padding(.horizontal, 16)
+
+                        Text("Баланс: \(Format.stars(env.stars))")
+                            .font(.system(size: 12))
                             .foregroundColor(Theme.textSecondary)
                     }
-
-                    Text(item.description)
-                        .font(.system(size: 14))
-                        .foregroundColor(Theme.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-
-                    HStack(spacing: 5) {
-                        Text("⭐️")
-                        Text(Format.number(item.price))
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(Theme.star)
-                    }
-
-                    if let error {
-                        Text(error)
-                            .font(.system(size: 13))
-                            .foregroundColor(Theme.danger)
-                    }
-
-                    Button {
-                        if let error = env.buyNFT(item) {
-                            self.error = error
-                        } else {
-                            onResult("NFT «\(item.name)» добавлен в коллекцию")
-                            dismiss()
-                        }
-                    } label: {
-                        Text("Купить за \(Format.stars(item.price))")
-                    }
-                    .buttonStyle(StarButtonStyle())
-                    .padding(.horizontal, 16)
-
-                    Text("Баланс: \(Format.stars(env.stars))")
-                        .font(.system(size: 12))
-                        .foregroundColor(Theme.textSecondary)
-
-                    Spacer()
+                    .padding(.bottom, 30)
                 }
-                .padding(.bottom, 20)
             }
             .navigationTitle("NFT")
             .navigationBarTitleDisplayMode(.inline)
@@ -550,6 +572,69 @@ struct NFTDetailView: View {
             .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
+    }
+
+    /// Большая карточка NFT: свечение, парящий эмодзи и блик для редких.
+    private var heroPanel: some View {
+        let level = NFTVisuals.rarityLevel(item.rarity)
+        let animated = env.snapshot.settings.animationsEnabled
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: item.colorHex).opacity(0.42),
+                                 Color(hex: item.colorHex).opacity(0.08)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            FloatingNFTEmoji(emoji: item.emoji, colorHex: item.colorHex,
+                             size: 96, rarity: item.rarity, animated: animated)
+        }
+        .frame(height: 250)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(NFTVisuals.rarityColor(item.rarity).opacity(level >= 2 ? 0.6 : 0.22),
+                        lineWidth: level >= 2 ? 1.6 : 1)
+        )
+        .shimmer(animated: animated && level >= 2, period: 3.0)
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+    }
+
+    /// Характеристики коллекции — как карточка предмета в Telegram.
+    private var rarityFacts: some View {
+        VStack(spacing: 0) {
+            fact("Коллекция", item.collection)
+            DividerLine(inset: 14)
+            fact("Редкость", item.rarity, valueColor: NFTVisuals.rarityColor(item.rarity))
+            DividerLine(inset: 14)
+            fact("Номер", "#\(item.serial)")
+            DividerLine(inset: 14)
+            fact("Тираж", "\(item.totalSupply)")
+        }
+        .background(
+            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                .fill(Theme.panel.opacity(0.9))
+        )
+        .padding(.horizontal, 16)
+    }
+
+    private func fact(_ title: String, _ value: String, valueColor: Color = Theme.textListItemSecondary) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 14))
+                .foregroundColor(Theme.textPrimary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(valueColor)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }
 
@@ -605,10 +690,20 @@ struct InventoryView: View {
                         SectionCard(title: "NFT (\(env.snapshot.ownedNFTs.count))") {
                             ForEach(env.snapshot.ownedNFTs.reversed()) { nft in
                                 HStack(spacing: 12) {
-                                    Text(nft.emoji)
-                                        .font(.system(size: 30))
-                                        .frame(width: 46, height: 46)
-                                        .background(RoundedRectangle(cornerRadius: 10).fill(Color(hex: nft.colorHex).opacity(0.16)))
+                                    ZStack {
+                                        CardGlow(colorHex: nft.colorHex,
+                                                 animated: env.snapshot.settings.animationsEnabled,
+                                                 intensity: 0.9)
+                                        FloatingNFTEmoji(emoji: nft.emoji, colorHex: nft.colorHex,
+                                                         size: 24, rarity: nft.rarity,
+                                                         animated: env.snapshot.settings.animationsEnabled)
+                                    }
+                                    .frame(width: 46, height: 46)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .stroke(NFTVisuals.rarityColor(nft.rarity).opacity(0.45), lineWidth: 1)
+                                    )
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(nft.name)
                                             .font(.system(size: 15, weight: .medium))
