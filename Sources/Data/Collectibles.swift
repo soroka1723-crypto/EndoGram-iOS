@@ -25,7 +25,7 @@ enum CollectiblesCatalog {
 
     private static func build() -> [NFTItem] {
         records
-            .map(makeItem)
+            .map { makeItem($0) }
             .sorted { $0.totalSupply < $1.totalSupply }
     }
 
