@@ -1,5 +1,21 @@
 import SwiftUI
 
+extension View {
+    /// Контекстное меню, которое включается по условию.
+    ///
+    /// Нужно для режима выбора сообщений: пока он активен, долгое нажатие
+    /// не должно открывать меню действий — как в Telegram.
+    @ViewBuilder
+    func contextMenuIf<MenuItems: View>(_ condition: Bool,
+                                        @ViewBuilder menuItems: () -> MenuItems) -> some View {
+        if condition {
+            self.contextMenu(menuItems: menuItems)
+        } else {
+            self
+        }
+    }
+}
+
 /// Круглый аватар с инициалами — как заглушки Telegram.
 struct AvatarView: View {
     let title: String

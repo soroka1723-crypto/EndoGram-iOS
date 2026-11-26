@@ -16,6 +16,9 @@ protocol EndoBackend: AnyObject {
     func sendVoiceMessage(chatId: String, fileName: String, duration: Double, waveform: [Double]) -> Message
     func setReaction(messageId: String, emoji: String?)
     func forwardMessage(id: String, toChatId: String) -> Message?
+    /// Массовая пересылка выбранных сообщений.
+    func forwardMessages(ids: [String], toChatId: String) -> [Message]
+    func deleteMessages(ids: [String])
     func savedMessagesChat() -> Chat
     func editMessage(id: String, text: String)
     func deleteMessage(id: String)

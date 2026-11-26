@@ -134,29 +134,42 @@ final class LocalBackend: EndoBackend {
 
     /// Пересылка: копия сообщения с подписью автора — как `forward` в Telegram.
     func forwardMessage(id: String, toChatId: String) -> Message? {
-        guard let source = snapshot.messages.first(where: { $0.id == id }) else { return nil }
-        let forwarded = Message(
-            id: IDs.next("msg"),
-            chatId: toChatId,
-            senderId: snapshot.profile.id,
-            authorName: snapshot.profile.displayName,
-            text: source.text,
-            createdAt: Date(),
-            editedAt: nil,
-            isPinned: false,
-            kind: source.kind,
-            isRead: true,
-            replyToId: nil,
-            reaction: nil,
-            forwardedFrom: source.senderId == snapshot.profile.id ? snapshot.profile.displayName : source.authorName
-        )
-        snapshot.messages.append(forwarded)
+        forwardMessages(ids: [id], toChatId: toChatId).first
+    }
+
+    /// Массовая пересылка — как выбор нескольких сообщений в Telegram.
+    func forwardMessages(ids: [String], toChatId: String) -> [Message] {
+        var forwards: [Message] = []
+        for id in ids {
+            guard let source = snapshot.messages.first(where: { $0.id == id }) else { continue }
+            let forwarded = Message(
+                id: IDs.next("msg"),
+                chatId: toChatId,
+                senderId: snapshot.profile.id,
+                authorName: snapshot.profile.displayName,
+                text: source.text,
+                createdAt: Date(),
+                editedAt: nil,
+                isPinned: false,
+                kind: source.kind,
+                isRead: true,
+                replyToId: nil,
+                reaction: nil,
+                forwardedFrom: source.senderId == snapshot.profile.id ? snapshot.profile.displayName : source.authorName,
+                voiceFileName: source.voiceFileName,
+                voiceDuration: source.voiceDuration,
+                voiceWaveform: source.voiceWaveform
+            )
+            snapshot.messages.append(forwarded)
+            forwards.append(forwarded)
+        }
+        guard !forwards.isEmpty else { return [] }
         if let index = snapshot.chats.firstIndex(where: { $0.id == toChatId }) {
-            snapshot.chats[index].lastReadAt = forwarded.createdAt
+            snapshot.chats[index].lastReadAt = forwards.last?.createdAt
         }
         snapshot.updatedAt = Date()
         persist()
-        return forwarded
+        return forwards
     }
 
     /// «Избранное» — чат с самим собой, как Saved Messages в Telegram.
@@ -208,6 +221,13 @@ final class LocalBackend: EndoBackend {
 
     func deleteMessage(id: String) {
         snapshot.messages.removeAll { $0.id == id }
+        persist()
+    }
+
+    func deleteMessages(ids: [String]) {
+        guard !ids.isEmpty else { return }
+        let removing = Set(ids)
+        snapshot.messages.removeAll { removing.contains($0.id) }
         persist()
     }
 

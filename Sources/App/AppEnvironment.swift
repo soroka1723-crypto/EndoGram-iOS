@@ -140,6 +140,20 @@ final class AppEnvironment: ObservableObject {
         return forwarded
     }
 
+    /// Массовая пересылка выбранных сообщений в другой чат.
+    @discardableResult
+    func forwardMessages(ids: [String], toChatId: String) -> [Message] {
+        let forwards = backend.forwardMessages(ids: ids, toChatId: toChatId)
+        refresh()
+        return forwards
+    }
+
+    /// Массовое удаление выбранных сообщений.
+    func deleteMessages(ids: [String]) {
+        backend.deleteMessages(ids: ids)
+        refresh()
+    }
+
     /// «Избранное» — личный чат-хранилище.
     func savedMessagesChat() -> Chat {
         let chat = backend.savedMessagesChat()

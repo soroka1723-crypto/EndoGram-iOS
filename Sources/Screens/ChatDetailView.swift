@@ -14,6 +14,11 @@ struct ChatDetailView: View {
     @State private var showAttach = false
     @State private var showEmoji = false
     @State private var toast: String?
+    /// Режим выбора нескольких сообщений — как «Выбрать» в Telegram.
+    @State private var selecting = false
+    @State private var selectedIds = Set<String>()
+    @State private var bulkForwarding = false
+    @State private var confirmBulkDelete = false
     @StateObject private var recorder = VoiceRecorder()
     @StateObject private var player = VoicePlayer()
     @FocusState private var inputFocused: Bool
@@ -34,13 +39,17 @@ struct ChatDetailView: View {
                     pinnedBar(pinned)
                 }
                 messageList
-                composer
-                if showEmoji {
-                    EmojiPanel { emoji in
-                        draft += emoji
+                if selecting {
+                    selectionBar
+                } else {
+                    composer
+                    if showEmoji {
+                        EmojiPanel { emoji in
+                            draft += emoji
+                        }
+                        .frame(height: 296)
+                        .transition(.move(edge: .bottom))
                     }
-                    .frame(height: 296)
-                    .transition(.move(edge: .bottom))
                 }
             }
             if let toast {
@@ -50,43 +59,59 @@ struct ChatDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Button { showInfo = true } label: {
-                    HStack(spacing: 9) {
-                        AvatarView(title: chat?.title ?? "?", colorHex: chat?.avatarColor ?? Palette.blue, size: 34)
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(chat?.title ?? "")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(Theme.textPrimary)
-                            Text(subtitle)
-                                .font(.system(size: 12))
-                                .foregroundColor(Theme.accentBright)
+                if selecting {
+                    VStack(spacing: 0) {
+                        Text(selectedIds.isEmpty ? "Выберите сообщения" : "Выбрано: \(selectedIds.count)")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Theme.textPrimary)
+                        Text(chat?.title ?? "")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.accentBright)
+                    }
+                } else {
+                    Button { showInfo = true } label: {
+                        HStack(spacing: 9) {
+                            AvatarView(title: chat?.title ?? "?", colorHex: chat?.avatarColor ?? Palette.blue, size: 34)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(chat?.title ?? "")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(Theme.textPrimary)
+                                Text(subtitle)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Theme.accentBright)
+                            }
                         }
                     }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button {
-                        showInfo = true
-                    } label: { Label("Информация", systemImage: "info.circle") }
-                    Button {
-                        env.setMuted(chatId, !(chat?.isMuted ?? false))
+                if selecting {
+                    Button("Отмена") { endSelection() }
+                        .tint(Theme.accentBright)
+                } else {
+                    Menu {
+                        Button {
+                            showInfo = true
+                        } label: { Label("Информация", systemImage: "info.circle") }
+                        Button {
+                            env.setMuted(chatId, !(chat?.isMuted ?? false))
+                        } label: {
+                            Label(chat?.isMuted == true ? "Включить звук" : "Без звука", systemImage: "bell.slash")
+                        }
+                        Button {
+                            env.setArchived(chatId, true)
+                        } label: { Label("В архив", systemImage: "archivebox") }
+                        Divider()
+                        Button(role: .destructive) {
+                            env.deleteChat(chatId)
+                        } label: { Label("Удалить чат", systemImage: "trash") }
                     } label: {
-                        Label(chat?.isMuted == true ? "Включить звук" : "Без звука", systemImage: "bell.slash")
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 17, weight: .semibold))
                     }
-                    Button {
-                        env.setArchived(chatId, true)
-                    } label: { Label("В архив", systemImage: "archivebox") }
-                    Divider()
-                    Button(role: .destructive) {
-                        env.deleteChat(chatId)
-                    } label: { Label("Удалить чат", systemImage: "trash") }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 17, weight: .semibold))
+                    .tint(Theme.accentBright)
                 }
-                .tint(Theme.accentBright)
             }
         }
         .toolbarBackground(Theme.rootNavigationBar.opacity(0.9), for: .navigationBar)
@@ -105,6 +130,20 @@ struct ChatDetailView: View {
         .sheet(item: $forwarding) { message in
             ForwardPickerView(message: message, sourceChatId: chatId)
                 .environmentObject(env)
+        }
+        .sheet(isPresented: $bulkForwarding) {
+            BulkForwardPicker(ids: selectedIds.sorted(), sourceChatId: chatId)
+                .environmentObject(env)
+        }
+        .alert("Удалить выбранные сообщения?", isPresented: $confirmBulkDelete) {
+            Button("Удалить", role: .destructive) {
+                env.deleteMessages(ids: selectedIds.sorted())
+                showToast("Удалено сообщений: \(selectedIds.count)")
+                endSelection()
+            }
+            Button("Отмена", role: .cancel) {}
+        } message: {
+            Text("Сообщения будут удалены только на этом устройстве.")
         }
     }
 
@@ -159,6 +198,10 @@ struct ChatDetailView: View {
                             quoted: messages.first { $0.id == message.replyToId },
                             largeEmojiEnabled: env.snapshot.settings.largeEmoji,
                             quickReactionsEnabled: env.snapshot.settings.quickReactionEnabled,
+                            selectionMode: selecting,
+                            isSelected: selectedIds.contains(message.id),
+                            onToggleSelect: { toggleSelection(message.id) },
+                            onSelect: { beginSelection(with: message.id) },
                             onReply: { replyingTo = message; inputFocused = true },
                             onCopy: {
                                 UIPasteboard.general.string = message.text
@@ -487,6 +530,73 @@ struct ChatDetailView: View {
         showToast("Голосовое сохранено на этом устройстве")
     }
 
+    /// Нижняя панель в режиме выбора — как панель действий Telegram.
+    private var selectionBar: some View {
+        HStack(spacing: 0) {
+            selectionAction(icon: "arrowshape.turn.up.right.fill", title: "Переслать") {
+                bulkForwarding = true
+            }
+            selectionAction(icon: "doc.on.doc.fill", title: "Копировать") {
+                copySelected()
+            }
+            selectionAction(icon: "trash.fill", title: "Удалить", destructive: true) {
+                confirmBulkDelete = true
+            }
+        }
+        .padding(.vertical, 10)
+        .background(Theme.inputPanel)
+    }
+
+    private func selectionAction(icon: String, title: String,
+                                 destructive: Bool = false,
+                                 action: @escaping () -> Void) -> some View {
+        let enabled = !selectedIds.isEmpty
+        let tint = destructive ? Theme.danger : Theme.accentBright
+        return Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon).font(.system(size: 19, weight: .semibold))
+                Text(title).font(.system(size: 11))
+            }
+            .foregroundColor(enabled ? tint : Theme.textDisabled)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+    }
+
+    private func toggleSelection(_ id: String) {
+        if selectedIds.contains(id) {
+            selectedIds.remove(id)
+        } else {
+            selectedIds.insert(id)
+        }
+    }
+
+    private func beginSelection(with id: String) {
+        selecting = true
+        selectedIds = [id]
+        showEmoji = false
+        inputFocused = false
+    }
+
+    private func endSelection() {
+        selecting = false
+        selectedIds.removeAll()
+    }
+
+    private func copySelected() {
+        let texts = selectedMessages.map(\.text).filter { !$0.isEmpty }
+        guard !texts.isEmpty else { return }
+        UIPasteboard.general.string = texts.joined(separator: "\n")
+        showToast(texts.count == 1 ? "Скопировано" : "Скопировано сообщений: \(texts.count)")
+        endSelection()
+    }
+
+    private var selectedMessages: [Message] {
+        messages.filter { selectedIds.contains($0.id) }
+    }
+
     private func toastView(_ text: String) -> some View {
         VStack {
             Spacer()
@@ -521,6 +631,12 @@ struct MessageBubble: View {
     var largeEmojiEnabled: Bool = true
     /// «Быстрые реакции» — ряд эмодзи в контекстном меню.
     var quickReactionsEnabled: Bool = true
+    /// Режим выбора нескольких сообщений.
+    var selectionMode: Bool = false
+    var isSelected: Bool = false
+    var onToggleSelect: () -> Void = {}
+    /// Вход в режим выбора из контекстного меню.
+    var onSelect: () -> Void = {}
     /// Доступные действия из контекстного меню (как в оригинале).
     var onReply: () -> Void = {}
     var onCopy: () -> Void = {}
@@ -576,6 +692,7 @@ struct MessageBubble: View {
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 6) {
+            if selectionMode && isMine { selectionCircle }
             if isMine { Spacer(minLength: 50) }
 
             if !isMine && isGroup {
@@ -608,7 +725,7 @@ struct MessageBubble: View {
                     Text(message.text)
                         .font(.system(size: bigEmojiSize))
                         .foregroundColor(Theme.textPrimary)
-                        .textSelection(.enabled)
+                        .textSelection(selectionMode ? .disabled : .enabled)
                 }
 
                 HStack(spacing: 4) {
@@ -647,12 +764,27 @@ struct MessageBubble: View {
                         .offset(x: isMine ? -6 : 6, y: 12)
                 }
             }
-            .contextMenu { menu }
+            .contextMenuIf(!selectionMode) { menu }
 
             if !isMine { Spacer(minLength: 50) }
+
+            if selectionMode && !isMine { selectionCircle }
         }
         .padding(.vertical, 1)
         .padding(.bottom, message.reaction == nil ? 0 : 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if selectionMode { onToggleSelect() }
+        }
+    }
+
+    /// Кружок выбора сообщения — как в режиме «Выбрать» Telegram.
+    private var selectionCircle: some View {
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+            .font(.system(size: 22))
+            .foregroundColor(isSelected ? Theme.accent : Theme.textDisabled)
+            .padding(.horizontal, 4)
+            .transition(.scale.combined(with: .opacity))
     }
 
     /// Голосовое сообщение: кнопка воспроизведения, полоски и длительность.
@@ -740,6 +872,7 @@ struct MessageBubble: View {
         Button(action: onForward) { Label("Переслать", systemImage: "arrowshape.turn.up.right") }
         Button(action: onSave) { Label("В избранное", systemImage: "bookmark") }
         Button(action: onCopy) { Label("Копировать", systemImage: "doc.on.doc") }
+        Button(action: onSelect) { Label("Выбрать", systemImage: "checkmark.circle") }
         Button(action: onPin) {
             Label(message.isPinned ? "Открепить" : "Закрепить", systemImage: message.isPinned ? "pin.slash" : "pin")
         }
@@ -851,6 +984,95 @@ struct ForwardPickerView: View {
     }
 }
 
+
+/// Выбор чата для массовой пересылки выбранных сообщений.
+struct BulkForwardPicker: View {
+    @EnvironmentObject private var env: AppEnvironment
+    @Environment(\.dismiss) private var dismiss
+    let ids: [String]
+    let sourceChatId: String
+
+    @State private var query = ""
+    @State private var done = false
+
+    private var chats: [Chat] {
+        let all = env.snapshot.chats
+        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return all }
+        let needle = query.lowercased()
+        return all.filter { $0.title.lowercased().contains(needle) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.background.ignoresSafeArea()
+                List {
+                    Section {
+                        Text("Выбрано сообщений: \(ids.count)")
+                            .font(.system(size: 14))
+                            .foregroundColor(Theme.textSecondary)
+                    } header: {
+                        Text("К пересылке")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.textSecondary)
+                            .textCase(nil)
+                    }
+                    .listRowBackground(Theme.panel)
+
+                    Section {
+                        ForEach(chats) { chat in
+                            Button {
+                                _ = env.forwardMessages(ids: ids, toChatId: chat.id)
+                                done = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    AvatarView(title: chat.title, colorHex: chat.avatarColor, size: 44)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(chat.title)
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Theme.textPrimary)
+                                        Text(chat.kind.title)
+                                            .font(.system(size: 13))
+                                            .foregroundColor(Theme.textSecondary)
+                                    }
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .listRowBackground(Theme.panel)
+                        }
+                    } header: {
+                        Text("Переслать в чат")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.textSecondary)
+                            .textCase(nil)
+                    } footer: {
+                        Text("Каждое выбранное сообщение станет отдельной локальной копией с пометкой автора. В сеть ничего не уходит.")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск чата")
+            }
+            .navigationTitle("Переслать \(ids.count)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Отмена") { dismiss() }
+                        .tint(Theme.accent)
+                }
+            }
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+        }
+        .onChange(of: done) { _, finished in
+            if finished { dismiss() }
+        }
+    }
+}
 
 /// Полоски громкости голосового сообщения — как в пузыре Telegram.
 struct VoiceWaveform: View {
