@@ -27,6 +27,10 @@ enum Theme {
     static let pinnedRow = Color(hex: "#1C1C1D")
     /// `theme.chatList.regularSearchBarColor` — 0x272728
     static let searchBar = Color(hex: "#272728")
+    /// `theme.rootNavigationBar.opaqueBackgroundColor` — 0x1D1D1D
+    static let rootNavigationBar = Color(hex: "#1D1D1D")
+    /// `theme.rootNavigationBar.separatorColor` — 0x545458 @0.55
+    static let rootNavigationBarSeparator = Color(hex: "#545458").opacity(0.55)
 
     // MARK: - Пузыри сообщений
 
@@ -91,6 +95,21 @@ enum Theme {
     static let switchOn = Color(hex: "#67CE67")
     /// `theme.list.itemSwitchColors.frameColor` — 0x39393D
     static let switchFrame = Color(hex: "#39393D")
+
+    // MARK: - Панель ввода (theme.chat.inputPanel)
+
+    /// Панель ввода поверх обоев — полупрозрачная тёмная (0x141414)
+    static let inputPanel = Color(hex: "#141414").opacity(0.92)
+    /// `inputPanel.inputBackgroundColor` — 0xffffff @ 0.14
+    static let inputField = Color.white.opacity(0.14)
+    /// `inputPanel.inputStrokeColor` — 0xffffff @ 0.10
+    static let inputStroke = Color.white.opacity(0.10)
+    /// `inputPanel.inputPlaceholderColor` — 0xffffff @ 0.48
+    static let inputPlaceholder = Color.white.opacity(0.48)
+    /// `inputPanel.panelSeparatorColor` — 0x545458 @ 0.55
+    static let inputSeparator = Color(hex: "#545458").opacity(0.55)
+    /// `contextMenu.backgroundColor` — 0x252525 @ 0.78
+    static let contextMenu = Color(hex: "#252525").opacity(0.78)
 
     // MARK: - Метрики
 

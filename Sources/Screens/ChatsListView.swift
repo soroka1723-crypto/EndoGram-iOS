@@ -62,7 +62,7 @@ struct ChatsListView: View {
                 .tint(Theme.accentBright)
             }
         }
-        .toolbarBackground(Theme.panel, for: .navigationBar)
+        .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(isPresented: $showCompose) {
             CreateChatView()

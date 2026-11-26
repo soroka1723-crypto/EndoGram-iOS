@@ -114,7 +114,7 @@ struct SearchView: View {
                     Button("Закрыть") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.panel, for: .navigationBar)
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationDestination(item: $selectedChat) { chat in
                 ChatDetailView(chatId: chat.id).environmentObject(env)

@@ -262,13 +262,13 @@ final class LocalBackend: EndoBackend {
 
     // MARK: - Контакты и профиль
 
-    func addContact(displayName: String, username: String) -> UserProfile {
+    func addContact(displayName: String, username: String, phone: String) -> UserProfile {
         let contact = UserProfile(
             id: IDs.next("user"),
             username: username.isEmpty ? "user_" + IDs.randomToken(length: 5) : username,
             displayName: displayName,
             bio: "",
-            phone: "",
+            phone: phone,
             avatarColor: Palette.avatarColors.randomElement() ?? Palette.blue,
             createdAt: Date(),
             isPremium: false,

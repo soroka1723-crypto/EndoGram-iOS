@@ -136,11 +136,35 @@ struct SettingsRow: View {
 }
 
 struct DividerLine: View {
+    /// Отступ слева — как в оригинале, разделитель начинается за аватаром/иконкой.
+    var inset: CGFloat = 56
+
     var body: some View {
         Rectangle()
             .fill(Theme.divider)
             .frame(height: 1)
-            .padding(.leading, 56)
+            .padding(.leading, inset)
+    }
+}
+
+/// Блок сведений в стиле Telegram: скруглённый фон `list.itemBlocksBackgroundColor`
+/// и строки, разделённые волосяной линией.
+struct TelegramBlock<Content: View>: View {
+    private let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            content
+        }
+        .background(
+            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
+                .fill(Theme.panel)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
     }
 }
 

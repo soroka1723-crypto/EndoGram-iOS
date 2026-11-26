@@ -186,8 +186,8 @@ final class AppEnvironment: ObservableObject {
         refresh()
     }
 
-    func addContact(displayName: String, username: String) -> UserProfile {
-        let contact = backend.addContact(displayName: displayName, username: username)
+    func addContact(displayName: String, username: String, phone: String = "") -> UserProfile {
+        let contact = backend.addContact(displayName: displayName, username: username, phone: phone)
         refresh()
         return contact
     }

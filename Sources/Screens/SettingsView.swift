@@ -275,7 +275,7 @@ struct HelpSheet: View {
                     Button("Готово") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.panel, for: .navigationBar)
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }

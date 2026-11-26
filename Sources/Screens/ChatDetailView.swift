@@ -75,7 +75,7 @@ struct ChatDetailView: View {
                 .tint(Theme.accentBright)
             }
         }
-        .toolbarBackground(Theme.panel.opacity(0.96), for: .navigationBar)
+        .toolbarBackground(Theme.rootNavigationBar.opacity(0.9), for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear { env.markRead(chatId: chatId) }
         .sheet(isPresented: $showInfo) {
@@ -209,7 +209,7 @@ struct ChatDetailView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background(Theme.panel.opacity(0.95))
+        .background(Theme.inputPanel)
     }
 
     // MARK: - Поле ввода
@@ -261,7 +261,11 @@ struct ChatDetailView: View {
                     .padding(.vertical, 9)
                     .background(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(Theme.background)
+                            .fill(Theme.inputField)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(Theme.inputStroke, lineWidth: 1)
                     )
                     .focused($inputFocused)
 
@@ -278,7 +282,12 @@ struct ChatDetailView: View {
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 7)
-            .background(Theme.panel)
+            .background(Theme.inputPanel)
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(Theme.inputSeparator)
+                    .frame(height: 0.5)
+            }
         }
         .confirmationDialog("Вложение", isPresented: $showAttach) {
             Button("Фото или видео") { showToast("Локальный режим: вложения не отправляются") }

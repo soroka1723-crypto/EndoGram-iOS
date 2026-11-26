@@ -207,7 +207,7 @@ struct GiftPurchaseView: View {
                     Button("Отмена") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.panel, for: .navigationBar)
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
@@ -394,7 +394,7 @@ struct NFTDetailView: View {
                     Button("Закрыть") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.panel, for: .navigationBar)
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }

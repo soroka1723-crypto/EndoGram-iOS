@@ -26,7 +26,7 @@ protocol EndoBackend: AnyObject {
     func setMuted(chatId: String, muted: Bool)
     func deleteChat(chatId: String)
 
-    func addContact(displayName: String, username: String) -> UserProfile
+    func addContact(displayName: String, username: String, phone: String) -> UserProfile
     func updateProfile(displayName: String, username: String, bio: String)
 
     func buyGift(_ gift: Gift, toChatId: String?) -> OwnedGift?

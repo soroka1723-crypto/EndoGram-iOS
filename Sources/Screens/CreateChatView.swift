@@ -89,7 +89,7 @@ struct CreateChatView: View {
                     }
                 }
             }
-            .toolbarBackground(Theme.panel, for: .navigationBar)
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .alert("Новый контакт", isPresented: $showNewContact) {
                 TextField("Имя", text: $newContactName)
@@ -302,7 +302,7 @@ struct ChatInfoView: View {
                     Button("Готово") { dismiss() }
                 }
             }
-            .toolbarBackground(Theme.panel, for: .navigationBar)
+            .toolbarBackground(Theme.rootNavigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .alert("Добавить участника", isPresented: $showAdd) {
                 TextField("Имя", text: $newMemberName)
