@@ -1,6 +1,10 @@
 import SwiftUI
 
-/// Магазин подарков — структура и подписи из `Gift.Options.*` оригинала.
+/// Магазин подарков — настоящий каталог Telegram.
+///
+/// 152 подарка с реальными названиями, ценами в звёздах и тиражами; картинки
+/// и анимации взяты из `.tgs`/`.png` официальных подарков (CDN
+/// `cdn-telegram-gifts`). Структура экрана — по `Gift.Options.*` оригинала.
 ///
 /// Всё локально: «покупка» списывает тестовые звёзды и кладёт подарок
 /// в инвентарь на этом устройстве.
@@ -9,6 +13,7 @@ struct GiftShopView: View {
     @State private var selected: Gift?
     @State private var toast: String?
     @State private var filter: GiftFilter = .all
+    @State private var query = ""
 
     /// `Gift.Options.Gift.Filter.*`
     enum GiftFilter: String, CaseIterable, Identifiable {
@@ -28,18 +33,25 @@ struct GiftShopView: View {
     }
 
     private var gifts: [Gift] {
+        let base: [Gift]
         switch filter {
         case .all:
-            return env.giftCatalog
+            base = env.giftCatalog
         case .limited:
-            return env.giftCatalog.filter(\.isLimited)
+            base = env.giftCatalog.filter(\.isLimited)
         case .inStock:
-            return env.giftCatalog.filter { !$0.isSoldOut }
+            base = env.giftCatalog.filter { !$0.isSoldOut }
         case .collectibles:
-            return env.giftCatalog.filter(\.isCollectible)
+            base = env.giftCatalog.filter(\.isCollectible)
         case .mine:
             let owned = Set(env.snapshot.ownedGifts.map(\.giftId))
-            return env.giftCatalog.filter { owned.contains($0.id) }
+            base = env.giftCatalog.filter { owned.contains($0.id) }
+        }
+
+        let needle = query.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !needle.isEmpty else { return base }
+        return base.filter {
+            $0.name.lowercased().contains(needle) || $0.rarity.lowercased().contains(needle)
         }
     }
 
@@ -51,6 +63,8 @@ struct GiftShopView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     balanceCard
+                    SearchField(placeholder: "Поиск подарка", text: $query)
+                        .padding(.horizontal, 12)
                     filterChips
 
                     if gifts.isEmpty {
@@ -71,13 +85,13 @@ struct GiftShopView: View {
                         LazyVGrid(columns: columns, spacing: 10) {
                             ForEach(gifts) { gift in
                                 Button {
-                                    if gift.isSoldOut {
-                                        showToast("Подарок распродан — как `Gift.Options.SoldOut.Text` в Telegram")
-                                    } else {
-                                        selected = gift
-                                    }
+                                    selected = gift
                                 } label: {
-                                    giftCard(gift)
+                                    GiftTile(
+                                        gift: gift,
+                                        animated: env.snapshot.settings.animationsEnabled,
+                                        size: 84
+                                    )
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -85,7 +99,7 @@ struct GiftShopView: View {
                         .padding(.horizontal, 12)
                     }
 
-                    Text("Звёзды тестовые: покупка списывает локальный баланс и создаёт запись в истории операций. Настоящих платежей нет.")
+                    Text("Подарки настоящие: названия, цены в звёздах, тиражи и анимации — из Telegram. Звёзды тестовые: покупка списывает локальный баланс и создаёт запись в истории операций.")
                         .font(.system(size: 12))
                         .foregroundColor(Theme.textSecondary)
                         .padding(.horizontal, 16)
@@ -174,64 +188,6 @@ struct GiftShopView: View {
         }
     }
 
-    private func giftCard(_ gift: Gift) -> some View {
-        VStack(spacing: 0) {
-            ZStack {
-                LinearGradient(
-                    colors: [Color(hex: gift.colorHex).opacity(0.34),
-                             Color(hex: gift.colorHex).opacity(0.10)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                Text(gift.emoji)
-                    .font(.system(size: 52))
-                    .opacity(gift.isSoldOut ? 0.35 : 1)
-
-                if gift.isSoldOut {
-                    Text("распродано")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Capsule().fill(Color.black.opacity(0.6)))
-                } else if gift.isLimited, let stock = gift.stock {
-                    Text("осталось \(stock)")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.black.opacity(0.55)))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .padding(7)
-                }
-            }
-            .frame(height: 96)
-
-            VStack(spacing: 3) {
-                Text(gift.name)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Theme.textPrimary)
-                    .lineLimit(1)
-                Text(gift.rarity)
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(hex: gift.colorHex))
-                HStack(spacing: 3) {
-                    Text("⭐️").font(.system(size: 11))
-                    Text(Format.number(gift.price))
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Theme.textSecondary)
-                }
-            }
-            .padding(.vertical, 8)
-        }
-        .background(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous).fill(Theme.panel))
-        .clipShape(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Theme.corner, style: .continuous)
-                .stroke(gift.isCollectible ? Theme.star.opacity(0.45) : Color.clear, lineWidth: 1)
-        )
-    }
-
     private func showToast(_ text: String) {
         withAnimation { toast = text }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -254,102 +210,105 @@ struct GiftPurchaseView: View {
         NavigationStack {
             ZStack {
                 Theme.background.ignoresSafeArea()
-                VStack(spacing: 18) {
-                    Text(gift.emoji)
-                        .font(.system(size: 88))
-                        .padding(.top, 20)
+                ScrollView {
+                    VStack(spacing: 18) {
+                        heroPanel
 
-                    VStack(spacing: 4) {
-                        Text(gift.name)
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(Theme.textPrimary)
-                        Text(gift.rarity)
-                            .font(.system(size: 13))
-                            .foregroundColor(Theme.textSecondary)
-                        HStack(spacing: 4) {
-                            Text("⭐️")
-                            Text(Format.number(gift.price))
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(Theme.star)
-                        }
-                        .padding(.top, 2)
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Куда отправить")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Theme.textSecondary)
-                            .padding(.horizontal, 16)
-
-                        VStack(spacing: 0) {
-                            Button {
-                                selectedChatId = nil
-                            } label: {
-                                HStack {
-                                    Image(systemName: "tray.and.arrow.down.fill")
-                                        .foregroundColor(Theme.accentBright)
-                                    Text("Оставить себе в инвентарь")
-                                        .foregroundColor(Theme.textPrimary)
-                                    Spacer()
-                                    if selectedChatId == nil {
-                                        Image(systemName: "checkmark.circle.fill").foregroundColor(Theme.accentBright)
-                                    }
-                                }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 12)
+                        VStack(spacing: 4) {
+                            Text(gift.name)
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundColor(Theme.textPrimary)
+                                .multilineTextAlignment(.center)
+                            Text(gift.rarity)
+                                .font(.system(size: 13))
+                                .foregroundColor(Theme.textSecondary)
+                            HStack(spacing: 4) {
+                                Text("⭐️")
+                                Text(Format.number(gift.price))
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(Theme.star)
                             }
-                            .buttonStyle(.plain)
+                            .padding(.top, 2)
+                        }
 
-                            DividerLine()
+                        facts
 
-                            ForEach(env.sorted(env.snapshot.chats)) { chat in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Куда отправить")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Theme.textSecondary)
+                                .padding(.horizontal, 16)
+
+                            VStack(spacing: 0) {
                                 Button {
-                                    selectedChatId = chat.id
+                                    selectedChatId = nil
                                 } label: {
                                     HStack {
-                                        AvatarView(title: chat.title, colorHex: chat.avatarColor, size: 30)
-                                        Text(chat.title)
+                                        Image(systemName: "tray.and.arrow.down.fill")
+                                            .foregroundColor(Theme.accentBright)
+                                        Text("Оставить себе в инвентарь")
                                             .foregroundColor(Theme.textPrimary)
-                                            .lineLimit(1)
                                         Spacer()
-                                        if selectedChatId == chat.id {
+                                        if selectedChatId == nil {
                                             Image(systemName: "checkmark.circle.fill").foregroundColor(Theme.accentBright)
                                         }
                                     }
                                     .padding(.horizontal, 14)
-                                    .padding(.vertical, 10)
+                                    .padding(.vertical, 12)
                                 }
                                 .buttonStyle(.plain)
+
+                                DividerLine()
+
+                                ForEach(env.sorted(env.snapshot.chats)) { chat in
+                                    Button {
+                                        selectedChatId = chat.id
+                                    } label: {
+                                        HStack {
+                                            AvatarView(title: chat.title, colorHex: chat.avatarColor, size: 30)
+                                            Text(chat.title)
+                                                .foregroundColor(Theme.textPrimary)
+                                                .lineLimit(1)
+                                            Spacer()
+                                            if selectedChatId == chat.id {
+                                                Image(systemName: "checkmark.circle.fill").foregroundColor(Theme.accentBright)
+                                            }
+                                        }
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 10)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                             }
+                            .background(RoundedRectangle(cornerRadius: Theme.corner).fill(Theme.panel))
+                            .padding(.horizontal, 16)
                         }
-                        .background(RoundedRectangle(cornerRadius: Theme.corner).fill(Theme.panel))
+
+                        if let error {
+                            Text(error)
+                                .font(.system(size: 13))
+                                .foregroundColor(Theme.danger)
+                        }
+
+                        Button {
+                            if let error = env.buyGift(gift, toChatId: selectedChatId) {
+                                self.error = error
+                            } else {
+                                onResult("Подарок «\(gift.name)» получен")
+                                dismiss()
+                            }
+                        } label: {
+                            Text("Купить за \(Format.stars(gift.price))")
+                        }
+                        .buttonStyle(StarButtonStyle())
                         .padding(.horizontal, 16)
+
+                        Text("Баланс: \(Format.stars(env.stars))")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.textSecondary)
+
+                        Spacer(minLength: 20)
                     }
-
-                    if let error {
-                        Text(error)
-                            .font(.system(size: 13))
-                            .foregroundColor(Theme.danger)
-                    }
-
-                    Button {
-                        if let error = env.buyGift(gift, toChatId: selectedChatId) {
-                            self.error = error
-                        } else {
-                            onResult("Подарок «\(gift.name)» получен")
-                            dismiss()
-                        }
-                    } label: {
-                        Text("Купить за \(Format.stars(gift.price))")
-                    }
-                    .buttonStyle(StarButtonStyle())
-                    .padding(.horizontal, 16)
-
-                    Text("Баланс: \(Format.stars(env.stars))")
-                        .font(.system(size: 12))
-                        .foregroundColor(Theme.textSecondary)
-
-                    Spacer()
                 }
             }
             .navigationTitle("Подарок")
@@ -361,6 +320,69 @@ struct GiftPurchaseView: View {
             }
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
+    }
+
+    /// Большая анимация подарка — как в карточке подарка Telegram.
+    private var heroPanel: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: gift.colorHex).opacity(0.42),
+                                 Color(hex: gift.colorHex).opacity(0.06)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            GiftAnimationView(
+                assetId: GiftCatalog.assetId(for: gift),
+                size: 190,
+                duration: gift.duration,
+                animated: env.snapshot.settings.animationsEnabled,
+                fallbackEmoji: gift.emoji
+            )
+        }
+        .frame(height: 230)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(Color(hex: gift.colorHex).opacity(0.35), lineWidth: 1)
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+    }
+
+    /// Характеристики подарка — тираж и состояние продаж из данных Telegram.
+    private var facts: some View {
+        VStack(spacing: 0) {
+            fact("Редкость", gift.rarity)
+            if let total = gift.totalSupply {
+                DividerLine(inset: 14)
+                fact("Тираж", Format.number(total))
+            }
+            DividerLine(inset: 14)
+            fact("Состояние", gift.soldOutInTelegram ? "тираж распродан" : "в продаже")
+            if gift.isCollectible {
+                DividerLine(inset: 14)
+                fact("Коллекционный", "да")
+            }
+        }
+        .background(RoundedRectangle(cornerRadius: Theme.corner, style: .continuous).fill(Theme.panel))
+        .padding(.horizontal, 16)
+    }
+
+    private func fact(_ title: String, _ value: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 14))
+                .foregroundColor(Theme.textPrimary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Theme.textListItemSecondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }
 
@@ -689,10 +711,17 @@ struct InventoryView: View {
                         SectionCard(title: "Подарки (\(env.snapshot.ownedGifts.count))") {
                             ForEach(env.snapshot.ownedGifts.reversed()) { gift in
                                 HStack(spacing: 12) {
-                                    Text(gift.emoji)
-                                        .font(.system(size: 30))
-                                        .frame(width: 46, height: 46)
-                                        .background(RoundedRectangle(cornerRadius: 10).fill(Color(hex: gift.colorHex).opacity(0.16)))
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(Color(hex: gift.colorHex).opacity(0.16))
+                                        GiftAnimationView(
+                                            assetId: GiftCatalog.assetId(forGiftId: gift.giftId),
+                                            size: 40,
+                                            animated: env.snapshot.settings.animationsEnabled,
+                                            fallbackEmoji: gift.emoji
+                                        )
+                                    }
+                                    .frame(width: 46, height: 46)
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(gift.name)
                                             .font(.system(size: 15, weight: .medium))

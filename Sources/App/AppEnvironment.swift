@@ -21,7 +21,12 @@ final class AppEnvironment: ObservableObject {
 
     var profile: UserProfile { snapshot.profile }
     var stars: Int { snapshot.stars }
-    var giftCatalog: [Gift] { Seed.giftCatalog }
+    /// Реальный каталог Telegram: 152 подарка с настоящими названиями,
+    /// ценами в звёздах и тиражами (см. `GiftCatalog`).
+    var giftCatalog: [Gift] {
+        let catalog = GiftCatalog.all
+        return catalog.isEmpty ? Seed.giftCatalog : catalog
+    }
     /// Каталог коллекционных подарков. Данные — из `Resources/Collectibles.json`
     /// (публичный каталог Fragment); если ресурс не подгрузился, работает
     /// встроенный короткий список из `Seed`.

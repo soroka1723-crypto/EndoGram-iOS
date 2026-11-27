@@ -256,6 +256,13 @@ struct Gift: Codable, Identifiable, Hashable {
     var stock: Int? = nil
     /// Коллекционный подарок — как `Gift.Options.Gift.Filter.Collectibles`.
     var isCollectible: Bool = false
+    /// Тираж подарка в Telegram (`availability_total`). nil — без тиража.
+    var totalSupply: Int? = nil
+    /// Длительность анимации `.tgs` в секундах — для спрайт-листа.
+    var duration: Double = 3
+    /// Тираж исчерпан в настоящем Telegram. Покупка локально всё равно
+    /// доступна: это тестовый режим, но пометка честная.
+    var soldOutInTelegram: Bool = false
 
     var isSoldOut: Bool {
         guard let stock else { return false }
