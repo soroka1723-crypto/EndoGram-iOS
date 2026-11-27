@@ -42,27 +42,38 @@ enum GiftArt {
     }
 
     /// Нарезка листа 4×4 на отдельные кадры.
+    ///
+    /// Растеризация через `UIGraphicsImageRenderer`, а не `cg.cropping`:
+    /// палитровые PNG (mode `P`) иногда отдают чёрный или испорченный
+    /// полупрозрачный кадр при прямой обрезке. Отрисовка в контекст всегда
+    /// даёт корректный RGBA.
     private static func slice(_ sheet: UIImage) -> [UIImage]? {
-        guard let cg = sheet.cgImage else { return nil }
-        let w = CGFloat(cg.width) / CGFloat(columns)
-        let h = CGFloat(cg.height) / CGFloat(rows)
+        let w = sheet.size.width / CGFloat(columns)
+        let h = sheet.size.height / CGFloat(rows)
         guard w > 0, h > 0 else { return nil }
+
+        let renderer = UIGraphicsImageRenderer(
+            size: CGSize(width: w, height: h),
+            format: {
+                let f = UIGraphicsImageRendererFormat.default()
+                f.opaque = false
+                f.scale = sheet.scale
+                return f
+            }()
+        )
 
         var result: [UIImage] = []
         for index in 0..<frames {
-            let col = index % columns
-            let row = index / columns
-            let rect = CGRect(
-                x: CGFloat(col) * w, y: CGFloat(row) * h,
-                width: w, height: h
-            ).integral
-            // Лист может быть сжат по краю на доли пикселя — берём валидный rect.
-            let safe = rect.intersection(CGRect(x: 0, y: 0, width: cg.width, height: cg.height))
-            guard safe.width > 1, safe.height > 1,
-                  let cropped = cg.cropping(to: safe) else {
-                return nil
+            let col = CGFloat(index % columns)
+            let row = CGFloat(index / columns)
+            let crop = CGRect(x: col * w, y: row * h, width: w, height: h)
+            let image = renderer.image { context in
+                sheet.draw(
+                    in: CGRect(x: -crop.origin.x, y: -crop.origin.y,
+                               width: sheet.size.width, height: sheet.size.height)
+                )
             }
-            result.append(UIImage(cgImage: cropped, scale: sheet.scale, orientation: .up))
+            result.append(image)
         }
         return result
     }
