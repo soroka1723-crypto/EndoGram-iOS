@@ -29,14 +29,15 @@ enum GiftArt {
     /// 16 кадров, нарезанных из спрайт-листа. Готовится один раз на подарок.
     static func animationFrames(_ assetId: String) -> [UIImage]? {
         let key = "frames_\(assetId)"
-        if let cached = frameCache.object(forKey: key as NSString) {
-            return cached.isEmpty ? nil : cached
+        if let cached = frameCache.object(forKey: key as NSString) as? [UIImage],
+           !cached.isEmpty {
+            return cached
         }
         guard let sheet = sheet(assetId),
-              let frames = slice(sheet) else {
+              let frames = slice(sheet), !frames.isEmpty else {
             return nil
         }
-        frameCache.setObject(frames, forKey: key as NSString)
+        frameCache.setObject(frames as NSArray, forKey: key as NSString)
         return frames
     }
 
@@ -55,8 +56,8 @@ enum GiftArt {
                 x: CGFloat(col) * w, y: CGFloat(row) * h,
                 width: w, height: h
             ).integral
-            // Лист сжат по краю на доли пикселя — берём ближайший валидный rect.
-            let safe = rect.intersection(CGRect(origin: .zero, size: cg.size))
+            // Лист может быть сжат по краю на доли пикселя — берём валидный rect.
+            let safe = rect.intersection(CGRect(x: 0, y: 0, width: cg.width, height: cg.height))
             guard safe.width > 1, safe.height > 1,
                   let cropped = cg.cropping(to: safe) else {
                 return nil
