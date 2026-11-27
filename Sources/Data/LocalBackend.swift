@@ -507,11 +507,12 @@ final class LocalBackend: EndoBackend {
                 chatId: chatId,
                 senderId: snapshot.profile.id,
                 authorName: snapshot.profile.displayName,
-                text: "\(gift.emoji) \(gift.name) — \(gift.price) ⭐️",
+                text: gift.name,
                 createdAt: Date(),
                 editedAt: nil,
                 isPinned: false,
-                kind: .text
+                kind: .gift,
+                giftId: gift.id
             )
             snapshot.messages.append(message)
             snapshot.chats[index].lastReadAt = message.createdAt

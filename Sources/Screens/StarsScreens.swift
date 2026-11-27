@@ -40,7 +40,7 @@ struct GiftShopView: View {
         case .limited:
             base = env.giftCatalog.filter(\.isLimited)
         case .inStock:
-            base = env.giftCatalog.filter { !$0.isSoldOut }
+            base = env.giftCatalog.filter { !$0.soldOutInTelegram }
         case .collectibles:
             base = env.giftCatalog.filter(\.isCollectible)
         case .mine:

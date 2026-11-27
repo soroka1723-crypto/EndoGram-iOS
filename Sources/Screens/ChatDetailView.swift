@@ -202,6 +202,7 @@ struct ChatDetailView: View {
                             quoted: messages.first { $0.id == message.replyToId },
                             largeEmojiEnabled: env.snapshot.settings.largeEmoji,
                             quickReactionsEnabled: env.snapshot.settings.quickReactionEnabled,
+                            animationsEnabled: env.snapshot.settings.animationsEnabled,
                             selectionMode: selecting,
                             isSelected: selectedIds.contains(message.id),
                             onToggleSelect: { toggleSelection(message.id) },
@@ -699,6 +700,7 @@ struct ChatDetailView: View {
 
 /// Пузырь сообщения.
 struct MessageBubble: View {
+    @EnvironmentObject private var env: AppEnvironment
     let message: Message
     let isMine: Bool
     let isGroup: Bool
@@ -709,6 +711,8 @@ struct MessageBubble: View {
     var largeEmojiEnabled: Bool = true
     /// «Быстрые реакции» — ряд эмодзи в контекстном меню.
     var quickReactionsEnabled: Bool = true
+    /// Анимации подарков (из настроек).
+    var animationsEnabled: Bool = true
     /// Режим выбора нескольких сообщений.
     var selectionMode: Bool = false
     var isSelected: Bool = false
@@ -801,6 +805,8 @@ struct MessageBubble: View {
                 }
                 if message.kind == .voice {
                     voiceContent
+                } else if message.kind == .gift {
+                    giftContent
                 } else if message.isMedia {
                     mediaContent
                     if !message.text.isEmpty {
@@ -876,7 +882,39 @@ struct MessageBubble: View {
             .transition(.scale.combined(with: .opacity))
     }
 
-    /// Фото или видео в пузыре: превью с плейсхолдером и длительностью.
+    /// Подарок в пузыре: настоящая анимация, название и цена.
+    ///
+    /// Как `Gift.Bubble.*` в Telegram: подарок рисуется в пузыре вместе с
+    /// подписью, при включённых анимациях проигрывается его `.tgs`.
+    @ViewBuilder
+    private var giftContent: some View {
+        if let giftId = message.giftId, let gift = env.gift(id: giftId) {
+            VStack(alignment: .leading, spacing: 6) {
+                GiftAnimationView(
+                    assetId: GiftCatalog.assetId(forGiftId: gift.id),
+                    size: 132,
+                    duration: gift.duration,
+                    animated: animationsEnabled && env.snapshot.settings.animationsEnabled,
+                    fallbackEmoji: gift.emoji
+                )
+                Text(gift.name)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Theme.textPrimary)
+                HStack(spacing: 4) {
+                    Text("⭐️").font(.system(size: 11))
+                    Text(Format.number(gift.price))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Theme.star)
+                }
+            }
+        } else {
+            Text(message.text)
+                .font(.system(size: 16))
+                .foregroundColor(Theme.textPrimary)
+        }
+    }
+
+/// Фото или видео в пузыре: превью с плейсхолдером и длительностью.
     @ViewBuilder
     private var mediaContent: some View {
         if let fileName = message.mediaFileName {

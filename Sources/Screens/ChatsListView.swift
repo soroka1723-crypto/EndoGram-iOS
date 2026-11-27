@@ -415,6 +415,7 @@ struct ChatRowView: View {
         case .photo: body = message.text.isEmpty ? "Фото" : "Фото, " + message.text
         case .video: body = message.text.isEmpty ? "Видео" : "Видео, " + message.text
         case .voice: body = "Голосовое сообщение"
+        case .gift: body = "🎁 " + message.text
         case .service, .text: body = message.text
         }
         return prefix + body.replacingOccurrences(of: "\n", with: " ")

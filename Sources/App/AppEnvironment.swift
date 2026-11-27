@@ -27,6 +27,12 @@ final class AppEnvironment: ObservableObject {
         let catalog = GiftCatalog.all
         return catalog.isEmpty ? Seed.giftCatalog : catalog
     }
+
+    /// Подарок по идентификатору сообщения (`gift.<id>`). Нужен пузырю,
+    /// чтобы нарисовать настоящую анимацию из `Resources/Gifts`.
+    func gift(id: String) -> Gift? {
+        giftCatalog.first { $0.id == id }
+    }
     /// Каталог коллекционных подарков. Данные — из `Resources/Collectibles.json`
     /// (публичный каталог Fragment); если ресурс не подгрузился, работает
     /// встроенный короткий список из `Seed`.

@@ -159,13 +159,15 @@ struct GiftTile: View {
                     fallbackEmoji: gift.emoji
                 )
 
-                if gift.isSoldOut {
+                if gift.soldOutInTelegram {
                     Text("распродано")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
                         .background(Capsule().fill(Color.black.opacity(0.62)))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .padding(6)
                 }
             }
             .frame(height: size + 18)

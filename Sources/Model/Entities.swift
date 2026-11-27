@@ -95,6 +95,8 @@ enum MessageKind: String, Codable {
     case photo
     /// Видео: MOV в `Application Support/EndoGram/ChatMedia`.
     case video
+    /// Подарок: рисуется анимацией из `Resources/Gifts`, id — `gift.<id>`.
+    case gift
 }
 
 struct Message: Codable, Identifiable, Hashable {
@@ -125,6 +127,8 @@ struct Message: Codable, Identifiable, Hashable {
     var mediaFileName: String? = nil
     /// Длительность видео в секундах.
     var mediaDuration: Double? = nil
+    /// Подарок в сообщении — `gift.<id>`, как `OwnedGift.giftId`.
+    var giftId: String? = nil
 
     var isMedia: Bool { kind == .photo || kind == .video }
 
