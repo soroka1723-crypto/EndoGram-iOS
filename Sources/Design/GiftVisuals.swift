@@ -44,32 +44,27 @@ enum GiftArt {
     /// Нарезка листа 4×4 на отдельные кадры.
     ///
     /// Растеризация через `UIGraphicsImageRenderer`, а не `cg.cropping`:
-    /// палитровые PNG (mode `P`) иногда отдают чёрный или испорченный
-    /// полупрозрачный кадр при прямой обрезке. Отрисовка в контекст всегда
-    /// даёт корректный RGBA.
+    /// палитровые PNG иногда отдают чёрный или испорченный полупрозрачный
+    /// кадр при прямой обрезке. Отрисовка в контекст всегда даёт корректный
+    /// RGBA. Листы лежат в WebP — iOS декодирует его нативно, а Xcode
+    /// не перекодирует их обратно в палитру, как это делает с PNG.
     private static func slice(_ sheet: UIImage) -> [UIImage]? {
         let w = sheet.size.width / CGFloat(columns)
         let h = sheet.size.height / CGFloat(rows)
         guard w > 0, h > 0 else { return nil }
 
-        let renderer = UIGraphicsImageRenderer(
-            size: CGSize(width: w, height: h),
-            format: {
-                let f = UIGraphicsImageRendererFormat.default()
-                f.opaque = false
-                f.scale = sheet.scale
-                return f
-            }()
-        )
+        let format = UIGraphicsImageRendererFormat.default()
+        format.opaque = false
+        format.scale = sheet.scale
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: w, height: h), format: format)
 
         var result: [UIImage] = []
         for index in 0..<frames {
             let col = CGFloat(index % columns)
             let row = CGFloat(index / columns)
-            let crop = CGRect(x: col * w, y: row * h, width: w, height: h)
-            let image = renderer.image { context in
+            let image = renderer.image { _ in
                 sheet.draw(
-                    in: CGRect(x: -crop.origin.x, y: -crop.origin.y,
+                    in: CGRect(x: -col * w, y: -row * h,
                                width: sheet.size.width, height: sheet.size.height)
                 )
             }
@@ -82,34 +77,59 @@ enum GiftArt {
 
     /// XcodeGen кладёт ресурсы плоским списком в корень бандла, но на случай
     /// подключения папки folder reference проверяем и путь с подпапками.
+    /// WebP — основной формат: Xcode не перекодирует его в палитру.
     private static func load(_ name: String) -> UIImage? {
         if let hit = cache.object(forKey: name as NSString) {
             return hit
         }
-        guard let url = url(for: name),
-              let image = UIImage(contentsOfFile: url.path) else {
-            return nil
-        }
-        cache.setObject(image, forKey: name as NSString)
-        return image
-    }
-
-    private static func url(for name: String) -> URL? {
-        let bundle = Bundle.main
-        let flat = bundle.url(forResource: name, withExtension: "png")
-        if let flat { return flat }
-
-        // Вариант с folder reference: файл лежит внутри Gifts/… в бандле.
-        for directory in ["Gifts/Anim", "Gifts/Preview", "Gifts"] {
-            if let url = bundle.url(forResource: "\(directory)/\(name)", withExtension: nil) {
-                return url
-            }
-            if let url = bundle.url(forResource: "\(directory)/\(name)", withExtension: "png") {
-                return url
+        for candidate in candidates(for: name) {
+            if let image = UIImage(contentsOfFile: candidate.path) {
+                cache.setObject(image, forKey: name as NSString)
+                return image
             }
         }
         return nil
     }
+
+    private static func candidates(for name: String) -> [URL] {
+        var urls: [URL] = []
+        let bundle = Bundle.main
+        let directories = ["", "Gifts/Anim/", "Gifts/Preview/", "Gifts/"]
+        let extensions = ["webp", "png"]
+        for ext in extensions {
+            for directory in directories {
+                if directory.isEmpty {
+                    if let url = bundle.url(forResource: name, withExtension: ext) {
+                        urls.append(url)
+                    }
+                } else {
+                    if let url = bundle.url(forResource: directory + name, withExtension: ext) {
+                        urls.append(url)
+                    }
+                    if let url = bundle.url(forResource: directory + name, withExtension: nil) {
+                        urls.append(url)
+                    }
+                }
+            }
+        }
+        return urls
+    }
+
+    private static let cache: NSCache<NSString, UIImage> = {
+        let c = NSCache<NSString, UIImage>()
+        // Лист 512×512 — около мегабайта в памяти; сорока хватает
+        // на экран витрины, а память не растёт до размера каталога.
+        c.countLimit = 40
+        return c
+    }()
+
+    private static let frameCache: NSCache<NSString, NSArray> = {
+        let c = NSCache<NSString, NSArray>()
+        // 16 кадров — заметно меньше листа, но держим меньше элементов.
+        c.countLimit = 24
+        return c
+    }()
+}
 
     private static let cache: NSCache<NSString, UIImage> = {
         let c = NSCache<NSString, UIImage>()
