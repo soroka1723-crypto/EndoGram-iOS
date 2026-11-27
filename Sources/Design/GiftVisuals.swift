@@ -1,50 +1,118 @@
 import SwiftUI
 import UIKit
 
-/// Кэш картинок подарков: спрайт-листы и превью грузятся один раз.
+/// Кэш картинок подарков: превью и кадры анимаций грузятся один раз.
 ///
-/// Спрайт-лист — это 4×4 кадров анимации `.tgs`, сконвертированных из
-/// настоящего файла Telegram. Кадры лежат в `Resources/Gifts/Anim`.
+/// Анимация — настоящая: кадры взяты из `.tgs`-файлов подарков Telegram
+/// и разложены в спрайт-листы 4×4 (`Resources/Gifts/Anim`). Кадр выбирается
+/// обрезкой `CGImage`, а не смещением через SwiftUI-layout, поэтому картинка
+/// гарантированно попадает в кадр на любой версии системы.
 enum GiftArt {
+
+    /// Сетка спрайт-листа: 4 столбца × 4 строки = 16 кадров.
     static let columns = 4
     static let rows = 4
     static var frames: Int { columns * rows }
 
-    private static let cache: NSCache<NSString, UIImage> = {
-        let cache = NSCache<NSString, UIImage>()
-        // Спрайт-лист 512×512 в памяти — около мегабайта. Держим не больше
-        // сорока: при прокрутке витрины этого хватает, а память не растёт.
-        cache.countLimit = 40
-        return cache
-    }()
+    // MARK: - Загрузка
 
+    /// Превью 256 pt — первый кадр анимации.
     static func preview(_ assetId: String) -> UIImage? {
-        image("gift_\(assetId)")
+        load("gift_\(assetId)")
     }
 
+    /// Спрайт-лист анимации.
     static func sheet(_ assetId: String) -> UIImage? {
-        image("gift_\(assetId)_anim")
+        load("gift_\(assetId)_anim")
     }
 
-    /// XcodeGen кладёт ресурсы из `Resources` в корень бандла, поэтому имя
-    /// ищется плоско; путь с подпапкой проверяется вторым — на случай, если
-    /// папка добавлена как folder reference.
-    private static func image(_ name: String) -> UIImage? {
-        let key = name as NSString
-        if let hit = cache.object(forKey: key) { return hit }
+    /// 16 кадров, нарезанных из спрайт-листа. Готовится один раз на подарок.
+    static func animationFrames(_ assetId: String) -> [UIImage]? {
+        let key = "frames_\(assetId)"
+        if let cached = frameCache.object(forKey: key as NSString) {
+            return cached.isEmpty ? nil : cached
+        }
+        guard let sheet = sheet(assetId),
+              let frames = slice(sheet) else {
+            return nil
+        }
+        frameCache.setObject(frames, forKey: key as NSString)
+        return frames
+    }
 
-        let candidates = [
-            Bundle.main.url(forResource: name, withExtension: "png"),
-            Bundle.main.url(forResource: "Gifts/Preview/\(name)", withExtension: "png"),
-            Bundle.main.url(forResource: "Gifts/Anim/\(name)", withExtension: "png"),
-        ]
-        guard let url = candidates.compactMap({ $0 }).first,
+    /// Нарезка листа 4×4 на отдельные кадры.
+    private static func slice(_ sheet: UIImage) -> [UIImage]? {
+        guard let cg = sheet.cgImage else { return nil }
+        let w = CGFloat(cg.width) / CGFloat(columns)
+        let h = CGFloat(cg.height) / CGFloat(rows)
+        guard w > 0, h > 0 else { return nil }
+
+        var result: [UIImage] = []
+        for index in 0..<frames {
+            let col = index % columns
+            let row = index / columns
+            let rect = CGRect(
+                x: CGFloat(col) * w, y: CGFloat(row) * h,
+                width: w, height: h
+            ).integral
+            // Лист сжат по краю на доли пикселя — берём ближайший валидный rect.
+            let safe = rect.intersection(CGRect(origin: .zero, size: cg.size))
+            guard safe.width > 1, safe.height > 1,
+                  let cropped = cg.cropping(to: safe) else {
+                return nil
+            }
+            result.append(UIImage(cgImage: cropped, scale: sheet.scale, orientation: .up))
+        }
+        return result
+    }
+
+    // MARK: - Поиск в бандле
+
+    /// XcodeGen кладёт ресурсы плоским списком в корень бандла, но на случай
+    /// подключения папки folder reference проверяем и путь с подпапками.
+    private static func load(_ name: String) -> UIImage? {
+        if let hit = cache.object(forKey: name as NSString) {
+            return hit
+        }
+        guard let url = url(for: name),
               let image = UIImage(contentsOfFile: url.path) else {
             return nil
         }
-        cache.setObject(image, forKey: key)
+        cache.setObject(image, forKey: name as NSString)
         return image
     }
+
+    private static func url(for name: String) -> URL? {
+        let bundle = Bundle.main
+        let flat = bundle.url(forResource: name, withExtension: "png")
+        if let flat { return flat }
+
+        // Вариант с folder reference: файл лежит внутри Gifts/… в бандле.
+        for directory in ["Gifts/Anim", "Gifts/Preview", "Gifts"] {
+            if let url = bundle.url(forResource: "\(directory)/\(name)", withExtension: nil) {
+                return url
+            }
+            if let url = bundle.url(forResource: "\(directory)/\(name)", withExtension: "png") {
+                return url
+            }
+        }
+        return nil
+    }
+
+    private static let cache: NSCache<NSString, UIImage> = {
+        let c = NSCache<NSString, UIImage>()
+        // Спрайт-лист 512×512 — около мегабайта в памяти; сорока хватает
+        // на экран витрины, а память не растёт до размера каталога.
+        c.countLimit = 40
+        return c
+    }()
+
+    private static let frameCache: NSCache<NSString, NSArray> = {
+        let c = NSCache<NSString, NSArray>()
+        // 16 кадров — заметно меньше листа, но держим меньше элементов.
+        c.countLimit = 24
+        return c
+    }()
 }
 
 /// Статичный подарок: настоящее превью из Telegram.
@@ -73,10 +141,10 @@ struct GiftImageView: View {
 
 /// Анимированный подарок.
 ///
-/// Анимация — настоящая: кадры взяты из `.tgs`-файла Telegram и разложены
-/// в спрайт-лист 4×4. Кадры считает `TimelineView`, а не `repeatForever`,
-/// поэтому вне экрана и при выключенных анимациях в настройках ничего не
-/// крутится вхолостую.
+/// Кадр выбирается по времени: каждый кадр листа — отдельная картинка,
+/// полученная обрезкой `CGImage`. `TimelineView` считает кадры только пока
+/// экран виден; при выключенных анимациях в настройках картинка замирает на
+/// среднем кадре и не крутится вхолостую.
 struct GiftAnimationView: View {
     let assetId: String
     var size: CGFloat = 96
@@ -88,21 +156,20 @@ struct GiftAnimationView: View {
 
     var body: some View {
         Group {
-            if let sheet = GiftArt.sheet(assetId) {
+            if let frames = GiftArt.animationFrames(assetId), frames.count > 0 {
                 if animated {
-                    TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
-                        sprite(sheet, at: context.date)
+                    TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
+                        frame(frames, at: context.date)
                     }
                 } else {
-                    // Один кадр — самый выразительный (середина анимации).
-                    sprite(sheet, frame: GiftArt.frames / 2)
+                    // Середина анимации — самый выразительный кадр.
+                    frame(frames, index: frames.count / 2)
                 }
             } else if let preview = GiftArt.preview(assetId) {
                 Image(uiImage: preview)
                     .resizable()
                     .interpolation(.high)
                     .scaledToFit()
-                    .frame(width: size, height: size)
             } else {
                 Text(fallbackEmoji)
                     .font(.system(size: size * 0.62))
@@ -112,29 +179,24 @@ struct GiftAnimationView: View {
         .accessibilityHidden(true)
     }
 
-    private func sprite(_ image: UIImage, at date: Date) -> some View {
+    private func frame(_ frames: [UIImage], at date: Date) -> some View {
         let elapsed = date.timeIntervalSince(startedAt)
         let progress = duration > 0 ? elapsed.truncatingRemainder(dividingBy: duration) / duration : 0
-        let frame = min(GiftArt.frames - 1, max(0, Int(progress * Double(GiftArt.frames))))
-        return sprite(image, frame: frame)
+        let clamped = min(max(progress, 0), 1)
+        let index = min(frames.count - 1, Int(clamped * Double(frames.count)))
+        return frame(frames, index: index)
     }
 
-    private func sprite(_ image: UIImage, frame: Int) -> some View {
-        let col = frame % GiftArt.columns
-        let row = frame / GiftArt.columns
-        return Image(uiImage: image)
+    private func frame(_ frames: [UIImage], index: Int) -> some View {
+        Image(uiImage: frames[index])
             .resizable()
             .interpolation(.high)
-            .frame(width: size * CGFloat(GiftArt.columns),
-                   height: size * CGFloat(GiftArt.rows))
-            .offset(x: -CGFloat(col) * size, y: -CGFloat(row) * size)
-            .frame(width: size, height: size, alignment: .topLeading)
-            .clipped()
+            .scaledToFit()
     }
 }
 
-/// Карточка подарка в витрине: анимированное изображение на градиенте
-/// из цвета подарка, с пометками «распродано» и «осталось N».
+/// Карточка подарка в витрине: настоящая анимация на градиенте цвета
+/// подарка, честная пометка «распродано» из данных Telegram, цена и тираж.
 struct GiftTile: View {
     let gift: Gift
     var animated: Bool = true
@@ -181,7 +243,7 @@ struct GiftTile: View {
                 HStack(spacing: 3) {
                     Text("⭐️").font(.system(size: 10))
                     Text(Format.number(gift.price))
-                        .font(.system(size: 12.5, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(Theme.textSecondary)
                     if let total = gift.totalSupply {
                         Text("·")
