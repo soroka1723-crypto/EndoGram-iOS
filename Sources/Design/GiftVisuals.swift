@@ -131,22 +131,6 @@ enum GiftArt {
     }()
 }
 
-    private static let cache: NSCache<NSString, UIImage> = {
-        let c = NSCache<NSString, UIImage>()
-        // Спрайт-лист 512×512 — около мегабайта в памяти; сорока хватает
-        // на экран витрины, а память не растёт до размера каталога.
-        c.countLimit = 40
-        return c
-    }()
-
-    private static let frameCache: NSCache<NSString, NSArray> = {
-        let c = NSCache<NSString, NSArray>()
-        // 16 кадров — заметно меньше листа, но держим меньше элементов.
-        c.countLimit = 24
-        return c
-    }()
-}
-
 /// Статичный подарок: настоящее превью из Telegram.
 struct GiftImageView: View {
     let assetId: String
