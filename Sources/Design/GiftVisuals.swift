@@ -211,11 +211,18 @@ struct GiftAnimationView: View {
     }
 }
 
-/// Карточка подарка в витрине: настоящая анимация на градиенте цвета
-/// подарка, честная пометка «распродано» из данных Telegram, цена и тираж.
+/// Карточка подарка в витрине: настоящая иконка из файла Telegram на
+/// градиенте цвета подарка, честная пометка «распродано» из данных, цена
+/// и тираж.
+///
+/// Иконка — это `assets/png/gift_<id>.png` из архива подарков, а не эмодзи
+/// и не отрендеренный кадр: картинка идёт из тех самых файлов, что лежат
+/// в репозитории подарков. Анимация `.tgs` остаётся на детальном экране и в
+/// пузыре чата — как в Telegram, где в списке подарок статичен, а в карточке
+/// оживает.
 struct GiftTile: View {
     let gift: Gift
-    var animated: Bool = true
+    var animated: Bool = false
     var size: CGFloat = 92
 
     private var color: Color { Color(hex: gift.colorHex) }
@@ -229,13 +236,21 @@ struct GiftTile: View {
                     endPoint: .bottomTrailing
                 )
 
-                GiftAnimationView(
-                    assetId: GiftCatalog.assetId(for: gift),
-                    size: size,
-                    duration: gift.duration,
-                    animated: animated,
-                    fallbackEmoji: gift.emoji
-                )
+                if animated {
+                    GiftAnimationView(
+                        assetId: GiftCatalog.assetId(for: gift),
+                        size: size,
+                        duration: gift.duration,
+                        animated: true,
+                        fallbackEmoji: gift.emoji
+                    )
+                } else {
+                    GiftImageView(
+                        assetId: GiftCatalog.assetId(for: gift),
+                        size: size,
+                        fallbackEmoji: gift.emoji
+                    )
+                }
 
                 if gift.soldOutInTelegram {
                     Text("распродано")

@@ -89,7 +89,7 @@ struct GiftShopView: View {
                                 } label: {
                                     GiftTile(
                                         gift: gift,
-                                        animated: env.snapshot.settings.animationsEnabled,
+                                        animated: false,
                                         size: 84
                                     )
                                 }
